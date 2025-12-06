@@ -5,7 +5,7 @@ function App() {
 
   return (
     <div className="app">
-      <h1>Arkom</h1>
+      <h1 className="rubik-vinyl-regular">Arkom</h1>
       <p>Art showcase platform</p>
       <button onClick={() => setCount(count + 1)}>
         Count: {count}
