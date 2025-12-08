@@ -11,6 +11,7 @@ const PORT = process.env.PORT || 3001;
 // Initialize Neon Auth server
 const stack = new StackServerApp({
   tokenStore: 'cookie',
+  secretServerKey: process.env.STACK_SECRET_SERVER_KEY!,
 });
 
 app.use(cors());
