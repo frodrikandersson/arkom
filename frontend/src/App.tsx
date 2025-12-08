@@ -10,12 +10,24 @@ function HandlerRoutes() {
   return <StackHandler app={stackClientApp} location={location.pathname} fullPage />
 }
 
+interface LeaderboardEntry {
+  userId: string;
+  count: number;
+}
+
 function Home() {
   const user = useUser()
   const [count, setCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
 
   useEffect(() => {
+    // Fetch leaderboard
+    fetch(`${API_URL}/api/counter/leaderboard`)
+      .then(res => res.json())
+      .then(data => setLeaderboard(data.leaderboard))
+      .catch(err => console.error('Failed to fetch leaderboard:', err))
+
     if (user) {
       // Fetch current count
       fetch(`${API_URL}/api/counter/${user.id}`)
@@ -40,6 +52,11 @@ function Home() {
       })
       const data = await res.json()
       setCount(data.count)
+      
+      // Refresh leaderboard
+      const leaderboardRes = await fetch(`${API_URL}/api/counter/leaderboard`)
+      const leaderboardData = await leaderboardRes.json()
+      setLeaderboard(leaderboardData.leaderboard)
     } catch (err) {
       console.error('Failed to increment:', err)
     }
@@ -67,6 +84,22 @@ function Home() {
           <a href="/handler/sign-up">Sign Up</a>
         </div>
       )}
+
+      <div style={{ marginTop: '2rem' }}>
+        <h2>Leaderboard</h2>
+        {leaderboard.length > 0 ? (
+          <ol>
+            {leaderboard.map((entry, index) => (
+              <li key={entry.userId}>
+                User {entry.userId.slice(0, 8)}... - {entry.count} clicks
+                {user && entry.userId === user.id && ' (You!)'}
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p>No scores yet!</p>
+        )}
+      </div>
     </div>
   )
 }

@@ -1,9 +1,25 @@
 import { Router } from 'express';
 import { db } from '../db/index.js';
 import { userCounters } from '../db/schema.js';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 
 const router = Router();
+
+// Get leaderboard
+router.get('/leaderboard', async (req, res) => {
+  try {
+    const topUsers = await db
+      .select()
+      .from(userCounters)
+      .orderBy(desc(userCounters.count))
+      .limit(10);
+    
+    res.json({ leaderboard: topUsers });
+  } catch (error) {
+    console.error('Leaderboard error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 // Get counter for user
 router.get('/:userId', async (req, res) => {
