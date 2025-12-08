@@ -89,7 +89,7 @@ function Home() {
         <h2>Leaderboard</h2>
         {leaderboard.length > 0 ? (
           <ol>
-            {leaderboard.map((entry, index) => (
+            {leaderboard.map((entry) => (
               <li key={entry.userId}>
                 User {entry.userId.slice(0, 8)}... - {entry.count} clicks
                 {user && entry.userId === user.id && ' (You!)'}
