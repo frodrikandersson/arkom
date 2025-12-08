@@ -1,6 +1,14 @@
-import { pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, timestamp, integer } from 'drizzle-orm/pg-core';
 
-// Example schema - modify as needed
+// User counter
+export const userCounters = pgTable('user_counters', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull().unique(),
+  count: integer('count').notNull().default(0),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Your app tables
 export const artworks = pgTable('artworks', {
   id: serial('id').primaryKey(),
   userId: text('user_id').notNull(),
