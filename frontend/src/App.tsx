@@ -1,7 +1,7 @@
-import { Route, Routes, useLocation } from 'react-router-dom'
-import { StackHandler, useUser } from '@stackframe/react'
+import { StackHandler, StackProvider, StackTheme, useUser } from '@stackframe/react'
+import { Suspense } from 'react'
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { stackClientApp } from './stack'
-import { useState } from 'react'
 
 function HandlerRoutes() {
   const location = useLocation()
@@ -10,15 +10,12 @@ function HandlerRoutes() {
 
 function Home() {
   const user = useUser()
-  const [count, setCount] = useState(0)
 
   return (
     <div className="app">
       <h1>Arkom</h1>
       <p>Art showcase platform</p>
-      <button onClick={() => setCount(count + 1)}>
-        Count: {count}
-      </button>
+      
       {user ? (
         <div>
           <p>Welcome, {user.displayName || user.primaryEmail}!</p>
@@ -35,13 +32,19 @@ function Home() {
   )
 }
 
-function App() {
+export default function App() {
   return (
-    <Routes>
-      <Route path="/handler/*" element={<HandlerRoutes />} />
-      <Route path="/" element={<Home />} />
-    </Routes>
+    <Suspense fallback={null}>
+      <BrowserRouter>
+        <StackProvider app={stackClientApp}>
+          <StackTheme>
+            <Routes>
+              <Route path="/handler/*" element={<HandlerRoutes />} />
+              <Route path="/" element={<Home />} />
+            </Routes>
+          </StackTheme>
+        </StackProvider>
+      </BrowserRouter>
+    </Suspense>
   )
 }
-
-export default App
