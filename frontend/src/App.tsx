@@ -11,9 +11,10 @@ function HandlerRoutes() {
 }
 
 interface LeaderboardEntry {
-  userId: string;
+  user_id: string;
   count: number;
-  email: string;
+  display_name: string | null;
+  primary_email: string | null;
 }
 
 function Home() {
@@ -91,9 +92,9 @@ function Home() {
         {leaderboard.length > 0 ? (
           <ol>
             {leaderboard.map((entry) => (
-              <li key={entry.userId}>
-                User {entry.email.slice(0, 8)}... - {entry.count} clicks
-                {user && entry.userId === user.id && ' (You!)'}
+              <li key={entry.user_id}>
+                {entry.display_name || entry.primary_email || `User ${entry.user_id.slice(0, 8)}...`} - {entry.count} clicks
+                {user && entry.user_id === user.id && ' (You!)'}
               </li>
             ))}
           </ol>
