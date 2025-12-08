@@ -6,9 +6,13 @@ function App() {
 
   return (
     <div className="app">
-      <h1>Arkom</h1>
-      <p>Art showcase platform</p>
       
+      <h1 className="rubik-vinyl-regular">Arkom</h1>
+      <p>Art showcase platform</p>
+      <button onClick={() => setCount(count + 1)}>
+        Count: {count}
+      </button>
+
       <SignedOut>
         <SignInButton mode="modal" />
       </SignedOut>
@@ -17,11 +21,6 @@ function App() {
         <UserButton />
         <p>Welcome! You're signed in.</p>
       </SignedIn>
-      <h1 className="rubik-vinyl-regular">Arkom</h1>
-      <p>Art showcase platform</p>
-      <button onClick={() => setCount(count + 1)}>
-        Count: {count}
-      </button>
     </div>
   )
 }
