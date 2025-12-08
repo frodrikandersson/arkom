@@ -13,6 +13,7 @@ function HandlerRoutes() {
 interface LeaderboardEntry {
   userId: string;
   count: number;
+  email: string;
 }
 
 function Home() {
@@ -91,7 +92,7 @@ function Home() {
           <ol>
             {leaderboard.map((entry) => (
               <li key={entry.userId}>
-                User {entry.userId.slice(0, 8)}... - {entry.count} clicks
+                User {entry.email.slice(0, 8)}... - {entry.count} clicks
                 {user && entry.userId === user.id && ' (You!)'}
               </li>
             ))}
