@@ -1,27 +1,46 @@
+import { Route, Routes, useLocation } from 'react-router-dom'
+import { StackHandler, useUser } from '@stackframe/react'
+import { stackClientApp } from './stack'
 import { useState } from 'react'
-import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react'
 
-function App() {
+function HandlerRoutes() {
+  const location = useLocation()
+  return <StackHandler app={stackClientApp} location={location.pathname} fullPage />
+}
+
+function Home() {
+  const user = useUser()
   const [count, setCount] = useState(0)
 
   return (
     <div className="app">
-      
-      <h1 className="rubik-vinyl-regular">Arkom</h1>
+      <h1>Arkom</h1>
       <p>Art showcase platform</p>
       <button onClick={() => setCount(count + 1)}>
         Count: {count}
       </button>
-
-      <SignedOut>
-        <SignInButton mode="modal" />
-      </SignedOut>
-      
-      <SignedIn>
-        <UserButton />
-        <p>Welcome! You're signed in.</p>
-      </SignedIn>
+      {user ? (
+        <div>
+          <p>Welcome, {user.displayName || user.primaryEmail}!</p>
+          <button onClick={() => stackClientApp.signOut()}>Sign Out</button>
+        </div>
+      ) : (
+        <div>
+          <a href="/handler/sign-in">Sign In</a>
+          {' | '}
+          <a href="/handler/sign-up">Sign Up</a>
+        </div>
+      )}
     </div>
+  )
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/handler/*" element={<HandlerRoutes />} />
+      <Route path="/" element={<Home />} />
+    </Routes>
   )
 }
 

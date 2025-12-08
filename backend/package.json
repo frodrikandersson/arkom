@@ -9,8 +9,8 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
-    "@clerk/express": "^1.7.56",
     "@neondatabase/serverless": "^0.10.4",
+    "@stackframe/stack": "^2.8.54",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.2",
