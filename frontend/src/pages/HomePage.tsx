@@ -1,26 +1,21 @@
 import { useAuth } from '../contexts/AuthContext';
-import { useDashboard } from '../hooks/useDashboard';
-import { incrementUserCounter } from '../services/counterService';
+import { useCounter } from '../hooks/useCounter';
+import { useLeaderboard } from '../hooks/useLeaderboard';
 import { AuthButtons } from '../components/AuthButtons/AuthButtons';
 import { CounterButton } from '../components/CounterButton/CounterButton';
 import { Leaderboard } from '../components/Leaderboard/Leaderboard';
-import { useState } from 'react';
 
 export const HomePage = () => {
   const { user, isLoggedIn } = useAuth();
-  const { count, leaderboard, loading, error, refetch } = useDashboard(user?.id || null);
-  const [incrementError, setIncrementError] = useState<string | null>(null);
+  const { count, loading, error, increment } = useCounter(user?.id || null);
+  const { leaderboard, loading: leaderboardLoading, error: leaderboardError, refetch: refetchLeaderboard } = useLeaderboard();
 
   const handleIncrement = async () => {
-    if (!user) return;
-
     try {
-      setIncrementError(null);
-      await incrementUserCounter(user.id);
-      await refetch(); // Refresh dashboard after increment
-    } catch (err: any) {
-      setIncrementError(err.message || 'Failed to increment counter');
-      console.error('Failed to increment:', err);
+      await increment();
+      await refetchLeaderboard();
+    } catch (err) {
+      // Error already handled in hook
     }
   };
 
@@ -38,7 +33,7 @@ export const HomePage = () => {
         <CounterButton 
           count={count}
           loading={loading}
-          error={incrementError || error}
+          error={error}
           onIncrement={handleIncrement}
         />
       )}
@@ -46,8 +41,8 @@ export const HomePage = () => {
       <Leaderboard 
         leaderboard={leaderboard}
         currentUserId={user?.id}
-        loading={loading}
-        error={error}
+        loading={leaderboardLoading}
+        error={leaderboardError}
       />
     </div>
   );
