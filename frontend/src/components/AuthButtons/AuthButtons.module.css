@@ -1,0 +1,60 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 1rem;
+}
+
+.welcome {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-color-dark, #222);
+  margin: 0;
+}
+
+.signOutButton {
+  padding: 0.625rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #fff;
+  background-color: #dc3545;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.signOutButton:hover {
+  background-color: #c82333;
+  transform: translateY(-1px);
+}
+
+.signOutButton:active {
+  transform: translateY(0);
+}
+
+.authLinks {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  font-size: 1rem;
+}
+
+.authLink {
+  color: var(--logo-color-blue, #54c9de);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.authLink:hover {
+  background-color: var(--bg-color-focus, #f0f0f0);
+  color: var(--logo-color-blue-hover, #3794ff);
+}
+
+.separator {
+  color: var(--text-color-soft, #888);
+}
