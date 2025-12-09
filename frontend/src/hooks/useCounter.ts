@@ -28,17 +28,24 @@ export const useCounter = (userId: string | null) => {
   const increment = useCallback(async () => {
     if (!userId) return;
 
+    // Optimistic update - update UI immediately
+    const previousCount = count;
+    setCount(prev => prev + 1);
+    setError(null);
+
     try {
-      setError(null);
+      // Sync with server in background
       const data = await incrementUserCounter(userId);
-      setCount(data.count);
+      setCount(data.count); // Use server's value as source of truth
       return data;
     } catch (err: any) {
+      // Rollback on error
+      setCount(previousCount);
       setError(err.message || 'Failed to increment counter');
       console.error('Failed to increment:', err);
       throw err;
     }
-  }, [userId]);
+  }, [userId, count]);
 
   useEffect(() => {
     fetchCounter();
