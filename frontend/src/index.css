@@ -11,11 +11,7 @@ body {
 }
 
 /* Override Stack auth form text colors */
-[data-stack-auth] h1,
-[data-stack-auth] h2,
-[data-stack-auth] p,
-[data-stack-auth] label,
-[data-stack-auth] span {
+.stack-scope {
   color: #f0f0f0 !important;
 }
 
