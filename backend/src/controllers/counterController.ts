@@ -1,12 +1,9 @@
-import { Router } from 'express';
-import { db } from '../db/index.js';
-import { userCounters } from '../db/schema.js';
-import { eq, desc, sql } from 'drizzle-orm';
+import { Request, Response } from 'express';
+import { db } from '../config/db.js';
+import { userCounters } from '../config/schema.js';
+import { eq, sql } from 'drizzle-orm';
 
-const router = Router();
-
-// Get leaderboard
-router.get('/leaderboard', async (req, res) => {
+export const getLeaderboard = async (req: Request, res: Response) => {
   try {
     const topUsers = await db.execute(sql`
       SELECT 
@@ -25,10 +22,9 @@ router.get('/leaderboard', async (req, res) => {
     console.error('Leaderboard error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-});
+};
 
-// Get counter for user
-router.get('/:userId', async (req, res) => {
+export const getUserCounter = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     
@@ -46,10 +42,9 @@ router.get('/:userId', async (req, res) => {
     console.error('Get counter error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-});
+};
 
-// Increment counter for user
-router.post('/:userId/increment', async (req, res) => {
+export const incrementCounter = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     
@@ -75,6 +70,4 @@ router.post('/:userId/increment', async (req, res) => {
     console.error('Increment counter error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-});
-
-export default router;
+};
