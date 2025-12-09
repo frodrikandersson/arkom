@@ -11,5 +11,11 @@
       "src": "/(.*)",
       "dest": "/src/server.ts"
     }
-  ]
+  ],
+  "crons": [
+    {
+    "path": "/health",
+    "schedule": "*/5 * * * *"
+    }
+]
 }
