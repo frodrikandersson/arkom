@@ -9,7 +9,7 @@
 .welcome {
   font-size: 1.125rem;
   font-weight: 500;
-  color: var(--text-color-dark, #222);
+  color: var(--text-color-light,rgb(197, 197, 197)2);
   margin: 0;
 }
 
