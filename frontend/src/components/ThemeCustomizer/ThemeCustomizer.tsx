@@ -1,15 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { defaultDarkTheme, defaultLightTheme, type Theme } from '../../models/Theme';
 import { ColorPickerModal } from '../ColorPickerModal/ColorPickerModal';
 import styles from './ThemeCustomizer.module.css';
 
 export const ThemeCustomizer = () => {
-  const { currentTheme, customThemes, setTheme, addCustomTheme, updateCustomTheme, deleteCustomTheme } = useTheme();
+  const { user } = useAuth();
+  const { currentTheme, customThemes, setTheme, addCustomTheme, updateCustomTheme, deleteCustomTheme, loadUserThemes } = useTheme();
   const [isCreating, setIsCreating] = useState(false);
   const [editingTheme, setEditingTheme] = useState<Theme | null>(null);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [selectedColorKey, setSelectedColorKey] = useState<keyof Theme['colors'] | null>(null);
+
+  // Load user themes from database when user is logged in
+  useEffect(() => {
+    if (user?.id) {
+      loadUserThemes(user.id);
+    }
+  }, [user?.id]);
 
   const allThemes = [defaultDarkTheme, defaultLightTheme, ...customThemes];
 
@@ -27,13 +36,13 @@ export const ThemeCustomizer = () => {
     setIsCreating(false);
   };
 
-  const saveTheme = () => {
+  const saveTheme = async () => {
     if (!editingTheme) return;
 
     if (isCreating) {
-      addCustomTheme(editingTheme);
+      await addCustomTheme(editingTheme, user?.id);
     } else {
-      updateCustomTheme(editingTheme);
+      await updateCustomTheme(editingTheme);
     }
 
     setEditingTheme(null);
@@ -85,6 +94,12 @@ export const ThemeCustomizer = () => {
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>Theme Customizer</h2>
+
+      {!user && (
+        <div className={styles.warning}>
+          <p>⚠️ Sign in to save themes across devices</p>
+        </div>
+      )}
 
       {/* Theme Selector */}
       {!editingTheme && (

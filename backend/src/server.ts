@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import healthRoutes from './routes/healthRoutes.js';
 import counterRoutes from './routes/counterRoutes.js';
+import themeRoutes from './routes/themeRoutes.js';
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use(express.json());
 // Routes
 app.use('/', healthRoutes);
 app.use('/api/counter', counterRoutes);
+app.use('/api/themes', themeRoutes);
 
 // Only listen if not in Vercel
 if (process.env.NODE_ENV !== 'production') {
