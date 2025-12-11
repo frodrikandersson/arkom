@@ -11,6 +11,7 @@ interface ThemeContextType {
   deleteCustomTheme: (themeId: string) => Promise<void>;
   updateCustomTheme: (theme: Theme) => Promise<void>;
   loadUserThemes: (userId: string) => Promise<void>;
+  resetToDefault: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -23,35 +24,6 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   const [currentTheme, setCurrentTheme] = useState<Theme>(defaultDarkTheme);
   const [customThemes, setCustomThemes] = useState<Theme[]>([]);
 
-  // Load theme from localStorage on mount
-  useEffect(() => {
-    const savedThemeId = localStorage.getItem('arkom-theme-id');
-    const savedCustomThemes = localStorage.getItem('arkom-custom-themes');
-
-    if (savedCustomThemes) {
-      try {
-        const parsed = JSON.parse(savedCustomThemes);
-        setCustomThemes(parsed);
-      } catch (err) {
-        console.error('Failed to parse custom themes:', err);
-      }
-    }
-
-    if (savedThemeId) {
-      const savedTheme = localStorage.getItem(`arkom-theme-${savedThemeId}`);
-      if (savedTheme) {
-        try {
-          const parsed = JSON.parse(savedTheme);
-          setCurrentTheme(parsed);
-        } catch (err) {
-          console.error('Failed to parse saved theme:', err);
-        }
-      } else if (savedThemeId === 'light') {
-        setCurrentTheme(defaultLightTheme);
-      }
-    }
-  }, []);
-
   // Apply theme CSS variables whenever theme changes
   useEffect(() => {
     const root = document.documentElement;
@@ -62,8 +34,11 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
 
   const setTheme = (theme: Theme) => {
     setCurrentTheme(theme);
-    localStorage.setItem('arkom-theme-id', theme.id);
-    localStorage.setItem(`arkom-theme-${theme.id}`, JSON.stringify(theme));
+  };
+
+  const resetToDefault = () => {
+    setCurrentTheme(defaultDarkTheme);
+    setCustomThemes([]);
   };
 
   const loadUserThemes = async (userId: string) => {
@@ -79,9 +54,6 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
       const parsedThemes = themes.map((t: any) => t.themeData as Theme);
       setCustomThemes(parsedThemes);
       
-      // Also save to localStorage for offline access
-      localStorage.setItem('arkom-custom-themes', JSON.stringify(parsedThemes));
-      
       // Check if there's an active theme
       const activeTheme = themes.find((t: any) => t.isActive);
       if (activeTheme) {
@@ -89,33 +61,32 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
       }
     } catch (err) {
       console.error('Failed to load user themes:', err);
-      // Don't crash - just continue with localStorage themes
     }
   };
 
   const addCustomTheme = async (theme: Theme, userId?: string) => {
-    // Save to localStorage
-    const newCustomThemes = [...customThemes, theme];
-    setCustomThemes(newCustomThemes);
-    localStorage.setItem('arkom-custom-themes', JSON.stringify(newCustomThemes));
-    setTheme(theme);
-
     // Save to database if user is logged in
     if (userId) {
       try {
         await createThemeAPI(userId, theme, true);
+        // Reload themes after creation
+        await loadUserThemes(userId);
       } catch (err) {
         console.error('Failed to save theme to database:', err);
+        throw err;
       }
+    } else {
+      // Guest users: just set temporarily (lost on page refresh)
+      const newCustomThemes = [...customThemes, theme];
+      setCustomThemes(newCustomThemes);
+      setTheme(theme);
     }
   };
 
   const deleteCustomTheme = async (themeId: string) => {
-    // Remove from localStorage
+    // Remove from state
     const newCustomThemes = customThemes.filter(t => t.id !== themeId);
     setCustomThemes(newCustomThemes);
-    localStorage.setItem('arkom-custom-themes', JSON.stringify(newCustomThemes));
-    localStorage.removeItem(`arkom-theme-${themeId}`);
     
     if (currentTheme.id === themeId) {
       setTheme(defaultDarkTheme);
@@ -130,10 +101,9 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   };
 
   const updateCustomTheme = async (theme: Theme) => {
-    // Update localStorage
+    // Update state
     const newCustomThemes = customThemes.map(t => t.id === theme.id ? theme : t);
     setCustomThemes(newCustomThemes);
-    localStorage.setItem('arkom-custom-themes', JSON.stringify(newCustomThemes));
     
     if (currentTheme.id === theme.id) {
       setTheme(theme);
@@ -156,6 +126,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
       deleteCustomTheme,
       updateCustomTheme,
       loadUserThemes,
+      resetToDefault,
     }}>
       {children}
     </ThemeContext.Provider>
