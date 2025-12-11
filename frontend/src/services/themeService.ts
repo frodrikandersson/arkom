@@ -3,12 +3,14 @@ import type { Theme } from '../models/Theme';
 
 export const getUserThemes = async (userId: string) => {
   const res = await fetch(`${config.apiUrl}/api/themes/${userId}`);
-  const data = await res.json();
   
   if (!res.ok) {
-    throw new Error(data.error || 'Failed to fetch themes');
+    const text = await res.text();
+    console.error('Get themes error response:', text);
+    throw new Error('Failed to fetch themes');
   }
   
+  const data = await res.json();
   return data.themes;
 };
 
@@ -25,12 +27,13 @@ export const createTheme = async (userId: string, theme: Theme, isActive: boolea
     }),
   });
   
-  const data = await res.json();
-  
   if (!res.ok) {
-    throw new Error(data.error || 'Failed to create theme');
+    const text = await res.text();
+    console.error('Create theme error response:', text);
+    throw new Error('Failed to create theme');
   }
   
+  const data = await res.json();
   return data.theme;
 };
 
@@ -44,12 +47,13 @@ export const updateTheme = async (theme: Theme) => {
     }),
   });
   
-  const data = await res.json();
-  
   if (!res.ok) {
-    throw new Error(data.error || 'Failed to update theme');
+    const text = await res.text();
+    console.error('Update theme error response:', text);
+    throw new Error('Failed to update theme');
   }
   
+  const data = await res.json();
   return data.theme;
 };
 
@@ -58,12 +62,13 @@ export const deleteTheme = async (themeId: string) => {
     method: 'DELETE',
   });
   
-  const data = await res.json();
-  
   if (!res.ok) {
-    throw new Error(data.error || 'Failed to delete theme');
+    const text = await res.text();
+    console.error('Delete theme error response:', text);
+    throw new Error('Failed to delete theme');
   }
   
+  const data = await res.json();
   return data;
 };
 
@@ -74,11 +79,12 @@ export const setActiveTheme = async (userId: string, themeId: string) => {
     body: JSON.stringify({ userId, themeId }),
   });
   
-  const data = await res.json();
-  
   if (!res.ok) {
-    throw new Error(data.error || 'Failed to set active theme');
+    const text = await res.text();
+    console.error('Set active theme error response:', text);
+    throw new Error('Failed to set active theme');
   }
   
+  const data = await res.json();
   return data.theme;
 };

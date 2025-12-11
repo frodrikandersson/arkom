@@ -69,6 +69,13 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   const loadUserThemes = async (userId: string) => {
     try {
       const themes = await getUserThemes(userId);
+      
+      // Handle empty or null results
+      if (!themes || !Array.isArray(themes)) {
+        console.log('No themes found for user');
+        return;
+      }
+      
       const parsedThemes = themes.map((t: any) => t.themeData as Theme);
       setCustomThemes(parsedThemes);
       
@@ -82,6 +89,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
       }
     } catch (err) {
       console.error('Failed to load user themes:', err);
+      // Don't crash - just continue with localStorage themes
     }
   };
 
