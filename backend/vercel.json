@@ -14,8 +14,8 @@
   ],
   "crons": [
     {
-    "path": "/health",
-    "schedule": "*/5 * * * *"
+      "path": "/health",
+      "schedule": "0 0 * * *"
     }
-]
+  ]
 }
