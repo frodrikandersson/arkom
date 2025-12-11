@@ -73,40 +73,34 @@
   padding: 1.5rem;
 }
 
-.previewLarge {
-  width: 100%;
-  height: 120px;
-  border-radius: 8px;
-  border: 2px solid var(--color-cardBorder, #333);
-  margin-bottom: 1.5rem;
-  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
 .pickerWrapper {
   margin-bottom: 1.5rem;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-.colorPicker {
+.pickerWrapper :global(.react-colorful) {
   width: 100%;
-  height: 60px;
-  border: 2px solid var(--color-cardBorder, #333);
-  border-radius: 8px;
-  cursor: pointer;
-  background: none;
+  height: 250px;
+  border-radius: 12px;
 }
 
-.colorPicker::-webkit-color-swatch-wrapper {
-  padding: 0;
+.pickerWrapper :global(.react-colorful__saturation) {
+  border-radius: 12px 12px 0 0;
+  border-bottom: none;
 }
 
-.colorPicker::-webkit-color-swatch {
-  border: none;
-  border-radius: 6px;
+.pickerWrapper :global(.react-colorful__hue) {
+  height: 40px;
+  border-radius: 0;
+  margin-top: 0;
 }
 
-.colorPicker::-moz-color-swatch {
-  border: none;
-  border-radius: 6px;
+.pickerWrapper :global(.react-colorful__pointer) {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .hexInputWrapper {

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { HexColorPicker } from 'react-colorful';
 import styles from './ColorPickerModal.module.css';
 
 interface ColorPickerModalProps {
@@ -26,15 +27,19 @@ export const ColorPickerModal = ({
 
   const handleColorChange = (newColor: string) => {
     setColor(newColor);
-    setHexInput(newColor);
+    setHexInput(newColor.toUpperCase());
   };
 
   const handleHexInputChange = (value: string) => {
-    setHexInput(value);
+    let formatted = value.toUpperCase();
+    if (!formatted.startsWith('#')) {
+      formatted = '#' + formatted;
+    }
+    setHexInput(formatted);
     
     // Validate hex color
-    if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
-      setColor(value);
+    if (/^#[0-9A-Fa-f]{6}$/.test(formatted)) {
+      setColor(formatted);
     }
   };
 
@@ -54,6 +59,14 @@ export const ColorPickerModal = ({
 
   if (!isOpen) return null;
 
+  const presetColors = [
+    '#000000', '#FFFFFF', '#1F1F1F', '#F5F5F5',
+    '#FF0000', '#00FF00', '#0000FF', '#FFFF00',
+    '#FF00FF', '#00FFFF', '#FFA500', '#800080',
+    '#008080', '#FFC0CB', '#A52A2A', '#FFD700',
+    '#00D9FF', '#00FF88', '#FF4444', '#B46BDF',
+  ];
+
   return (
     <div className={styles.overlay} onClick={handleOverlayClick}>
       <div className={styles.modal}>
@@ -63,17 +76,9 @@ export const ColorPickerModal = ({
         </div>
 
         <div className={styles.content}>
-          {/* Large color preview */}
-          <div className={styles.previewLarge} style={{ backgroundColor: color }} />
-
-          {/* Native color picker */}
+          {/* Modern color picker */}
           <div className={styles.pickerWrapper}>
-            <input
-              type="color"
-              value={color}
-              onChange={(e) => handleColorChange(e.target.value)}
-              className={styles.colorPicker}
-            />
+            <HexColorPicker color={color} onChange={handleColorChange} />
           </div>
 
           {/* Hex input */}
@@ -82,7 +87,7 @@ export const ColorPickerModal = ({
             <input
               type="text"
               value={hexInput}
-              onChange={(e) => handleHexInputChange(e.target.value.toUpperCase())}
+              onChange={(e) => handleHexInputChange(e.target.value)}
               placeholder="#000000"
               maxLength={7}
               className={styles.hexInput}
@@ -93,9 +98,7 @@ export const ColorPickerModal = ({
           <div className={styles.presets}>
             <div className={styles.presetsLabel}>Quick Colors</div>
             <div className={styles.presetGrid}>
-              {['#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF', 
-                '#FFFF00', '#FF00FF', '#00FFFF', '#808080', '#FFA500',
-                '#800080', '#008080', '#FFC0CB', '#A52A2A', '#FFD700'].map((preset) => (
+              {presetColors.map((preset) => (
                 <button
                   key={preset}
                   className={styles.presetColor}
