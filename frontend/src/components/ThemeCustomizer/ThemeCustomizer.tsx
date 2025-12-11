@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { defaultDarkTheme, defaultLightTheme, type Theme } from '../../models/Theme';
+import { ColorPickerModal } from '../ColorPickerModal/ColorPickerModal';
 import styles from './ThemeCustomizer.module.css';
 
 export const ThemeCustomizer = () => {
   const { currentTheme, customThemes, setTheme, addCustomTheme, updateCustomTheme, deleteCustomTheme } = useTheme();
   const [isCreating, setIsCreating] = useState(false);
   const [editingTheme, setEditingTheme] = useState<Theme | null>(null);
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  const [selectedColorKey, setSelectedColorKey] = useState<keyof Theme['colors'] | null>(null);
 
   const allThemes = [defaultDarkTheme, defaultLightTheme, ...customThemes];
 
@@ -42,13 +45,18 @@ export const ThemeCustomizer = () => {
     setIsCreating(false);
   };
 
-  const updateColor = (key: keyof Theme['colors'], value: string) => {
-    if (!editingTheme) return;
+  const openColorPicker = (key: keyof Theme['colors']) => {
+    setSelectedColorKey(key);
+    setColorPickerOpen(true);
+  };
+
+  const handleColorSave = (color: string) => {
+    if (!editingTheme || !selectedColorKey) return;
     setEditingTheme({
       ...editingTheme,
       colors: {
         ...editingTheme.colors,
-        [key]: value,
+        [selectedColorKey]: color,
       },
     });
   };
@@ -137,24 +145,13 @@ export const ThemeCustomizer = () => {
             {(Object.keys(editingTheme.colors) as Array<keyof Theme['colors']>).map((colorKey) => (
               <div key={colorKey} className={styles.colorBlock}>
                 <label>{colorLabels[colorKey]}</label>
-                <div className={styles.colorInputWrapper}>
-                  <input
-                    type="color"
-                    value={editingTheme.colors[colorKey]}
-                    onChange={(e) => updateColor(colorKey, e.target.value)}
-                    className={styles.colorInput}
-                  />
-                  <div 
-                    className={styles.colorDisplay}
-                    style={{ backgroundColor: editingTheme.colors[colorKey] }}
-                  />
-                  <input
-                    type="text"
-                    value={editingTheme.colors[colorKey]}
-                    onChange={(e) => updateColor(colorKey, e.target.value)}
-                    className={styles.hexInput}
-                    placeholder="#000000"
-                  />
+                <div 
+                  className={styles.colorDisplay}
+                  style={{ backgroundColor: editingTheme.colors[colorKey] }}
+                  onClick={() => openColorPicker(colorKey)}
+                />
+                <div className={styles.hexDisplay}>
+                  {editingTheme.colors[colorKey]}
                 </div>
               </div>
             ))}
@@ -169,6 +166,17 @@ export const ThemeCustomizer = () => {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Color Picker Modal */}
+      {selectedColorKey && editingTheme && (
+        <ColorPickerModal
+          isOpen={colorPickerOpen}
+          currentColor={editingTheme.colors[selectedColorKey]}
+          colorLabel={colorLabels[selectedColorKey]}
+          onClose={() => setColorPickerOpen(false)}
+          onSave={handleColorSave}
+        />
       )}
     </div>
   );

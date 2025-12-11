@@ -17,3 +17,4 @@ export const artworks = pgTable('artworks', {
   fileType: text('file_type').notNull(), // '2d', '3d', 'image'
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+

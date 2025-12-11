@@ -1,0 +1,214 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  background: var(--color-card, #1f1f1f);
+  border: 2px solid var(--color-cardBorder, #333);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--color-cardBorder, #333);
+}
+
+.header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--color-text, #f0f0f0);
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--color-textSecondary, #ccc);
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.closeBtn:hover {
+  background: var(--color-foreground, #1a1a1a);
+  color: var(--color-text, #f0f0f0);
+}
+
+.content {
+  padding: 1.5rem;
+}
+
+.previewLarge {
+  width: 100%;
+  height: 120px;
+  border-radius: 8px;
+  border: 2px solid var(--color-cardBorder, #333);
+  margin-bottom: 1.5rem;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.pickerWrapper {
+  margin-bottom: 1.5rem;
+}
+
+.colorPicker {
+  width: 100%;
+  height: 60px;
+  border: 2px solid var(--color-cardBorder, #333);
+  border-radius: 8px;
+  cursor: pointer;
+  background: none;
+}
+
+.colorPicker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.colorPicker::-webkit-color-swatch {
+  border: none;
+  border-radius: 6px;
+}
+
+.colorPicker::-moz-color-swatch {
+  border: none;
+  border-radius: 6px;
+}
+
+.hexInputWrapper {
+  margin-bottom: 1.5rem;
+}
+
+.hexInputWrapper label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--color-text, #f0f0f0);
+}
+
+.hexInput {
+  width: 100%;
+  padding: 0.75rem;
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  background: var(--color-foreground, #1a1a1a);
+  color: var(--color-text, #f0f0f0);
+  border: 2px solid var(--color-cardBorder, #333);
+  border-radius: 8px;
+  transition: border-color 0.2s ease;
+}
+
+.hexInput:focus {
+  outline: none;
+  border-color: var(--color-accent, #00d9ff);
+}
+
+.presets {
+  margin-bottom: 0.5rem;
+}
+
+.presetsLabel {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-textSecondary, #ccc);
+  margin-bottom: 0.75rem;
+}
+
+.presetGrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+}
+
+.presetColor {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 2px solid var(--color-cardBorder, #333);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.presetColor:hover {
+  transform: scale(1.1);
+  border-color: var(--color-accent, #00d9ff);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border-top: 1px solid var(--color-cardBorder, #333);
+}
+
+.cancelBtn,
+.saveBtn {
+  flex: 1;
+  padding: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelBtn {
+  background: var(--color-foreground, #1a1a1a);
+  color: var(--color-text, #f0f0f0);
+  border: 1px solid var(--color-cardBorder, #333);
+}
+
+.cancelBtn:hover {
+  background: var(--color-background, #0a0a0a);
+}
+
+.saveBtn {
+  background: var(--color-accent, #00d9ff);
+  color: var(--color-background, #0a0a0a);
+}
+
+.saveBtn:hover {
+  background: var(--color-accentHover, #00b8e6);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
+}
