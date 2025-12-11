@@ -3,6 +3,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { StackProvider, StackTheme } from '@stackframe/react';
 import { stackClientApp } from './config/stack';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { AppRoutes } from './routes/AppRoutes';
 
 export const App: React.FC = () => {
@@ -11,9 +12,11 @@ export const App: React.FC = () => {
       <BrowserRouter>
         <StackProvider app={stackClientApp}>
           <StackTheme>
-            <AuthProvider>
-              <AppRoutes />
-            </AuthProvider>
+            <ThemeProvider>
+              <AuthProvider>
+                <AppRoutes />
+              </AuthProvider>
+            </ThemeProvider>
           </StackTheme>
         </StackProvider>
       </BrowserRouter>

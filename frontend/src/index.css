@@ -4,15 +4,30 @@
   box-sizing: border-box;
 }
 
+:root {
+  /* Default dark theme */
+  --color-background: #0a0a0a;
+  --color-foreground: #1a1a1a;
+  --color-card: #1f1f1f;
+  --color-cardBorder: #333333;
+  --color-text: #f0f0f0;
+  --color-textSecondary: #cccccc;
+  --color-accent: #00d9ff;
+  --color-accentHover: #00b8e6;
+  --color-error: #ff4444;
+  --color-success: #00ff88;
+}
+
 body {
   font-family: system-ui, -apple-system, sans-serif;
-  background-color: #0a0a0a;
-  color: #f0f0f0;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Override Stack auth form text colors */
 .stack-scope {
-  color: #f0f0f0 !important;
+  color: var(--color-text) !important;
 }
 
 .app {
@@ -28,37 +43,13 @@ button {
   padding: 0.5rem 1rem;
   font-size: 1rem;
   cursor: pointer;
-  background-color: #333;
-  color: #fff;
-  border: 1px solid #555;
+  background-color: var(--color-card);
+  color: var(--color-text);
+  border: 1px solid var(--color-cardBorder);
   border-radius: 4px;
+  transition: all 0.2s ease;
 }
 
 button:hover {
-  background-color: #444;
-}
-
-/* FONTS */
-.rubik-vinyl-regular {
-  font-family: "Rubik Vinyl", system-ui;
-  font-weight: 400;
-  font-style: normal;
-}
-
-.rubik-80s-fade-regular {
-  font-family: "Rubik 80s Fade", system-ui;
-  font-weight: 400;
-  font-style: normal;
-}
-
-.rubik-wet-paint-regular {
-  font-family: "Rubik Wet Paint", system-ui;
-  font-weight: 400;
-  font-style: normal;
-}
-
-.rubik-scribble-regular {
-  font-family: "Rubik Scribble", system-ui;
-  font-weight: 400;
-  font-style: normal;
+  background-color: var(--color-foreground);
 }
