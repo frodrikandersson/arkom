@@ -103,7 +103,7 @@ export const ThemeCustomizer = () => {
               <div
                 key={theme.id}
                 className={`${styles.themeCard} ${currentTheme.id === theme.id ? styles.active : ''}`}
-                onClick={() => setTheme(theme)}
+                onClick={() => setTheme(theme, user?.id)}
               >
                 <div className={styles.themeName}>{theme.name}</div>
                 <div className={styles.colorPreview}>

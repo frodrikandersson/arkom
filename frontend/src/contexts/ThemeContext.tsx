@@ -1,12 +1,12 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { Theme } from '../models/Theme';
-import { defaultDarkTheme } from '../models/Theme';
-import { getUserThemes, createTheme as createThemeAPI, updateTheme as updateThemeAPI, deleteTheme as deleteThemeAPI } from '../services/themeService';
+import { defaultDarkTheme, defaultLightTheme } from '../models/Theme';
+import { getUserThemes, getUserActiveTheme, setUserActiveTheme, createTheme as createThemeAPI, updateTheme as updateThemeAPI, deleteTheme as deleteThemeAPI } from '../services/themeService';
 
 interface ThemeContextType {
   currentTheme: Theme;
   customThemes: Theme[];
-  setTheme: (theme: Theme) => void;
+  setTheme: (theme: Theme, userId?: string | null) => Promise<void>;
   addCustomTheme: (theme: Theme, userId?: string) => Promise<void>;
   deleteCustomTheme: (themeId: string) => Promise<void>;
   updateCustomTheme: (theme: Theme) => Promise<void>;
@@ -45,8 +45,17 @@ export const ThemeProvider = ({ children, userId }: ThemeProviderProps) => {
     });
   }, [currentTheme]);
 
-  const setTheme = (theme: Theme) => {
+  const setTheme = async (theme: Theme, userId?: string | null) => {
     setCurrentTheme(theme);
+    
+    // Save active theme selection to database if user is logged in
+    if (userId) {
+      try {
+        await setUserActiveTheme(userId, theme.id);
+      } catch (err) {
+        console.error('Failed to save active theme:', err);
+      }
+    }
   };
 
   const resetToDefault = () => {
@@ -57,22 +66,33 @@ export const ThemeProvider = ({ children, userId }: ThemeProviderProps) => {
   const loadUserThemes = async (userId: string) => {
     try {
       setIsLoading(true);
+      
+      // Load custom themes
       const themes = await getUserThemes(userId);
       
       // Handle empty or null results
       if (!themes || !Array.isArray(themes)) {
         console.log('No themes found for user');
-        setIsLoading(false);
-        return;
+      } else {
+        const parsedThemes = themes.map((t: any) => t.themeData as Theme);
+        setCustomThemes(parsedThemes);
       }
       
-      const parsedThemes = themes.map((t: any) => t.themeData as Theme);
-      setCustomThemes(parsedThemes);
-      
-      // Check if there's an active theme
-      const activeTheme = themes.find((t: any) => t.isActive);
-      if (activeTheme) {
-        setTheme(activeTheme.themeData);
+      // Load active theme ID
+      const activeThemeId = await getUserActiveTheme(userId);
+      if (activeThemeId) {
+        // Check if it's a default theme
+        if (activeThemeId === 'dark') {
+          setCurrentTheme(defaultDarkTheme);
+        } else if (activeThemeId === 'light') {
+          setCurrentTheme(defaultLightTheme);
+        } else {
+          // It's a custom theme
+          const customTheme = themes?.find((t: any) => t.themeData.id === activeThemeId);
+          if (customTheme) {
+            setCurrentTheme(customTheme.themeData);
+          }
+        }
       }
     } catch (err) {
       console.error('Failed to load user themes:', err);

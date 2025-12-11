@@ -1,6 +1,36 @@
 import { config } from '../config/env';
 import type { Theme } from '../models/Theme';
 
+export const getUserActiveTheme = async (userId: string) => {
+  const res = await fetch(`${config.apiUrl}/api/themes/active/${userId}`);
+  
+  if (!res.ok) {
+    const text = await res.text();
+    console.error('Get active theme error response:', text);
+    throw new Error('Failed to fetch active theme');
+  }
+  
+  const data = await res.json();
+  return data.activeThemeId;
+};
+
+export const setUserActiveTheme = async (userId: string, themeId: string) => {
+  const res = await fetch(`${config.apiUrl}/api/themes/active`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, themeId }),
+  });
+  
+  if (!res.ok) {
+    const text = await res.text();
+    console.error('Set active theme error response:', text);
+    throw new Error('Failed to set active theme');
+  }
+  
+  const data = await res.json();
+  return data.activeThemeId;
+};
+
 export const getUserThemes = async (userId: string) => {
   const res = await fetch(`${config.apiUrl}/api/themes/${userId}`);
   

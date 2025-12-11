@@ -20,6 +20,14 @@ export const userThemes = pgTable('user_themes', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// User active theme (stores which theme is currently active, including defaults)
+export const userActiveTheme = pgTable('user_active_theme', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull().unique(),
+  activeThemeId: text('active_theme_id').notNull(), // Can be 'dark', 'light', or custom theme ID
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // Artworks
 export const artworks = pgTable('artworks', {
   id: serial('id').primaryKey(),

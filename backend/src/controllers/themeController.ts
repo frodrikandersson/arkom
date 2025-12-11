@@ -1,7 +1,50 @@
 import { Request, Response } from 'express';
 import { db } from '../config/db.js';
-import { userThemes } from '../config/schema.js';
+import { userThemes, userActiveTheme } from '../config/schema.js';
 import { eq, and } from 'drizzle-orm';
+
+export const getUserActiveTheme = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    
+    const [active] = await db.select().from(userActiveTheme).where(eq(userActiveTheme.userId, userId));
+    
+    res.json({ activeThemeId: active?.activeThemeId || null });
+  } catch (error) {
+    console.error('Get active theme error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const setUserActiveTheme = async (req: Request, res: Response) => {
+  try {
+    const { userId, themeId } = req.body;
+    
+    if (!userId || !themeId) {
+      res.status(400).json({ error: 'Missing required fields' });
+      return;
+    }
+
+    // Upsert active theme
+    const [existing] = await db.select().from(userActiveTheme).where(eq(userActiveTheme.userId, userId));
+    
+    if (existing) {
+      await db.update(userActiveTheme)
+        .set({ activeThemeId: themeId, updatedAt: new Date() })
+        .where(eq(userActiveTheme.userId, userId));
+    } else {
+      await db.insert(userActiveTheme).values({
+        userId,
+        activeThemeId: themeId,
+      });
+    }
+    
+    res.json({ activeThemeId: themeId });
+  } catch (error) {
+    console.error('Set active theme error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
 
 export const getUserThemes = async (req: Request, res: Response) => {
   try {
