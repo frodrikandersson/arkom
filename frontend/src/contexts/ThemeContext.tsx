@@ -12,17 +12,30 @@ interface ThemeContextType {
   updateCustomTheme: (theme: Theme) => Promise<void>;
   loadUserThemes: (userId: string) => Promise<void>;
   resetToDefault: () => void;
+  isLoading: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 interface ThemeProviderProps {
   children: ReactNode;
+  userId?: string | null;
 }
 
-export const ThemeProvider = ({ children }: ThemeProviderProps) => {
+export const ThemeProvider = ({ children, userId }: ThemeProviderProps) => {
   const [currentTheme, setCurrentTheme] = useState<Theme>(defaultDarkTheme);
   const [customThemes, setCustomThemes] = useState<Theme[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Load user themes when userId changes
+  useEffect(() => {
+    if (userId) {
+      loadUserThemes(userId);
+    } else {
+      // User logged out, reset to default
+      resetToDefault();
+    }
+  }, [userId]);
 
   // Apply theme CSS variables whenever theme changes
   useEffect(() => {
@@ -43,11 +56,13 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
 
   const loadUserThemes = async (userId: string) => {
     try {
+      setIsLoading(true);
       const themes = await getUserThemes(userId);
       
       // Handle empty or null results
       if (!themes || !Array.isArray(themes)) {
         console.log('No themes found for user');
+        setIsLoading(false);
         return;
       }
       
@@ -61,6 +76,8 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
       }
     } catch (err) {
       console.error('Failed to load user themes:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -127,6 +144,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
       updateCustomTheme,
       loadUserThemes,
       resetToDefault,
+      isLoading,
     }}>
       {children}
     </ThemeContext.Provider>

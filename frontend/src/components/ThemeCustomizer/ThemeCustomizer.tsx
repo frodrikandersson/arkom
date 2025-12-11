@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { defaultDarkTheme, defaultLightTheme, type Theme } from '../../models/Theme';
@@ -7,18 +7,11 @@ import styles from './ThemeCustomizer.module.css';
 
 export const ThemeCustomizer = () => {
   const { user } = useAuth();
-  const { currentTheme, customThemes, setTheme, addCustomTheme, updateCustomTheme, deleteCustomTheme, loadUserThemes } = useTheme();
+  const { currentTheme, customThemes, setTheme, addCustomTheme, updateCustomTheme, deleteCustomTheme } = useTheme();
   const [isCreating, setIsCreating] = useState(false);
   const [editingTheme, setEditingTheme] = useState<Theme | null>(null);
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [selectedColorKey, setSelectedColorKey] = useState<keyof Theme['colors'] | null>(null);
-
-  // Load user themes from database when user is logged in
-  useEffect(() => {
-    if (user?.id) {
-      loadUserThemes(user.id);
-    }
-  }, [user?.id]);
 
   const allThemes = [defaultDarkTheme, defaultLightTheme, ...customThemes];
 
