@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { Theme } from '../models/Theme';
 import { defaultDarkTheme, defaultLightTheme } from '../models/Theme';
-import { getUserThemes, getUserActiveTheme, setUserActiveTheme, createTheme as createThemeAPI, updateTheme as updateThemeAPI, deleteTheme as deleteThemeAPI } from '../services/themeService';
+import { getUserThemes, getUserActiveTheme, setUserActiveTheme, createTheme as createThemeAPI, updateTheme as updateThemeAPI } from '../services/themeService';
 
 interface ThemeContextType {
   currentTheme: Theme;
