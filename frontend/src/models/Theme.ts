@@ -48,3 +48,9 @@ export const defaultLightTheme: Theme = {
     success: '#00cc66',
   },
 };
+
+export const createDefaultCustomTheme = (userId: string): Theme => ({
+  id: `custom-${userId}`,
+  name: 'My Custom Theme',
+  colors: { ...defaultDarkTheme.colors },
+});

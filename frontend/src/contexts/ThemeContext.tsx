@@ -5,11 +5,10 @@ import { getUserThemes, getUserActiveTheme, setUserActiveTheme, createTheme as c
 
 interface ThemeContextType {
   currentTheme: Theme;
-  customThemes: Theme[];
+  customTheme: Theme | null;
   setTheme: (theme: Theme, userId?: string | null) => Promise<void>;
-  addCustomTheme: (theme: Theme, userId?: string) => Promise<void>;
-  deleteCustomTheme: (themeId: string) => Promise<void>;
-  updateCustomTheme: (theme: Theme) => Promise<void>;
+  previewTheme: (theme: Theme) => void; // Live preview without saving
+  saveCustomTheme: (theme: Theme, userId: string) => Promise<void>;
   loadUserThemes: (userId: string) => Promise<void>;
   resetToDefault: () => void;
   isLoading: boolean;
@@ -24,7 +23,7 @@ interface ThemeProviderProps {
 
 export const ThemeProvider = ({ children, userId }: ThemeProviderProps) => {
   const [currentTheme, setCurrentTheme] = useState<Theme>(defaultDarkTheme);
-  const [customThemes, setCustomThemes] = useState<Theme[]>([]);
+  const [customTheme, setCustomTheme] = useState<Theme | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Load user themes when userId changes
@@ -58,9 +57,14 @@ export const ThemeProvider = ({ children, userId }: ThemeProviderProps) => {
     }
   };
 
+  const previewTheme = (theme: Theme) => {
+    // Just update the current theme visually, don't save to database
+    setCurrentTheme(theme);
+  };
+
   const resetToDefault = () => {
     setCurrentTheme(defaultDarkTheme);
-    setCustomThemes([]);
+    setCustomTheme(null);
   };
 
   const loadUserThemes = async (userId: string) => {
@@ -70,12 +74,12 @@ export const ThemeProvider = ({ children, userId }: ThemeProviderProps) => {
       // Load custom themes
       const themes = await getUserThemes(userId);
       
-      // Handle empty or null results
-      if (!themes || !Array.isArray(themes)) {
-        console.log('No themes found for user');
-      } else {
-        const parsedThemes = themes.map((t: any) => t.themeData as Theme);
-        setCustomThemes(parsedThemes);
+      // Get the user's custom theme (should only be one)
+      if (themes && Array.isArray(themes) && themes.length > 0) {
+        const userCustomTheme = themes.find((t: any) => t.themeData.id.startsWith('custom-'));
+        if (userCustomTheme) {
+          setCustomTheme(userCustomTheme.themeData);
+        }
       }
       
       // Load active theme ID
@@ -87,7 +91,7 @@ export const ThemeProvider = ({ children, userId }: ThemeProviderProps) => {
         } else if (activeThemeId === 'light') {
           setCurrentTheme(defaultLightTheme);
         } else {
-          // It's a custom theme
+          // It's the custom theme
           const customTheme = themes?.find((t: any) => t.themeData.id === activeThemeId);
           if (customTheme) {
             setCurrentTheme(customTheme.themeData);
@@ -101,67 +105,35 @@ export const ThemeProvider = ({ children, userId }: ThemeProviderProps) => {
     }
   };
 
-  const addCustomTheme = async (theme: Theme, userId?: string) => {
-    // Save to database if user is logged in
-    if (userId) {
-      try {
-        await createThemeAPI(userId, theme, true);
-        // Reload themes after creation
-        await loadUserThemes(userId);
-      } catch (err) {
-        console.error('Failed to save theme to database:', err);
-        throw err;
+  const saveCustomTheme = async (theme: Theme, userId: string) => {
+    try {
+      // Check if custom theme already exists
+      if (customTheme) {
+        // Update existing
+        await updateThemeAPI(theme);
+      } else {
+        // Create new
+        await createThemeAPI(userId, theme, false);
       }
-    } else {
-      // Guest users: just set temporarily (lost on page refresh)
-      const newCustomThemes = [...customThemes, theme];
-      setCustomThemes(newCustomThemes);
-      setTheme(theme);
-    }
-  };
-
-  const deleteCustomTheme = async (themeId: string) => {
-    // Remove from state
-    const newCustomThemes = customThemes.filter(t => t.id !== themeId);
-    setCustomThemes(newCustomThemes);
-    
-    if (currentTheme.id === themeId) {
-      setTheme(defaultDarkTheme);
-    }
-
-    // Delete from database
-    try {
-      await deleteThemeAPI(themeId);
+      
+      // Update local state
+      setCustomTheme(theme);
+      
+      // Reload to ensure sync
+      await loadUserThemes(userId);
     } catch (err) {
-      console.error('Failed to delete theme from database:', err);
-    }
-  };
-
-  const updateCustomTheme = async (theme: Theme) => {
-    // Update state
-    const newCustomThemes = customThemes.map(t => t.id === theme.id ? theme : t);
-    setCustomThemes(newCustomThemes);
-    
-    if (currentTheme.id === theme.id) {
-      setTheme(theme);
-    }
-
-    // Update database
-    try {
-      await updateThemeAPI(theme);
-    } catch (err) {
-      console.error('Failed to update theme in database:', err);
+      console.error('Failed to save custom theme:', err);
+      throw err;
     }
   };
 
   return (
     <ThemeContext.Provider value={{
       currentTheme,
-      customThemes,
+      customTheme,
       setTheme,
-      addCustomTheme,
-      deleteCustomTheme,
-      updateCustomTheme,
+      previewTheme,
+      saveCustomTheme,
       loadUserThemes,
       resetToDefault,
       isLoading,
