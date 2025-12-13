@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { Header } from '../components/Header/Header';
+import { MobileNav } from '../components/MobileNav/MobileNav';
 import styles from './MainLayout.module.css';
 
 export const MainLayout = () => {
@@ -18,6 +19,11 @@ export const MainLayout = () => {
       <main className={styles.main}>
         <Outlet />
       </main>
+      <MobileNav 
+        basketCount={basketCount}
+        messageCount={messageCount}
+        alertCount={alertCount}
+      />
     </div>
   );
 };

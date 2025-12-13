@@ -32,12 +32,12 @@ export const Header = ({
         {/* Right side */}
         <div className={styles.right}>
           {isLoggedIn && (
-            <>
+            <div className={styles.desktopOnly}>
               <BasketButton itemCount={basketCount} />
               <MessageButton unreadCount={messageCount} />
               <AlertButton alertCount={alertCount} />
               <UserMenu />
-            </>
+            </div>
           )}
           
           {!isLoggedIn && (
