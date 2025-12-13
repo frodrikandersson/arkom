@@ -13,9 +13,9 @@
   -webkit-backdrop-filter: blur(12px);
   padding: 0.5rem;
   padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
-  /* Kill all transitions/animations */
-  transition: none !important;
-  animation: none !important;
+  /* Extend downward to hide detachment */
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom) + 100px);
+  margin-bottom: -100px; /* Pull content back up */
 }
 
 @supports (height: 100dvh) {
@@ -32,7 +32,6 @@
   justify-content: space-around;
   max-width: 600px;
   margin: 0 auto;
-  transition: none !important;
 }
 
 .authLink {
