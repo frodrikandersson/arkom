@@ -1,11 +1,9 @@
 .mobileNav {
   display: none;
-  position: sticky;
-  position: -webkit-sticky;
+  position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  margin-top: auto; /* Push to bottom of flex container */
   background: rgba(31, 31, 31, 0.98);
   border-top: 1px solid var(--color-cardBorder);
   z-index: 90;
@@ -13,13 +11,15 @@
   -webkit-backdrop-filter: blur(12px);
   padding: 0.5rem;
   padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+  /* Prevent any layout shifts */
+  contain: layout style paint;
+  transform: translateZ(0);
 }
 
-@supports (height: 100dvh) {
+/* Use smallest viewport height to prevent resize on scroll */
+@supports (height: 100svh) {
   .mobileNav {
-    /* Modern browsers with dynamic viewport support */
-    position: fixed;
-    bottom: 0;
+    bottom: max(0px, calc(100vh - 100svh));
   }
 }
 
