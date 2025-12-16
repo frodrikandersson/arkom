@@ -1,0 +1,13 @@
+.chatManager {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 999;
+}
+
+.chatManager > div {
+  position: fixed;
+  bottom: 0;
+  pointer-events: all;
+}

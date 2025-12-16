@@ -1,0 +1,12 @@
+.emojiPicker {
+  /* Emoji-mart handles most styling internally */
+  /* Theme colors are applied dynamically via JavaScript */
+  max-height: inherit;
+  overflow: hidden;
+}
+
+.emojiPicker :global(em-emoji-picker) {
+  --border-radius: 8px;
+  --font-family: inherit;
+  max-height: inherit;
+}

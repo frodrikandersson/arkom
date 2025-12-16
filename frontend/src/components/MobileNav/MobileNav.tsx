@@ -9,9 +9,10 @@ interface MobileNavProps {
   basketCount?: number;
   messageCount?: number;
   alertCount?: number;
+  onOpenChat: (conversationId: number, otherUserId: string, otherUserName?: string, otherUserAvatar?: string) => void;
 }
 
-export const MobileNav = ({ basketCount = 0, messageCount = 0, alertCount = 0 }: MobileNavProps) => {
+export const MobileNav = ({ basketCount = 0, messageCount = 0, alertCount = 0, onOpenChat }: MobileNavProps) => {
   const { isLoggedIn } = useAuth();
 
   return (
@@ -20,7 +21,7 @@ export const MobileNav = ({ basketCount = 0, messageCount = 0, alertCount = 0 }:
         {isLoggedIn ? (
           <>
             <BasketButton itemCount={basketCount} />
-            <MessageButton unreadCount={messageCount} />
+            <MessageButton unreadCount={messageCount} onOpenChat={onOpenChat} />
             <AlertButton alertCount={alertCount} />
             <UserMenu />
           </>

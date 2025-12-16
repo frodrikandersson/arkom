@@ -1,0 +1,209 @@
+import { Request, Response } from 'express';
+import { db } from '../config/db.js';
+import { conversations, messages } from '../config/schema.js';
+import { eq, or, and, desc, not } from 'drizzle-orm';
+import { uploadToR2, getSignedDownloadUrl } from '../config/r2.js';
+
+export const getConversations = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    
+    // Get all conversations for this user
+    const userConversations = await db
+      .select()
+      .from(conversations)
+      .where(
+        or(
+          eq(conversations.participantOneId, userId),
+          eq(conversations.participantTwoId, userId)
+        )
+      )
+      .orderBy(desc(conversations.lastMessageAt));
+    
+    // For each conversation, get the last message and unread count
+    const conversationsWithDetails = await Promise.all(
+      userConversations.map(async (conv) => {
+        const [lastMessage] = await db
+          .select()
+          .from(messages)
+          .where(eq(messages.conversationId, conv.id))
+          .orderBy(desc(messages.createdAt))
+          .limit(1);
+        
+        const unreadCount = await db
+          .select()
+          .from(messages)
+          .where(
+            and(
+              eq(messages.conversationId, conv.id),
+              eq(messages.isRead, false),
+              eq(messages.senderId, conv.participantOneId === userId ? conv.participantTwoId : conv.participantOneId)
+            )
+          );
+        
+        const otherUserId = conv.participantOneId === userId ? conv.participantTwoId : conv.participantOneId;
+        
+        return {
+          conversationId: conv.id,
+          otherUserId,
+          lastMessage: lastMessage?.content || '',
+          lastMessageAt: conv.lastMessageAt,
+          unreadCount: unreadCount.length,
+        };
+      })
+    );
+    
+    res.json({ conversations: conversationsWithDetails });
+  } catch (error) {
+    console.error('Get conversations error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getMessages = async (req: Request, res: Response) => {
+  try {
+    const { conversationId } = req.params;
+    
+    const conversationMessages = await db
+      .select()
+      .from(messages)
+      .where(eq(messages.conversationId, parseInt(conversationId)))
+      .orderBy(messages.createdAt);
+    
+    res.json({ messages: conversationMessages });
+  } catch (error) {
+    console.error('Get messages error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const sendMessage = async (req: Request, res: Response) => {
+  try {
+    const { senderId, recipientId, content } = req.body;
+    const file = req.file;
+    
+    if (!senderId || !recipientId) {
+      res.status(400).json({ error: 'Sender and recipient are required' });
+      return;
+    }
+
+    if (!content && !file) {
+      res.status(400).json({ error: 'Message content or file is required' });
+      return;
+    }
+    
+    // Find or create conversation
+    let [conversation] = await db
+      .select()
+      .from(conversations)
+      .where(
+        or(
+          and(
+            eq(conversations.participantOneId, senderId),
+            eq(conversations.participantTwoId, recipientId)
+          ),
+          and(
+            eq(conversations.participantOneId, recipientId),
+            eq(conversations.participantTwoId, senderId)
+          )
+        )
+      );
+    
+    if (!conversation) {
+      [conversation] = await db
+        .insert(conversations)
+        .values({
+          participantOneId: senderId,
+          participantTwoId: recipientId,
+        })
+        .returning();
+    }
+    
+    // Prepare message data
+    const messageData: any = {
+      conversationId: conversation.id,
+      senderId,
+      content: content || null,
+    };
+
+    // Add file data if present
+    if (file) {
+      const { url, key } = await uploadToR2(file, 'messages');
+      messageData.fileUrl = url;
+      messageData.fileName = file.originalname;
+      messageData.fileType = file.mimetype;
+      messageData.fileSize = file.size;
+    }
+    
+    // Create message
+    const [message] = await db
+      .insert(messages)
+      .values(messageData)
+      .returning();
+    
+    // Update conversation last message time
+    await db
+      .update(conversations)
+      .set({ lastMessageAt: new Date() })
+      .where(eq(conversations.id, conversation.id));
+    
+    res.json({ message });
+  } catch (error) {
+    console.error('Send message error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const markAsRead = async (req: Request, res: Response) => {
+  try {
+    const { conversationId, userId } = req.body;
+    
+    if (!conversationId || !userId) {
+      res.status(400).json({ error: 'Missing required fields' });
+      return;
+    }
+    
+    // Mark all unread messages in this conversation that were NOT sent by the current user
+    await db
+      .update(messages)
+      .set({ isRead: true })
+      .where(
+        and(
+          eq(messages.conversationId, conversationId),
+          eq(messages.isRead, false),
+          // Only mark messages sent by the OTHER person as read
+          not(eq(messages.senderId, userId))
+        )
+      );
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Mark as read error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getDownloadUrl = async (req: Request, res: Response) => {
+  try {
+    const { fileUrl, fileName } = req.query;
+    
+    if (!fileUrl || typeof fileUrl !== 'string') {
+      res.status(400).json({ error: 'File URL is required' });
+      return;
+    }
+    
+    // Extract key from full URL (e.g., https://files.arkom.ink/messages/123-file.jpg -> messages/123-file.jpg)
+    const key = fileUrl.split('/').slice(-2).join('/');
+    
+    const signedUrl = await getSignedDownloadUrl(
+      key,
+      (fileName as string) || 'download',
+      300 // 5 minutes
+    );
+    
+    res.json({ downloadUrl: signedUrl });
+  } catch (error) {
+    console.error('Get download URL error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};

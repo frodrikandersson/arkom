@@ -11,12 +11,14 @@ interface HeaderProps {
   basketCount?: number;
   messageCount?: number;
   alertCount?: number;
+  onOpenChat: (conversationId: number, otherUserId: string, otherUserName?: string, otherUserAvatar?: string) => void;
 }
 
 export const Header = ({ 
   basketCount = 0, 
   messageCount = 0, 
-  alertCount = 0 
+  alertCount = 0,
+  onOpenChat,
 }: HeaderProps) => {
   const { isLoggedIn } = useAuth();
 
@@ -34,7 +36,7 @@ export const Header = ({
           {isLoggedIn && (
             <div className={styles.desktopOnly}>
               <BasketButton itemCount={basketCount} />
-              <MessageButton unreadCount={messageCount} />
+              <MessageButton unreadCount={messageCount} onOpenChat={onOpenChat} />
               <AlertButton alertCount={alertCount} />
               <UserMenu />
             </div>

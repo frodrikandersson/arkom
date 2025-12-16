@@ -1,0 +1,91 @@
+.section {
+  background: var(--color-card);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.section h2 {
+  font-size: 1.25rem;
+  color: var(--color-text);
+  margin-bottom: 1.5rem;
+}
+
+.field {
+  margin-bottom: 1.5rem;
+}
+
+.field label {
+  display: block;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+  font-size: 0.9375rem;
+}
+
+.select {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.75rem;
+  background: var(--color-foreground);
+  color: var(--color-text);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.help {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-textSecondary);
+}
+
+.saveBtn {
+  padding: 0.75rem 1.5rem;
+  background: var(--color-accent);
+  color: var(--color-background);
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saveBtn:hover:not(:disabled) {
+  background: var(--color-accentHover);
+  transform: translateY(-1px);
+}
+
+.saveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.message {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-success);
+  color: var(--color-background);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 1.5rem;
+  }
+
+  .select {
+    max-width: 100%;
+  }
+}

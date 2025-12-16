@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import healthRoutes from './routes/healthRoutes.js';
 import counterRoutes from './routes/counterRoutes.js';
 import themeRoutes from './routes/themeRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 dotenv.config();
 
@@ -24,6 +26,8 @@ app.use(express.json());
 app.use('/', healthRoutes);
 app.use('/api/counter', counterRoutes);
 app.use('/api/themes', themeRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/users', userRoutes);
 
 // Only listen if not in Vercel
 if (process.env.NODE_ENV !== 'production') {

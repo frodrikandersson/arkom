@@ -6,9 +6,10 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 1rem;
   background: none;
-  border: none;
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 8px;
   color: var(--color-text);
   font-size: 1rem;
   font-weight: 500;

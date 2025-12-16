@@ -48,7 +48,7 @@ html {
   padding: 2rem;
 }
 
-button {
+.app button {
   padding: 0.5rem 1rem;
   font-size: 1rem;
   cursor: pointer;
@@ -59,6 +59,6 @@ button {
   transition: all 0.2s ease;
 }
 
-button:hover {
+.app button:hover {
   background-color: var(--color-foreground);
 }

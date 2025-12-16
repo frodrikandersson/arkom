@@ -6,7 +6,7 @@
   left: 0;
   right: 0;
   margin-top: auto; /* Push to bottom of flex container */
-  background: rgba(31, 31, 31, 0.98);
+  background: var(--color-card);
   border-top: 1px solid var(--color-cardBorder);
   z-index: 90;
   backdrop-filter: blur(12px);
