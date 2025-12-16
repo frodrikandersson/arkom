@@ -192,8 +192,9 @@ export const getDownloadUrl = async (req: Request, res: Response) => {
       return;
     }
     
-    // Extract key from full URL (e.g., https://files.arkom.ink/messages/123-file.jpg -> messages/123-file.jpg)
-    const key = fileUrl.split('/').slice(-2).join('/');
+    // Extract key from full URL
+    const urlObj = new URL(fileUrl);
+    const key = urlObj.pathname.substring(1); // Remove leading slash
     
     const signedUrl = await getSignedDownloadUrl(
       key,

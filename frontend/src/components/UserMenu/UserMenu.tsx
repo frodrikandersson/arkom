@@ -100,7 +100,7 @@ export const UserMenu = () => {
         {isOpen && (
           <div className={styles.dropdown}>
             <div className={styles.menuSection}>
-              <Link to="/profile" className={styles.menuItem} onClick={() => setIsOpen(false)}>
+              <Link to={`/profile/${user?.id}`} className={styles.menuItem} onClick={() => setIsOpen(false)}>
                 Profile
               </Link>
               <Link to="/requests" className={styles.menuItem} onClick={() => setIsOpen(false)}>

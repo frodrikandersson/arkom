@@ -7,6 +7,7 @@ import { MainLayout } from '../layouts/MainLayout';
 // Lazy load pages
 const HomePage = lazy(() => import('../pages/HomePage').then(m => ({ default: m.HomePage })));
 const SettingsPage = lazy(() => import('../pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const UserProfilePage = lazy(() => import('../pages/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
 
 function HandlerRoutes() {
   const location = useLocation();
@@ -39,7 +40,7 @@ export const AppRoutes: React.FC = () => {
           {/* Placeholder routes */}
           <Route path="/commissions" element={<div style={{ padding: '2rem' }}>Commissions Page</div>} />
           <Route path="/store" element={<div style={{ padding: '2rem' }}>Store Page</div>} />
-          <Route path="/profile" element={<div style={{ padding: '2rem' }}>Profile Page</div>} />
+          <Route path="/profile/:userId" element={<UserProfilePage />} />
           <Route path="/requests" element={<div style={{ padding: '2rem' }}>My Requests Page</div>} />
           <Route path="/orders" element={<div style={{ padding: '2rem' }}>My Orders Page</div>} />
           <Route path="/characters" element={<div style={{ padding: '2rem' }}>Characters Page</div>} />

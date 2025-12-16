@@ -1,5 +1,6 @@
 import { Logo } from '../Logo/Logo';
 import { BrowseMenu } from '../BrowseMenu/BrowseMenu';
+import { UserSearch } from '../UserSearch/UserSearch';
 import { BasketButton } from '../BasketButton/BasketButton';
 import { MessageButton } from '../MessageButton/MessageButton';
 import { AlertButton } from '../AlertButton/AlertButton';
@@ -29,6 +30,7 @@ export const Header = ({
         <div className={styles.left}>
           <Logo />
           <BrowseMenu />
+          <UserSearch />
         </div>
 
         {/* Right side */}

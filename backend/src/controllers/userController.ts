@@ -63,3 +63,46 @@ export const updateUserSettings = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+export const searchUsers = async (req: Request, res: Response) => {
+  try {
+    const query = req.query.q as string;
+    
+    if (!query || query.length < 2) {
+      res.json({ users: [] });
+      return;
+    }
+
+    // TODO: Replace with actual Stack Auth user search
+    // For now, return mock data or integrate with your user system
+    const users = [
+      { id: 'user1', displayName: 'John Doe', profileImageUrl: null },
+      { id: 'user2', displayName: 'Jane Smith', profileImageUrl: null },
+    ].filter(u => u.displayName.toLowerCase().includes(query.toLowerCase()));
+
+    res.json({ users });
+  } catch (error) {
+    console.error('Search users error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getUserProfile = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    
+    // TODO: Replace with actual Stack Auth user lookup
+    // For now, return mock profile
+    const profile = {
+      id: userId,
+      displayName: `User ${userId}`,
+      profileImageUrl: null,
+      bio: 'Artist and creator',
+    };
+
+    res.json({ profile });
+  } catch (error) {
+    console.error('Get user profile error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};

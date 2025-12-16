@@ -1,0 +1,17 @@
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.error {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--color-text);
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+}
