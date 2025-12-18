@@ -1,25 +1,30 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { ArtworkGrid } from '../ArtworkGrid/ArtworkGrid';
+import { UserProfile as UserProfileData } from '../../models';
+
 import styles from './UserProfile.module.css';
 
 interface UserProfileProps {
   userId: string;
+  onOpenChat: (conversationId: number, otherUserId: string, otherUserName?: string, otherUserAvatar?: string) => void;
 }
 
-interface ProfileData {
-  id: string;
-  displayName: string;
-  profileImageUrl?: string;
-  bio?: string;
-}
-
-export const UserProfile = ({ userId }: UserProfileProps) => {
+export const UserProfile = ({ userId, onOpenChat }: UserProfileProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [profile, setProfile] = useState<UserProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -49,27 +54,51 @@ export const UserProfile = ({ userId }: UserProfileProps) => {
   }, [userId]);
 
   const handleStartConversation = async () => {
-    if (!user || !userId) return;
+    if (!user || !userId || !profile) return;
 
     try {
+      // Get or create conversation without sending a message
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/messages/send`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/messages/get-or-create`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            senderId: user.id,
-            recipientId: userId,
-            content: '',
+            userId: user.id,
+            otherUserId: userId,
           }),
         }
       );
 
       if (response.ok) {
-        navigate('/messages');
+        const data = await response.json();
+        
+        if (isMobile) {
+          // On mobile, navigate to home and trigger mobile message dropdown
+          navigate('/', { 
+            state: { 
+              openMobileChat: true,
+              conversationId: data.conversationId,
+              otherUserId: userId,
+              otherUserName: profile.displayName,
+              otherUserAvatar: profile.profileImageUrl
+            } 
+          });
+        } else {
+          // On desktop, open the chat window
+          onOpenChat(
+            data.conversationId,
+            userId,
+            profile.displayName,
+            profile.profileImageUrl
+          );
+          // Navigate back to home so chat window is visible
+          navigate('/');
+        }
       }
     } catch (err) {
       console.error('Start conversation error:', err);
+      alert('Failed to open chat. Please try again.');
     }
   };
 
@@ -93,6 +122,13 @@ export const UserProfile = ({ userId }: UserProfileProps) => {
 
   return (
     <div className={styles.profileCard}>
+      {/* Banner Image */}
+      {profile.bannerImageUrl && (
+        <div className={styles.banner}>
+          <img src={profile.bannerImageUrl} alt="Profile banner" />
+        </div>
+      )}
+
       <div className={styles.header}>
         <div className={styles.avatarLarge}>
           {profile.profileImageUrl ? (
@@ -105,7 +141,55 @@ export const UserProfile = ({ userId }: UserProfileProps) => {
         </div>
         <div className={styles.info}>
           <h1 className={styles.displayName}>{profile.displayName}</h1>
-          <p className={styles.userId}>@{userId}</p>
+          <p className={styles.userId}>@{profile.username || userId.slice(0, 8)}</p>
+          {profile.location && (
+            <p className={styles.location}>{profile.location}</p>
+          )}
+          {/* Social Links */}
+          {profile.socialLinks && Object.keys(profile.socialLinks).length > 0 && (
+            <div className={styles.socialLinks}>
+              {profile.socialLinks.twitter && (
+                <a 
+                  href={profile.socialLinks.twitter} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className={styles.socialLink}
+                >
+                  Twitter
+                </a>
+              )}
+              {profile.socialLinks.instagram && (
+                <a 
+                  href={profile.socialLinks.instagram} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className={styles.socialLink}
+                >
+                  Instagram
+                </a>
+              )}
+              {profile.socialLinks.artstation && (
+                <a 
+                  href={profile.socialLinks.artstation} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className={styles.socialLink}
+                >
+                  ArtStation
+                </a>
+              )}
+              {profile.socialLinks.website && (
+                <a 
+                  href={profile.socialLinks.website} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className={styles.socialLink}
+                >
+                  Website
+                </a>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -134,10 +218,9 @@ export const UserProfile = ({ userId }: UserProfileProps) => {
 
       <div className={styles.portfolio}>
         <h2>Portfolio</h2>
-        <div className={styles.emptyState}>
-          <p>No artwork uploaded yet</p>
-        </div>
+        <ArtworkGrid userId={userId} isOwnProfile={isOwnProfile} />
       </div>
+
     </div>
   );
 };

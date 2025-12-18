@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { db } from '../config/db.js';
-import { conversations, messages } from '../config/schema.js';
-import { eq, or, and, desc, not } from 'drizzle-orm';
+import { conversations, messages, hiddenConversations, blockedUsers } from '../config/schema.js';
+import { eq, or, and, desc, not, sql } from 'drizzle-orm';
 import { uploadToR2, getSignedDownloadUrl } from '../config/r2.js';
 
 export const getConversations = async (req: Request, res: Response) => {
@@ -20,9 +20,22 @@ export const getConversations = async (req: Request, res: Response) => {
       )
       .orderBy(desc(conversations.lastMessageAt));
     
+    // Get hidden conversation IDs for this user
+    const hiddenConvs = await db
+      .select()
+      .from(hiddenConversations)
+      .where(eq(hiddenConversations.userId, userId));
+    
+    const hiddenIds = new Set(hiddenConvs.map(hc => hc.conversationId));
+    
+    // Filter out hidden conversations
+    const visibleConversations = userConversations.filter(
+      conv => !hiddenIds.has(conv.id)
+    );
+    
     // For each conversation, get the last message and unread count
     const conversationsWithDetails = await Promise.all(
-      userConversations.map(async (conv) => {
+      visibleConversations.map(async (conv) => {
         const [lastMessage] = await db
           .select()
           .from(messages)
@@ -91,6 +104,28 @@ export const sendMessage = async (req: Request, res: Response) => {
       res.status(400).json({ error: 'Message content or file is required' });
       return;
     }
+
+    // Check if either user has blocked the other
+    const blockCheck = await db
+      .select()
+      .from(blockedUsers)
+      .where(
+        or(
+          and(
+            eq(blockedUsers.userId, senderId),
+            eq(blockedUsers.blockedUserId, recipientId)
+          ),
+          and(
+            eq(blockedUsers.userId, recipientId),
+            eq(blockedUsers.blockedUserId, senderId)
+          )
+        )
+      );
+
+    if (blockCheck.length > 0) {
+      res.status(403).json({ error: 'Cannot send message to this user' });
+      return;
+    }
     
     // Find or create conversation
     let [conversation] = await db
@@ -154,6 +189,7 @@ export const sendMessage = async (req: Request, res: Response) => {
   }
 };
 
+
 export const markAsRead = async (req: Request, res: Response) => {
   try {
     const { conversationId, userId } = req.body;
@@ -205,6 +241,125 @@ export const getDownloadUrl = async (req: Request, res: Response) => {
     res.json({ downloadUrl: signedUrl });
   } catch (error) {
     console.error('Get download URL error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getOrCreateConversation = async (req: Request, res: Response) => {
+  try {
+    const { userId, otherUserId } = req.body;
+    
+    if (!userId || !otherUserId) {
+      res.status(400).json({ error: 'Both userId and otherUserId are required' });
+      return;
+    }
+
+    // Find existing conversation
+    let [conversation] = await db
+      .select()
+      .from(conversations)
+      .where(
+        or(
+          and(
+            eq(conversations.participantOneId, userId),
+            eq(conversations.participantTwoId, otherUserId)
+          ),
+          and(
+            eq(conversations.participantOneId, otherUserId),
+            eq(conversations.participantTwoId, userId)
+          )
+        )
+      );
+    
+    // Create new conversation if it doesn't exist
+    if (!conversation) {
+      [conversation] = await db
+        .insert(conversations)
+        .values({
+          participantOneId: userId,
+          participantTwoId: otherUserId,
+        })
+        .returning();
+    }
+    
+    // If conversation was hidden, unhide it
+    await db
+      .delete(hiddenConversations)
+      .where(
+        and(
+          eq(hiddenConversations.userId, userId),
+          eq(hiddenConversations.conversationId, conversation.id)
+        )
+      );
+    
+    res.json({ 
+      conversationId: conversation.id,
+      otherUserId: conversation.participantOneId === userId 
+        ? conversation.participantTwoId 
+        : conversation.participantOneId
+    });
+  } catch (error) {
+    console.error('Get or create conversation error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const hideConversation = async (req: Request, res: Response) => {
+  try {
+    const { userId, conversationId } = req.body;
+    
+    if (!userId || !conversationId) {
+      res.status(400).json({ error: 'Missing required fields' });
+      return;
+    }
+
+    // Check if already hidden
+    const existing = await db
+      .select()
+      .from(hiddenConversations)
+      .where(
+        and(
+          eq(hiddenConversations.userId, userId),
+          eq(hiddenConversations.conversationId, conversationId)
+        )
+      );
+
+    if (existing.length === 0) {
+      // Hide the conversation
+      await db.insert(hiddenConversations).values({
+        userId,
+        conversationId,
+      });
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Hide conversation error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const unhideConversation = async (req: Request, res: Response) => {
+  try {
+    const { userId, conversationId } = req.body;
+    
+    if (!userId || !conversationId) {
+      res.status(400).json({ error: 'Missing required fields' });
+      return;
+    }
+
+    await db
+      .delete(hiddenConversations)
+      .where(
+        and(
+          eq(hiddenConversations.userId, userId),
+          eq(hiddenConversations.conversationId, conversationId)
+        )
+      );
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Unhide conversation error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

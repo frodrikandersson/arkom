@@ -14,8 +14,30 @@ export const UserMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showThemeEditor, setShowThemeEditor] = useState(false);
   const [showConfigure, setShowConfigure] = useState(false);
+  const [customProfileImage, setCustomProfileImage] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  // Fetch custom profile image
+  useEffect(() => {
+    const fetchProfileImage = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/users/profile/${user.id}`
+        );
+        const data = await res.json();
+        if (data.profile?.profileImageUrl) {
+          setCustomProfileImage(data.profile.profileImageUrl);
+        }
+      } catch (err) {
+        console.error('Failed to fetch profile image:', err);
+      }
+    };
+
+    fetchProfileImage();
+  }, [user?.id]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -71,7 +93,7 @@ export const UserMenu = () => {
     return 'custom';
   };
 
-  const profileImage = user?.profileImageUrl || null;
+  const profileImage = customProfileImage || user?.profileImageUrl || null;
   const themeToEdit = customTheme || (user ? createDefaultCustomTheme(user.id) : defaultDarkTheme);
 
   return (

@@ -14,27 +14,35 @@ export const userThemes = pgTable('user_themes', {
   userId: text('user_id').notNull(),
   themeId: text('theme_id').notNull().unique(),
   themeName: text('theme_name').notNull(),
-  themeData: json('theme_data').notNull(), // Full Theme object
+  themeData: json('theme_data').notNull(),
   isActive: boolean('is_active').default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// User active theme (stores which theme is currently active, including defaults)
+// User active theme
 export const userActiveTheme = pgTable('user_active_theme', {
   id: serial('id').primaryKey(),
   userId: text('user_id').notNull().unique(),
-  activeThemeId: text('active_theme_id').notNull(), // Can be 'dark', 'light', or custom theme ID
+  activeThemeId: text('active_theme_id').notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// User settings
+// User settings (extended with profile fields)
 export const userSettings = pgTable('user_settings', {
   id: serial('id').primaryKey(),
   userId: text('user_id').notNull().unique(),
+  username: text('username').unique(), // Custom username (must be unique)
   timezone: text('timezone').default('UTC').notNull(),
+  displayName: text('display_name'),
+  bio: text('bio'),
+  location: text('location'),
+  profileImageUrl: text('profile_image_url'),
+  bannerImageUrl: text('banner_image_url'),
+  socialLinks: json('social_links'),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
 
 // Conversations
 export const conversations = pgTable('conversations', {
@@ -59,12 +67,52 @@ export const messages = pgTable('messages', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Hidden conversations
+export const hiddenConversations = pgTable('hidden_conversations', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  conversationId: integer('conversation_id').notNull(),
+  hiddenAt: timestamp('hidden_at').defaultNow().notNull(),
+});
+
+// Blocked users
+export const blockedUsers = pgTable('blocked_users', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  blockedUserId: text('blocked_user_id').notNull(),
+  reason: text('reason'),
+  blockedAt: timestamp('blocked_at').defaultNow().notNull(),
+});
+
+// User reports
+export const userReports = pgTable('user_reports', {
+  id: serial('id').primaryKey(),
+  reporterId: text('reporter_id').notNull(),
+  reportedUserId: text('reported_user_id').notNull(),
+  reportType: text('report_type').notNull(),
+  description: text('description'),
+  conversationId: integer('conversation_id'),
+  messageId: integer('message_id'),
+  status: text('status').default('pending').notNull(),
+  reportedAt: timestamp('reported_at').defaultNow().notNull(),
+  reviewedAt: timestamp('reviewed_at'),
+  reviewedBy: text('reviewed_by'),
+  actionTaken: text('action_taken'),
+});
+
 // Artworks
 export const artworks = pgTable('artworks', {
   id: serial('id').primaryKey(),
   userId: text('user_id').notNull(),
   title: text('title').notNull(),
+  description: text('description'),
   fileUrl: text('file_url').notNull(),
+  thumbnailUrl: text('thumbnail_url'),
   fileType: text('file_type').notNull(), // '2d', '3d', 'image'
+  tags: json('tags'), // Array of tags for categorization
+  isPublic: boolean('is_public').default(true),
+  viewCount: integer('view_count').default(0),
+  likeCount: integer('like_count').default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

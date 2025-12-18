@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { EmojiPicker } from '../EmojiPicker/EmojiPicker';
 import { ImageModal } from '../ImageModal/ImageModal';
+import { ReportModal } from '../ReportModal/ReportModal';
 import styles from './MessagesDropdown.module.css';
 
 interface Conversation {
@@ -19,12 +21,21 @@ interface MessagesDropdownProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenChat: (conversationId: number, otherUserId: string, otherUserName?: string, otherUserAvatar?: string) => void;
+  autoOpenData?: {
+    conversationId: number;
+    otherUserId: string;
+    otherUserName?: string;
+    otherUserAvatar?: string;
+  };
 }
+
 
 type FilterType = 'all' | 'active' | 'requests';
 
-export const MessagesDropdown = ({ isOpen, onClose, onOpenChat }: MessagesDropdownProps) => {
+  export const MessagesDropdown = ({ isOpen, onClose, onOpenChat, autoOpenData }: MessagesDropdownProps) => {
+
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
@@ -36,7 +47,12 @@ export const MessagesDropdown = ({ isOpen, onClose, onOpenChat }: MessagesDropdo
   const [messages, setMessages] = useState<any[]>([]);
   const [showEmojis, setShowEmojis] = useState(false);
   const [imageModal, setImageModal] = useState<{ url: string; name: string } | null>(null);
+  const [showOptions, setShowOptions] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportingUser, setReportingUser] = useState<{userId: string; userName: string; conversationId: number} | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const optionsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
@@ -60,11 +76,20 @@ export const MessagesDropdown = ({ isOpen, onClose, onOpenChat }: MessagesDropdo
 
   useEffect(() => {
     if (isOpen && user) {
-      loadUserThemes();
+      loadConversations();
     }
   }, [isOpen, user]);
 
-  const loadUserThemes = async () => {
+  // Auto-open specific chat when navigating from profile
+useEffect(() => {
+  if (isOpen && autoOpenData && isMobile) {
+    setActiveMobileChat(autoOpenData.conversationId);
+    loadMessages(autoOpenData.conversationId);
+  }
+}, [isOpen, autoOpenData, isMobile]);
+
+
+  const loadConversations = async () => {
     if (!user) return;
     
     try {
@@ -137,6 +162,95 @@ export const MessagesDropdown = ({ isOpen, onClose, onOpenChat }: MessagesDropdo
     }
   };
 
+  const handleViewProfile = (otherUserId: string) => {
+    setShowOptions(false);
+    setActiveMobileChat(null);
+    onClose();
+    navigate(`/profile/${otherUserId}`);
+  };
+
+  const handleRemoveChat = async (conversationId: number, otherUserName?: string) => {
+    if (!user) return;
+    
+    if (!confirm(`Hide conversation with ${otherUserName || 'this user'}? You can still find it by searching for them.`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/messages/hide`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          conversationId,
+        }),
+      });
+
+      if (res.ok) {
+        setShowOptions(false);
+        setActiveMobileChat(null);
+        await loadConversations();
+      }
+    } catch (err) {
+      console.error('Failed to hide conversation:', err);
+      alert('Failed to hide conversation. Please try again.');
+    }
+  };
+
+  const handleBlock = async (conversationId: number, otherUserId: string, otherUserName?: string) => {
+    if (!user) return;
+    
+    if (!confirm(`Block @${otherUserName || 'this user'}? They won't be able to message you.`)) {
+      return;
+    }
+
+    try {
+      // Block the user
+      const blockRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/users/block`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          blockedUserId: otherUserId,
+        }),
+      });
+
+      if (!blockRes.ok) {
+        throw new Error('Failed to block user');
+      }
+
+      // Also hide the conversation
+      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/messages/hide`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          conversationId,
+        }),
+      });
+
+      setShowOptions(false);
+      setActiveMobileChat(null);
+      alert(`User has been blocked.`);
+      await loadConversations();
+    } catch (err) {
+      console.error('Failed to block user:', err);
+      alert('Failed to block user. Please try again.');
+    }
+  };
+
+
+  const handleReport = (conversationId: number, otherUserId: string, otherUserName?: string) => {
+    setShowOptions(false);
+    setReportingUser({
+      userId: otherUserId,
+      userName: otherUserName || 'user',
+      conversationId,
+    });
+    setShowReportModal(true);
+  };
+
+
   const getTimeAgo = (date: Date) => {
     const now = new Date();
     const messageDate = new Date(date);
@@ -191,6 +305,41 @@ export const MessagesDropdown = ({ isOpen, onClose, onOpenChat }: MessagesDropdo
             <div className={styles.userName}>{activeConv.otherUserName || activeConv.otherUserId}</div>
             <div className={styles.userMeta}>@{activeConv.otherUserId.slice(0, 8)}</div>
           </div>
+          
+          <div className={styles.optionsContainer} ref={optionsRef}>
+            <button className={styles.optionsBtn} onClick={() => setShowOptions(!showOptions)}>
+              ⋯
+            </button>
+            {showOptions && (
+              <div className={styles.optionsDropdown}>
+                <button 
+                  className={styles.optionItem}
+                  onClick={() => handleViewProfile(activeConv.otherUserId)}
+                >
+                  View Profile
+                </button>
+                <button 
+                  className={styles.optionItem}
+                  onClick={() => handleRemoveChat(activeMobileChat, activeConv.otherUserName)}
+                >
+                  Remove Chat
+                </button>
+                <button 
+                  className={styles.optionItem}
+                  onClick={() => handleBlock(activeMobileChat, activeConv.otherUserId, activeConv.otherUserName)}
+                >
+                  Block @{activeConv.otherUserName || 'user'}
+                </button>
+                <button 
+                  className={styles.optionItem}
+                  onClick={() => handleReport(activeMobileChat, activeConv.otherUserId, activeConv.otherUserName)}
+                >
+                  Report @{activeConv.otherUserName || 'user'}
+                </button>
+              </div>
+            )}
+          </div>
+
           <button className={styles.closeBtn} onClick={onClose}>×</button>
         </div>
 
@@ -329,6 +478,22 @@ export const MessagesDropdown = ({ isOpen, onClose, onOpenChat }: MessagesDropdo
             imageUrl={imageModal.url}
             fileName={imageModal.name}
             onClose={() => setImageModal(null)}
+          />
+        )}
+        {showReportModal && reportingUser && (
+          <ReportModal
+            isOpen={showReportModal}
+            reportedUserId={reportingUser.userId}
+            reportedUserName={reportingUser.userName}
+            conversationId={reportingUser.conversationId}
+            onClose={() => {
+              setShowReportModal(false);
+              setReportingUser(null);
+            }}
+            onSuccess={async () => {
+              setActiveMobileChat(null);
+              await loadConversations();
+            }}
           />
         )}
       </>,

@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { EmojiPicker } from '../EmojiPicker/EmojiPicker';
 import { ImageModal } from '../ImageModal/ImageModal';
+import { ReportModal } from '../ReportModal/ReportModal';
 import styles from './ChatWindow.module.css';
 
 interface Message {
@@ -37,12 +39,14 @@ export const ChatWindow = ({
   onClose,
 }: ChatWindowProps) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [showOptions, setShowOptions] = useState(false);
   const [showEmojis, setShowEmojis] = useState(false);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [imageModal, setImageModal] = useState<{ url: string; name: string } | null>(null);
+  const [showReportModal, setShowReportModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -146,6 +150,88 @@ export const ChatWindow = ({
     }
   };
 
+  const handleViewProfile = () => {
+    setShowOptions(false);
+    onClose();
+    navigate(`/profile/${otherUserId}`);
+  };
+
+  const handleRemoveChat = async () => {
+    if (!user) return;
+    
+    if (!confirm(`Hide conversation with ${otherUserName}? You can still find it by searching for them.`)) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/messages/hide`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          conversationId,
+        }),
+      });
+
+      if (res.ok) {
+        setShowOptions(false);
+        onClose();
+        // Optionally refresh conversations list
+      }
+    } catch (err) {
+      console.error('Failed to hide conversation:', err);
+      alert('Failed to hide conversation. Please try again.');
+    }
+  };
+
+  const handleBlock = async () => {
+    if (!user) return;
+    
+    if (!confirm(`Block @${otherUserName}? They won't be able to message you, and you won't see their messages.`)) {
+      return;
+    }
+
+    try {
+      // Block the user
+      const blockRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/users/block`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          blockedUserId: otherUserId,
+        }),
+      });
+
+      if (!blockRes.ok) {
+        throw new Error('Failed to block user');
+      }
+
+      // Also hide the conversation
+      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/messages/hide`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          conversationId,
+        }),
+      });
+
+      setShowOptions(false);
+      onClose();
+      alert(`@${otherUserName} has been blocked.`);
+    } catch (err) {
+      console.error('Failed to block user:', err);
+      alert('Failed to block user. Please try again.');
+    }
+  };
+
+
+
+  const handleReport = () => {
+    setShowOptions(false);
+    setShowReportModal(true);
+  };
+
   const formatMessageTime = (date: Date) => {
     const messageDate = new Date(date);
     const today = new Date();
@@ -224,9 +310,18 @@ export const ChatWindow = ({
             </button>
             {showOptions && (
               <div className={styles.optionsDropdown}>
-                <button className={styles.optionItem}>View Profile</button>
-                <button className={styles.optionItem}>Mute</button>
-                <button className={styles.optionItem}>Block</button>
+                <button className={styles.optionItem} onClick={handleViewProfile}>
+                  View Profile
+                </button>
+                <button className={styles.optionItem} onClick={handleRemoveChat}>
+                  Remove Chat
+                </button>
+                <button className={styles.optionItem} onClick={handleBlock}>
+                  Block @{otherUserName}
+                </button>
+                <button className={styles.optionItem} onClick={handleReport}>
+                  Report @{otherUserName}
+                </button>
               </div>
             )}
           </div>
@@ -406,6 +501,19 @@ export const ChatWindow = ({
           imageUrl={imageModal.url}
           fileName={imageModal.name}
           onClose={() => setImageModal(null)}
+        />
+      )}
+
+      {showReportModal && (
+        <ReportModal
+          isOpen={showReportModal}
+          reportedUserId={otherUserId}
+          reportedUserName={otherUserName}
+          conversationId={conversationId}
+          onClose={() => setShowReportModal(false)}
+          onSuccess={() => {
+            // Optionally refresh or close chat
+          }}
         />
       )}
     </div>

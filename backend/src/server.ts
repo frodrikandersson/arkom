@@ -6,6 +6,7 @@ import counterRoutes from './routes/counterRoutes.js';
 import themeRoutes from './routes/themeRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import artworkRoutes from './routes/artworkRoutes.js';
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use('/api/counter', counterRoutes);
 app.use('/api/themes', themeRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/artworks', artworkRoutes);
 
 // Only listen if not in Vercel
 if (process.env.NODE_ENV !== 'production') {

@@ -63,7 +63,7 @@ export const MainLayout = () => {
         onOpenChat={handleOpenChat}
       />
       <main className={styles.main}>
-        <Outlet />
+        <Outlet context={{ onOpenChat: handleOpenChat }} />
       </main>
       <MobileNav 
         basketCount={basketCount}

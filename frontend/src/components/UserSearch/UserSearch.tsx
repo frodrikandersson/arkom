@@ -1,16 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { UserSearchResult } from '../../models';
 import styles from './UserSearch.module.css';
 
-interface SearchResult {
-  id: string;
-  displayName: string;
-  profileImageUrl?: string;
-}
 
 export const UserSearch = () => {
+  const { user } = useAuth();
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchResult[]>([]);
+  const [results, setResults] = useState<UserSearchResult[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -39,8 +37,13 @@ export const UserSearch = () => {
     const searchUsers = async () => {
       setIsLoading(true);
       try {
+        const queryParams = new URLSearchParams({
+          q: query,
+          ...(user?.id && { userId: user.id }),
+        });
+        
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/users/search?q=${encodeURIComponent(query)}`
+          `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/users/search?${queryParams}`
         );
         const data = await response.json();
         setResults(data.users || []);
@@ -84,22 +87,27 @@ export const UserSearch = () => {
           {isLoading ? (
             <div className={styles.loading}>Searching...</div>
           ) : results.length > 0 ? (
-            results.map((user) => (
+            results.map((result) => (
               <button
-                key={user.id}
+                key={result.id}
                 className={styles.resultItem}
-                onClick={() => handleSelectUser(user.id)}
+                onClick={() => handleSelectUser(result.id)}
               >
                 <div className={styles.avatar}>
-                  {user.profileImageUrl ? (
-                    <img src={user.profileImageUrl} alt={user.displayName} />
+                  {result.profileImageUrl ? (
+                    <img src={result.profileImageUrl} alt={result.displayName} />
                   ) : (
                     <div className={styles.avatarPlaceholder}>
-                      {user.displayName.charAt(0).toUpperCase()}
+                      {result.displayName.charAt(0).toUpperCase()}
                     </div>
                   )}
                 </div>
-                <span className={styles.userName}>{user.displayName}</span>
+                <div className={styles.userInfo}>
+                  <span className={styles.userName}>{result.displayName}</span>
+                  {result.username && (
+                    <span className={styles.userHandle}>@{result.username}</span>
+                  )}
+                </div>
               </button>
             ))
           ) : (

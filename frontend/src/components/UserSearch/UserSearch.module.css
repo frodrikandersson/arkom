@@ -63,21 +63,21 @@
 }
 
 .resultItem {
-  width: 100%;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  width: 100%;
+  padding: 0.75rem;
   background: none;
   border: none;
-  color: var(--color-text);
   cursor: pointer;
-  transition: background-color 0.2s ease;
   text-align: left;
+  color: var(--color-text);
+  transition: background-color 0.2s;
 }
 
 .resultItem:hover {
-  background: var(--color-foreground);
+  background-color: var(--color-foreground);
 }
 
 .resultItem:not(:last-child) {
@@ -110,9 +110,22 @@
   font-size: 1.125rem;
 }
 
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+  flex: 1;
+}
+
 .userName {
-  font-size: 0.9375rem;
   font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.userHandle {
+  font-size: 0.85rem;
+  color: var(--color-textSecondary);
 }
 
 @media (max-width: 768px) {
