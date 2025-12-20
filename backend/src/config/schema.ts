@@ -40,8 +40,11 @@ export const userSettings = pgTable('user_settings', {
   profileImageUrl: text('profile_image_url'),
   bannerImageUrl: text('banner_image_url'),
   socialLinks: json('social_links'),
+  emailNotifications: boolean('email_notifications').default(true),
+  pushNotifications: boolean('push_notifications').default(true),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
 
 
 // Conversations
@@ -115,4 +118,28 @@ export const artworks = pgTable('artworks', {
   likeCount: integer('like_count').default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Notifications
+export const notifications = pgTable('notifications', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull(), // User receiving the notification
+  type: text('type').notNull(), // 'message', 'like', 'comment', 'follow', etc.
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  relatedId: text('related_id'), // ID of related entity (message id, artwork id, etc.)
+  relatedUserId: text('related_user_id'), // User who triggered the notification
+  actionUrl: text('action_url'), // URL to navigate to when clicked
+  isRead: boolean('is_read').default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Push notification subscriptions
+export const pushSubscriptions = pgTable('push_subscriptions', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  endpoint: text('endpoint').notNull().unique(),
+  p256dh: text('p256dh').notNull(),
+  auth: text('auth').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 });

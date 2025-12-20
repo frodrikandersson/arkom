@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessagesDropdown } from '../MessagesDropdown/MessagesDropdown';
+import { OnOpenChatFunction } from '../../models';
 import styles from './MessageButton.module.css';
 
 interface MessageButtonProps {
   unreadCount?: number;
-  onOpenChat: (conversationId: number, otherUserId: string, otherUserName?: string, otherUserAvatar?: string) => void;
+  onOpenChat: OnOpenChatFunction;
   autoOpen?: boolean;
   autoOpenData?: {
     conversationId: number;

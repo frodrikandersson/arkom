@@ -3,46 +3,44 @@ import type { Theme } from '../models/Theme';
 
 export const getUserActiveTheme = async (userId: string) => {
   const res = await fetch(`${config.apiUrl}/api/themes/active/${userId}`);
-  
-  if (!res.ok) {
-    const text = await res.text();
-    console.error('Get active theme error response:', text);
-    throw new Error('Failed to fetch active theme');
-  }
-  
   const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || 'Failed to fetch active theme');
+  }
+
   return data.activeThemeId;
 };
 
-export const setUserActiveTheme = async (userId: string, themeId: string) => {
-  const res = await fetch(`${config.apiUrl}/api/themes/active`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId, themeId }),
-  });
+
+// export const setUserActiveTheme = async (userId: string, themeId: string) => {
+//   const res = await fetch(`${config.apiUrl}/api/themes/active`, {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify({ userId, themeId }),
+//   });
   
-  if (!res.ok) {
-    const text = await res.text();
-    console.error('Set active theme error response:', text);
-    throw new Error('Failed to set active theme');
-  }
+//   if (!res.ok) {
+//     const text = await res.text();
+//     console.error('Set active theme error response:', text);
+//     throw new Error('Failed to set active theme');
+//   }
   
-  const data = await res.json();
-  return data.activeThemeId;
-};
+//   const data = await res.json();
+//   return data.activeThemeId;
+// };
 
 export const getUserThemes = async (userId: string) => {
   const res = await fetch(`${config.apiUrl}/api/themes/${userId}`);
-  
-  if (!res.ok) {
-    const text = await res.text();
-    console.error('Get themes error response:', text);
-    throw new Error('Failed to fetch themes');
-  }
-  
   const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || 'Failed to fetch themes');
+  }
+
   return data.themes;
 };
+
 
 export const createTheme = async (userId: string, theme: Theme, isActive: boolean = false) => {
   const res = await fetch(`${config.apiUrl}/api/themes`, {
@@ -56,14 +54,12 @@ export const createTheme = async (userId: string, theme: Theme, isActive: boolea
       isActive,
     }),
   });
-  
+  const data = await res.json();
+
   if (!res.ok) {
-    const text = await res.text();
-    console.error('Create theme error response:', text);
     throw new Error('Failed to create theme');
   }
-  
-  const data = await res.json();
+
   return data.theme;
 };
 
@@ -76,14 +72,12 @@ export const updateTheme = async (theme: Theme) => {
       themeData: theme,
     }),
   });
+  const data = await res.json();
   
   if (!res.ok) {
-    const text = await res.text();
-    console.error('Update theme error response:', text);
     throw new Error('Failed to update theme');
   }
   
-  const data = await res.json();
   return data.theme;
 };
 
@@ -91,30 +85,26 @@ export const deleteTheme = async (themeId: string) => {
   const res = await fetch(`${config.apiUrl}/api/themes/${themeId}`, {
     method: 'DELETE',
   });
-  
+  const data = await res.json();
+
   if (!res.ok) {
-    const text = await res.text();
-    console.error('Delete theme error response:', text);
     throw new Error('Failed to delete theme');
   }
   
-  const data = await res.json();
   return data;
 };
 
 export const setActiveTheme = async (userId: string, themeId: string) => {
-  const res = await fetch(`${config.apiUrl}/api/themes/set-active`, {
+  const res = await fetch(`${config.apiUrl}/api/themes/active`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId, themeId }),
   });
-  
+  const data = await res.json();
+
   if (!res.ok) {
-    const text = await res.text();
-    console.error('Set active theme error response:', text);
     throw new Error('Failed to set active theme');
   }
   
-  const data = await res.json();
   return data.theme;
 };

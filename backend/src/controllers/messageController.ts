@@ -3,6 +3,7 @@ import { db } from '../config/db.js';
 import { conversations, messages, hiddenConversations, blockedUsers } from '../config/schema.js';
 import { eq, or, and, desc, not, sql } from 'drizzle-orm';
 import { uploadToR2, getSignedDownloadUrl } from '../config/r2.js';
+import { createNotification } from './notificationController.js';
 
 export const getConversations = async (req: Request, res: Response) => {
   try {
@@ -33,7 +34,7 @@ export const getConversations = async (req: Request, res: Response) => {
       conv => !hiddenIds.has(conv.id)
     );
     
-    // For each conversation, get the last message and unread count
+    // For each conversation, get the last message, unread count, and other user's details
     const conversationsWithDetails = await Promise.all(
       visibleConversations.map(async (conv) => {
         const [lastMessage] = await db
@@ -56,9 +57,39 @@ export const getConversations = async (req: Request, res: Response) => {
         
         const otherUserId = conv.participantOneId === userId ? conv.participantTwoId : conv.participantOneId;
         
+        // Fetch other user's details from Stack Auth and user_settings
+        const result = await db.execute(sql`
+          SELECT 
+            u.raw_json->>'id' as id,
+            u.raw_json->>'display_name' as stack_display_name,
+            u.raw_json->>'profile_image_url' as stack_profile_image,
+            s.username as custom_username,
+            s.display_name as custom_display_name,
+            s.profile_image_url as custom_profile_image
+          FROM neon_auth.users_sync u
+          LEFT JOIN user_settings s ON u.raw_json->>'id' = s.user_id
+          WHERE u.raw_json->>'id' = ${otherUserId}
+          LIMIT 1
+        `);
+        
+        const otherUser = result.rows[0] as any;
+        
+        // Prioritize custom settings over Stack Auth defaults
+        const displayName = otherUser?.custom_display_name || 
+                           otherUser?.custom_username || 
+                           otherUser?.stack_display_name || 
+                           'Unknown User';
+        
+        const profileImage = otherUser?.custom_profile_image || 
+                            otherUser?.stack_profile_image || 
+                            null;
+        
         return {
           conversationId: conv.id,
           otherUserId,
+          otherUserName: displayName,
+          otherUserUsername: otherUser?.custom_username || otherUserId.slice(0, 8),
+          otherUserAvatar: profileImage,
           lastMessage: lastMessage?.content || '',
           lastMessageAt: conv.lastMessageAt,
           unreadCount: unreadCount.length,
@@ -72,6 +103,7 @@ export const getConversations = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
 
 export const getMessages = async (req: Request, res: Response) => {
   try {
@@ -182,7 +214,43 @@ export const sendMessage = async (req: Request, res: Response) => {
       .set({ lastMessageAt: new Date() })
       .where(eq(conversations.id, conversation.id));
     
+    // Create notification for recipient
+    try {
+      // Check if recipient already has unread messages in this conversation
+      const existingUnreadMessages = await db
+        .select()
+        .from(messages)
+        .where(
+          and(
+            eq(messages.conversationId, conversation.id),
+            eq(messages.senderId, senderId),
+            eq(messages.isRead, false)
+          )
+        );
+
+      // Only create notification if this is the FIRST unread message
+      // (existingUnreadMessages only includes messages BEFORE this new one)
+      const shouldNotify = existingUnreadMessages.length === 0;
+
+      if (shouldNotify) {
+        await createNotification(
+          recipientId,
+          'message',
+          'New message',
+          content 
+            ? (content.length > 100 ? content.substring(0, 100) + '...' : content)
+            : 'Sent you a file',
+          message.id.toString(),
+          senderId,
+          `/messages?conversation=${conversation.id}`
+        );
+      }
+    } catch (notifError) {
+      console.error('Failed to create notification:', notifError);
+    }
+
     res.json({ message });
+
   } catch (error) {
     console.error('Send message error:', error);
     res.status(500).json({ error: 'Internal server error' });

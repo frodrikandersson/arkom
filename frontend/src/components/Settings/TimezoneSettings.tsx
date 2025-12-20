@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useUserSettings } from '../../hooks/useUserSettings';
 import styles from './TimezoneSettings.module.css';
 
 const timezones = [
@@ -26,53 +26,16 @@ const timezones = [
 
 export const TimezoneSettings = () => {
   const { user } = useAuth();
-  const [timezone, setTimezone] = useState('UTC');
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState('');
+  const { 
+    timezone, 
+    setTimezone, 
+    saving, 
+    message, 
+    saveSettings 
+  } = useUserSettings(user?.id || null);
 
-  useEffect(() => {
-    if (user) {
-      loadUserSettings();
-    }
-  }, [user]);
-
-  const loadUserSettings = async () => {
-    if (!user) return;
-
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/users/${user.id}/settings`);
-      if (res.ok) {
-        const data = await res.json();
-        setTimezone(data.timezone || 'UTC');
-      }
-    } catch (err) {
-      console.error('Failed to load settings:', err);
-    }
-  };
-
-  const saveSettings = async () => {
-    if (!user) return;
-
-    try {
-      setSaving(true);
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/users/${user.id}/settings`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ timezone }),
-      });
-
-      if (res.ok) {
-        setMessage('Settings saved successfully!');
-        setTimeout(() => setMessage(''), 3000);
-      } else {
-        setMessage('Failed to save settings');
-      }
-    } catch (err) {
-      console.error('Failed to save settings:', err);
-      setMessage('Error saving settings');
-    } finally {
-      setSaving(false);
-    }
+  const handleSave = () => {
+    saveSettings({ timezone });
   };
 
   return (
@@ -103,7 +66,7 @@ export const TimezoneSettings = () => {
       </div>
 
       <button 
-        onClick={saveSettings} 
+        onClick={handleSave}
         disabled={saving}
         className={styles.saveBtn}
       >

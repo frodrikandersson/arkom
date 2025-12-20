@@ -1,11 +1,12 @@
 import { useParams, useOutletContext } from 'react-router-dom';
 import { UserProfile } from '../components/UserProfile/UserProfile';
+import { OnOpenChatFunction } from '../models';
 import styles from './UserProfilePage.module.css';
 
 export const UserProfilePage = () => {
   const { userId } = useParams<{ userId: string }>();
   const { onOpenChat } = useOutletContext<{ 
-    onOpenChat: (conversationId: number, otherUserId: string, otherUserName?: string, otherUserAvatar?: string) => void 
+    onOpenChat: OnOpenChatFunction
   }>();
 
   if (!userId) {

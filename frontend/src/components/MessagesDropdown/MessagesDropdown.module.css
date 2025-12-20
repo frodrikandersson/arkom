@@ -185,6 +185,12 @@
   margin-left: 0.5rem;
 }
 
+.usernameLine {
+  font-size: 0.75rem;
+  color: var(--color-textSecondary);
+  margin-bottom: 0.25rem;
+}
+
 .lastMessage {
   font-size: 0.8125rem;
   color: var(--color-textSecondary);
@@ -249,6 +255,9 @@
   }
 
   .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 1rem;
   }
 

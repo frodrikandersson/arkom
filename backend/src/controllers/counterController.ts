@@ -12,13 +12,15 @@ export const getDashboard = async (req: Request, res: Response) => {
       SELECT 
         uc.user_id,
         uc.count,
-        u.raw_json->>'display_name' as display_name,
+        us.display_name,
         u.raw_json->>'primary_email' as primary_email
       FROM user_counters uc
+      LEFT JOIN user_settings us ON uc.user_id = us.user_id
       LEFT JOIN neon_auth.users_sync u ON uc.user_id = u.raw_json->>'id'
       ORDER BY uc.count DESC
       LIMIT 10
     `);
+
 
     // Fetch user counter
     let userCounter = null;
@@ -51,13 +53,15 @@ export const getLeaderboard = async (req: Request, res: Response) => {
       SELECT 
         uc.user_id,
         uc.count,
-        u.raw_json->>'display_name' as display_name,
+        us.display_name,
         u.raw_json->>'primary_email' as primary_email
       FROM user_counters uc
+      LEFT JOIN user_settings us ON uc.user_id = us.user_id
       LEFT JOIN neon_auth.users_sync u ON uc.user_id = u.raw_json->>'id'
       ORDER BY uc.count DESC
       LIMIT 10
     `);
+
     
     res.json({ leaderboard: topUsers.rows });
   } catch (error) {

@@ -130,9 +130,7 @@
 }
 
 .bio {
-  padding-top: 2rem;
-  padding-left: 1rem;
-  padding-bottom: 2rem;
+  padding: 2rem;
   border-bottom: 1px solid var(--color-cardBorder);
 }
 
@@ -153,9 +151,7 @@
 .actions {
   display: flex;
   gap: 1rem;
-  padding-top: 2rem;
-  padding-left: 1rem;
-  padding-bottom: 2rem;
+  padding: 2rem;
   border-bottom: 1px solid var(--color-cardBorder);
 }
 
@@ -191,6 +187,10 @@
   border-color: var(--color-accent);
 }
 
+.portfolio {
+  padding: 0 2rem 2rem 2rem;
+}
+
 .portfolio h2 {
   font-size: 1.25rem;
   font-weight: 600;
@@ -200,25 +200,9 @@
   margin: 0 0 1.5rem 0;
 }
 
-/* .emptyState {
-  text-align: center;
-  padding: 3rem 2rem;
-  background: var(--color-foreground);
-  border-radius: 12px;
-}
-
-.emptyState p {
-  color: var(--color-textSecondary);
-  margin: 0;
-} */
-
 @media (max-width: 768px) {
   .container {
     padding: 1rem;
-  }
-
-  .profileCard {
-    padding: 1.5rem;
   }
 
   .header {

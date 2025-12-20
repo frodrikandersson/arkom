@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useArtworkGrid } from '../../hooks/useArtworkGrid';
 import { Artwork } from '../../models';
 import styles from './ArtworkGrid.module.css';
-
 
 interface ArtworkGridProps {
   userId: string;
@@ -10,33 +9,7 @@ interface ArtworkGridProps {
 }
 
 export const ArtworkGrid = ({ userId, isOwnProfile = false, onArtworkClick }: ArtworkGridProps) => {
-  const [artworks, setArtworks] = useState<Artwork[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadArtworks();
-  }, [userId]);
-
-  const loadArtworks = async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams();
-      if (isOwnProfile) {
-        params.append('includePrivate', 'true');
-        params.append('requesterId', userId);
-      }
-
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/artworks/user/${userId}?${params}`
-      );
-      const data = await res.json();
-      setArtworks(data.artworks || []);
-    } catch (error) {
-      console.error('Failed to load artworks:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { artworks, loading } = useArtworkGrid(userId, isOwnProfile);
 
   if (loading) {
     return (

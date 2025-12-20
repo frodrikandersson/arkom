@@ -1,13 +1,7 @@
 import { ChatWindow } from '../ChatWindow/ChatWindow';
+import { OpenChat } from '../../models';
 import styles from './ChatManager.module.css';
 
-interface OpenChat {
-  conversationId: number;
-  otherUserId: string;
-  otherUserName?: string;
-  otherUserAvatar?: string;
-  isMinimized: boolean;
-}
 
 interface ChatManagerProps {
   openChats: OpenChat[];
@@ -27,6 +21,7 @@ export const ChatManager = ({ openChats, onCloseChat, onMinimizeChat }: ChatMana
             conversationId={chat.conversationId}
             otherUserId={chat.otherUserId}
             otherUserName={chat.otherUserName}
+            otherUserUsername={chat.otherUserUsername}
             otherUserAvatar={chat.otherUserAvatar}
             isMinimized={chat.isMinimized}
             onMinimize={() => onMinimizeChat(chat.conversationId)}

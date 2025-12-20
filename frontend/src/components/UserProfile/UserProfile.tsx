@@ -2,21 +2,20 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { ArtworkGrid } from '../ArtworkGrid/ArtworkGrid';
-import { UserProfile as UserProfileData } from '../../models';
-
+import { useUserProfile } from '../../hooks/useUserProfile';
+import { getOrCreateConversation } from '../../services/userService';
+import { OnOpenChatFunction } from '../../models';
 import styles from './UserProfile.module.css';
 
 interface UserProfileProps {
   userId: string;
-  onOpenChat: (conversationId: number, otherUserId: string, otherUserName?: string, otherUserAvatar?: string) => void;
+  onOpenChat: OnOpenChatFunction;
 }
 
 export const UserProfile = ({ userId, onOpenChat }: UserProfileProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<UserProfileData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { profile, isLoading, error } = useUserProfile(userId);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -26,81 +25,41 @@ export const UserProfile = ({ userId, onOpenChat }: UserProfileProps) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/users/profile/${userId}`
-        );
-        
-        if (!response.ok) {
-          throw new Error('Profile not found');
-        }
-        
-        const data = await response.json();
-        setProfile(data.profile);
-      } catch (err) {
-        console.error('Fetch profile error:', err);
-        setError('Unable to load profile');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, [userId]);
-
   const handleStartConversation = async () => {
     if (!user || !userId || !profile) return;
 
     try {
-      // Get or create conversation without sending a message
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/messages/get-or-create`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: user.id,
+      const data = await getOrCreateConversation(user.id, userId);
+      
+      if (isMobile) {
+        // On mobile, navigate to home and trigger mobile message dropdown
+        navigate('/', { 
+          state: { 
+            openMobileChat: true,
+            conversationId: data.conversationId,
             otherUserId: userId,
-          }),
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        
-        if (isMobile) {
-          // On mobile, navigate to home and trigger mobile message dropdown
-          navigate('/', { 
-            state: { 
-              openMobileChat: true,
-              conversationId: data.conversationId,
-              otherUserId: userId,
-              otherUserName: profile.displayName,
-              otherUserAvatar: profile.profileImageUrl
-            } 
-          });
-        } else {
-          // On desktop, open the chat window
-          onOpenChat(
-            data.conversationId,
-            userId,
-            profile.displayName,
-            profile.profileImageUrl
-          );
-          // Navigate back to home so chat window is visible
-          navigate('/');
-        }
+            otherUserName: profile.displayName,
+            otherUserAvatar: profile.profileImageUrl
+          } 
+        });
+      } else {
+        // On desktop, open the chat window
+        onOpenChat(
+          data.conversationId,
+          userId,
+          profile.displayName,
+          profile.profileImageUrl,
+          profile.username
+        );
+        // Navigate back to home so chat window is visible
+        navigate('/');
       }
     } catch (err) {
       console.error('Start conversation error:', err);
       alert('Failed to open chat. Please try again.');
     }
   };
+
 
   if (isLoading) {
     return <div className={styles.loading}>Loading profile...</div>;

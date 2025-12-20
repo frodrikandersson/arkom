@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { Theme } from '../models/Theme';
 import { defaultDarkTheme, defaultLightTheme } from '../models/Theme';
-import { getUserThemes, getUserActiveTheme, setUserActiveTheme, createTheme as createThemeAPI, updateTheme as updateThemeAPI } from '../services/themeService';
+import { getUserThemes, getUserActiveTheme, setActiveTheme, createTheme as createThemeAPI, updateTheme as updateThemeAPI } from '../services/themeService';
 
 interface ThemeContextType {
   currentTheme: Theme;
@@ -50,7 +50,7 @@ export const ThemeProvider = ({ children, userId }: ThemeProviderProps) => {
     // Save active theme selection to database if user is logged in
     if (userId) {
       try {
-        await setUserActiveTheme(userId, theme.id);
+        await setActiveTheme(userId, theme.id);
       } catch (err) {
         console.error('Failed to save active theme:', err);
       }

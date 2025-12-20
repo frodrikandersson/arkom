@@ -5,3 +5,5 @@ export * from './Theme';
 export * from './User';
 export * from './Artwork';
 export * from './Message';
+export * from './Notification';
+export * from './Chat';

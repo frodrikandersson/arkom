@@ -32,10 +32,11 @@ export const getUserSettings = async (req: Request, res: Response) => {
 export const updateUserSettings = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
-    const { timezone } = req.body;
+    const updateData = req.body;
     
-    if (!timezone) {
-      res.status(400).json({ error: 'Timezone is required' });
+    // Validate that at least one field is being updated
+    if (Object.keys(updateData).length === 0) {
+      res.status(400).json({ error: 'No fields to update' });
       return;
     }
     
@@ -47,15 +48,24 @@ export const updateUserSettings = async (req: Request, res: Response) => {
     
     let settings;
     if (existing) {
+      // Update existing settings
       [settings] = await db
         .update(userSettings)
-        .set({ timezone, updatedAt: new Date() })
+        .set({ 
+          ...updateData, 
+          updatedAt: new Date() 
+        })
         .where(eq(userSettings.userId, userId))
         .returning();
     } else {
+      // Create new settings with provided data
       [settings] = await db
         .insert(userSettings)
-        .values({ userId, timezone })
+        .values({ 
+          userId, 
+          timezone: 'UTC', // default timezone
+          ...updateData 
+        })
         .returning();
     }
     
@@ -65,6 +75,7 @@ export const updateUserSettings = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
 
 export const searchUsers = async (req: Request, res: Response) => {
   try {

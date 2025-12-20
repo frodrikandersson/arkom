@@ -2,6 +2,7 @@ import { TimezoneSettings } from '../components/Settings/TimezoneSettings';
 import { BlockedUsersSettings } from '../components/Settings/BlockedUsersSettings';
 import { ProfileSettings } from '../components/Settings/ProfileSettings';
 import { ArtworkUpload } from '../components/Settings/ArtworkUpload';
+import { NotificationSettings } from '../components/Settings/NotificationSettings';
 import styles from './SettingsPage.module.css';
 
 export const SettingsPage = () => {
@@ -12,9 +13,11 @@ export const SettingsPage = () => {
         <ProfileSettings />
         <ArtworkUpload />
         <TimezoneSettings />
+        <NotificationSettings />
         <BlockedUsersSettings />
       </div>
     </div>
   );
 };
+
 

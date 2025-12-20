@@ -5,19 +5,18 @@ import { MessageButton } from '../MessageButton/MessageButton';
 import { AlertButton } from '../AlertButton/AlertButton';
 import { UserMenu } from '../UserMenu/UserMenu';
 import { useAuth } from '../../contexts/AuthContext';
+import { OnOpenChatFunction } from '../../models';
 import styles from './MobileNav.module.css';
 
 interface MobileNavProps {
   basketCount?: number;
   messageCount?: number;
-  alertCount?: number;
-  onOpenChat: (conversationId: number, otherUserId: string, otherUserName?: string, otherUserAvatar?: string) => void;
+  onOpenChat: OnOpenChatFunction;
 }
 
 export const MobileNav = ({ 
   basketCount = 0, 
-  messageCount = 0, 
-  alertCount = 0,
+  messageCount = 0,
   onOpenChat 
 }: MobileNavProps) => {
   const { isLoggedIn } = useAuth();
@@ -52,7 +51,7 @@ export const MobileNav = ({
                 otherUserAvatar: location.state.otherUserAvatar,
               } : undefined}
             />
-            <AlertButton alertCount={alertCount} />
+            <AlertButton />
             <UserMenu />
           </>
         ) : (

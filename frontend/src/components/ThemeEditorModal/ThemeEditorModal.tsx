@@ -75,6 +75,27 @@ export const ThemeEditorModal = ({ isOpen, theme, onClose, onSave, onPreview }: 
     onClose();
   };
 
+  const handleReset = () => {
+    const defaultDarkTheme: Theme = {
+      id: editingTheme.id,
+      name: editingTheme.name,
+      colors: {
+        background: '#0A0A0A',
+        foreground: '#1F1F1F',
+        card: '#151515',
+        cardBorder: '#2A2A2A',
+        text: '#FFFFFF',
+        textSecondary: '#888888',
+        accent: '#00D9FF',
+        accentHover: '#00B8D9',
+        error: '#FF4444',
+        success: '#00FF88',
+      },
+    };
+    setEditingTheme(defaultDarkTheme);
+  };
+
+
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       handleCancel();
@@ -132,13 +153,19 @@ export const ThemeEditorModal = ({ isOpen, theme, onClose, onSave, onPreview }: 
         </div>
 
         <div className={styles.actions}>
-          <button className={styles.cancelBtn} onClick={handleCancel}>
-            Cancel
+          <button className={styles.resetBtn} onClick={handleReset}>
+            Reset to Default
           </button>
-          <button className={styles.saveBtn} onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving...' : 'Save Theme'}
-          </button>
+          <div className={styles.actionButtons}>
+            <button className={styles.cancelBtn} onClick={handleCancel}>
+              Cancel
+            </button>
+            <button className={styles.saveBtn} onClick={handleSave} disabled={saving}>
+              {saving ? 'Saving...' : 'Save Theme'}
+            </button>
+          </div>
         </div>
+
 
         {/* Color Picker Modal */}
         {selectedColorKey && (

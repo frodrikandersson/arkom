@@ -1,88 +1,10 @@
-import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { BlockedUser } from '../../models';
+import { useBlockedUsers } from '../../hooks/useBlockedUsers';
 import styles from './BlockedUsersSettings.module.css';
-
 
 export const BlockedUsersSettings = () => {
   const { user } = useAuth();
-  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (user) {
-      loadBlockedUsers();
-    }
-  }, [user]);
-
-  const loadBlockedUsers = async () => {
-    if (!user) return;
-
-    try {
-      setLoading(true);
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/users/${user.id}/blocked`
-      );
-      const data = await res.json();
-      
-      // Fetch user details for each blocked user
-      const usersWithDetails = await Promise.all(
-        data.blockedUsers.map(async (blocked: BlockedUser) => {
-          try {
-            const userRes = await fetch(
-              `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/users/profile/${blocked.blockedUserId}`
-            );
-            const userData = await userRes.json();
-            return {
-              ...blocked,
-              displayName: userData.profile?.displayName || 'Unknown User',
-              profileImageUrl: userData.profile?.profileImageUrl,
-            };
-          } catch {
-            return {
-              ...blocked,
-              displayName: 'Unknown User',
-            };
-          }
-        })
-      );
-
-      setBlockedUsers(usersWithDetails);
-    } catch (err) {
-      console.error('Failed to load blocked users:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUnblock = async (blockedUserId: string, displayName?: string) => {
-    if (!user) return;
-
-    if (!confirm(`Unblock ${displayName || 'this user'}?`)) {
-      return;
-    }
-
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/users/unblock`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: user.id,
-            blockedUserId,
-          }),
-        }
-      );
-
-      if (res.ok) {
-        await loadBlockedUsers();
-      }
-    } catch (err) {
-      console.error('Failed to unblock user:', err);
-      alert('Failed to unblock user. Please try again.');
-    }
-  };
+  const { blockedUsers, loading, handleUnblock } = useBlockedUsers(user?.id || null);
 
   if (!user) return null;
 

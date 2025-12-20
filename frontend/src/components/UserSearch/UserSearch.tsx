@@ -1,18 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { UserSearchResult } from '../../models';
+import { useUserSearch } from '../../hooks/useUserSearch';
 import styles from './UserSearch.module.css';
-
 
 export const UserSearch = () => {
   const { user } = useAuth();
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<UserSearchResult[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  
+  const { results, isLoading } = useUserSearch(query, user?.id);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -26,45 +25,21 @@ export const UserSearch = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Search users
+  // Update isOpen based on query
   useEffect(() => {
     if (!query.trim()) {
-      setResults([]);
       setIsOpen(false);
-      return;
+    } else if (results.length > 0 || !isLoading) {
+      setIsOpen(true);
     }
-
-    const searchUsers = async () => {
-      setIsLoading(true);
-      try {
-        const queryParams = new URLSearchParams({
-          q: query,
-          ...(user?.id && { userId: user.id }),
-        });
-        
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/users/search?${queryParams}`
-        );
-        const data = await response.json();
-        setResults(data.users || []);
-        setIsOpen(true);
-      } catch (err) {
-        console.error('Search error:', err);
-        setResults([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    const debounce = setTimeout(searchUsers, 300);
-    return () => clearTimeout(debounce);
-  }, [query]);
+  }, [query, results, isLoading]);
 
   const handleSelectUser = (userId: string) => {
     navigate(`/profile/${userId}`);
     setQuery('');
     setIsOpen(false);
   };
+
 
   return (
     <div className={styles.searchContainer} ref={searchRef}>

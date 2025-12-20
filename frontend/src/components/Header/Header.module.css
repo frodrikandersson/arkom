@@ -46,6 +46,52 @@
   gap: 0.75rem;
 }
 
+.desktopSearch {
+  flex: 1;
+  max-width: 400px;
+}
+
+.mobileSearchButton {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: none;
+  border: none;
+  color: var(--color-text);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.mobileSearchButton:hover {
+  background: var(--color-foreground);
+}
+
+.mobileSearchContainer {
+  position: absolute;
+  top: 64px; /* Height of header */
+  left: 0;
+  right: 0;
+  padding: 0.3rem 0.2rem;
+  background: var(--color-card);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 90;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .signInButton {
   padding: 0.5rem 1rem;
   color: var(--color-text);
@@ -94,5 +140,14 @@
 
   .authButtons {
     display: none;
+  }
+
+  /* Hide desktop search, show mobile search button */
+  .desktopSearch {
+    display: none;
+  }
+
+  .mobileSearchButton {
+    display: flex;
   }
 }

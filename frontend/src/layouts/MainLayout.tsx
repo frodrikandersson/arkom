@@ -3,15 +3,8 @@ import { Outlet } from 'react-router-dom';
 import { Header } from '../components/Header/Header';
 import { MobileNav } from '../components/MobileNav/MobileNav';
 import { ChatManager } from '../components/ChatManager/ChatManager';
+import { OnOpenChatFunction, OpenChat } from '../models';
 import styles from './MainLayout.module.css';
-
-interface OpenChat {
-  conversationId: number;
-  otherUserId: string;
-  otherUserName?: string;
-  otherUserAvatar?: string;
-  isMinimized: boolean;
-}
 
 export const MainLayout = () => {
   const [openChats, setOpenChats] = useState<OpenChat[]>([]);
@@ -19,9 +12,8 @@ export const MainLayout = () => {
   // You can manage global state here for basket/messages/alerts
   const basketCount = 0; // TODO: Connect to basket state
   const messageCount = 0; // TODO: Connect to messages state
-  const alertCount = 0; // TODO: Connect to alerts state
 
-  const handleOpenChat = (conversationId: number, otherUserId: string, otherUserName?: string, otherUserAvatar?: string) => {
+  const handleOpenChat: OnOpenChatFunction = (conversationId, otherUserId, otherUserName, otherUserAvatar, otherUserUsername) => {
     // Check if chat is already open
     const existingChat = openChats.find(chat => chat.conversationId === conversationId);
     
@@ -38,6 +30,7 @@ export const MainLayout = () => {
         conversationId,
         otherUserId,
         otherUserName,
+        otherUserUsername,
         otherUserAvatar,
         isMinimized: false,
       }]);
@@ -59,7 +52,6 @@ export const MainLayout = () => {
       <Header 
         basketCount={basketCount}
         messageCount={messageCount}
-        alertCount={alertCount}
         onOpenChat={handleOpenChat}
       />
       <main className={styles.main}>
@@ -68,7 +60,6 @@ export const MainLayout = () => {
       <MobileNav 
         basketCount={basketCount}
         messageCount={messageCount}
-        alertCount={alertCount}
         onOpenChat={handleOpenChat}
       />
       <ChatManager

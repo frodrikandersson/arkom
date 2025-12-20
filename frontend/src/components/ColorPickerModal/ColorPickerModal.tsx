@@ -51,11 +51,29 @@ export const ColorPickerModal = ({
     }
   };
 
-  const handleOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+const [mouseDownInside, setMouseDownInside] = useState(false);
+
+const handleOverlayMouseDown = (e: React.MouseEvent) => {
+  // Check if mouse down started outside the modal
+  if (e.target === e.currentTarget) {
+    setMouseDownInside(false);
+  }
+};
+
+const handleOverlayMouseUp = (e: React.MouseEvent) => {
+  // Only close if mouse down started outside AND mouse up is also outside
+  if (e.target === e.currentTarget && !mouseDownInside) {
+    onClose();
+  }
+  setMouseDownInside(false);
+};
+
+const handleModalMouseDown = () => {
+  // Mark that mouse down happened inside modal
+  setMouseDownInside(true);
+};
+
+
 
   if (!isOpen) return null;
 
@@ -68,8 +86,12 @@ export const ColorPickerModal = ({
   ];
 
   return (
-    <div className={styles.overlay} onClick={handleOverlayClick}>
-      <div className={styles.modal}>
+    <div 
+      className={styles.overlay} 
+      onMouseDown={handleOverlayMouseDown}
+      onMouseUp={handleOverlayMouseUp}
+    >
+      <div className={styles.modal} onMouseDown={handleModalMouseDown}>
         <div className={styles.header}>
           <h3>{colorLabel}</h3>
           <button className={styles.closeBtn} onClick={onClose}>×</button>

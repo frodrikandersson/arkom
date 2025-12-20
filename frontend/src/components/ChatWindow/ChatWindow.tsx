@@ -1,28 +1,16 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useChatWindow } from '../../hooks/useChatWindow';
 import { EmojiPicker } from '../EmojiPicker/EmojiPicker';
 import { ImageModal } from '../ImageModal/ImageModal';
 import { ReportModal } from '../ReportModal/ReportModal';
 import styles from './ChatWindow.module.css';
 
-interface Message {
-  id: number;
-  senderId: string;
-  content: string | null;
-  fileUrl?: string | null;
-  fileName?: string | null;
-  fileType?: string | null;
-  fileSize?: number | null;
-  createdAt: Date;
-}
-
 interface ChatWindowProps {
   conversationId: number;
   otherUserId: string;
   otherUserName?: string;
+  otherUserUsername?: string;
   otherUserAvatar?: string;
-  otherUserTimezone?: string;
   isMinimized: boolean;
   onMinimize: () => void;
   onClose: () => void;
@@ -32,234 +20,39 @@ export const ChatWindow = ({
   conversationId,
   otherUserId,
   otherUserName = 'User',
+  otherUserUsername,
   otherUserAvatar,
-  otherUserTimezone = 'UTC',
   isMinimized,
   onMinimize,
   onClose,
 }: ChatWindowProps) => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [showOptions, setShowOptions] = useState(false);
-  const [showEmojis, setShowEmojis] = useState(false);
-  const [attachedFile, setAttachedFile] = useState<File | null>(null);
-  const [imageModal, setImageModal] = useState<{ url: string; name: string } | null>(null);
-  const [showReportModal, setShowReportModal] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const optionsRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    loadMessages();
-  }, [conversationId]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (optionsRef.current && !optionsRef.current.contains(event.target as Node)) {
-        setShowOptions(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const loadMessages = async () => {
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/messages/${conversationId}`);
-      const data = await res.json();
-      setMessages(data.messages || []);
-      
-      // Mark messages as read
-      if (user) {
-        await markAsRead();
-      }
-    } catch (err) {
-      console.error('Failed to load messages:', err);
-    }
-  };
-
-  const markAsRead = async () => {
-    if (!user) return;
-    
-    try {
-      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/messages/mark-read`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          conversationId,
-          userId: user.id,
-        }),
-      });
-    } catch (err) {
-      console.error('Failed to mark as read:', err);
-    }
-  };
-
-  const sendMessage = async () => {
-    if ((!newMessage.trim() && !attachedFile) || !user) return;
-
-    try {
-      const formData = new FormData();
-      formData.append('senderId', user.id);
-      formData.append('recipientId', otherUserId);
-      if (newMessage.trim()) {
-        formData.append('content', newMessage.trim());
-      }
-      if (attachedFile) {
-        formData.append('file', attachedFile);
-      }
-
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/messages/send`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (res.ok) {
-        setNewMessage('');
-        setAttachedFile(null);
-        await loadMessages();
-      }
-    } catch (err) {
-      console.error('Failed to send message:', err);
-    }
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Check file size (e.g., 10MB limit)
-      if (file.size > 10 * 1024 * 1024) {
-        alert('File size must be less than 10MB');
-        return;
-      }
-      setAttachedFile(file);
-    }
-  };
-
-  const removeAttachment = () => {
-    setAttachedFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const handleViewProfile = () => {
-    setShowOptions(false);
-    onClose();
-    navigate(`/profile/${otherUserId}`);
-  };
-
-  const handleRemoveChat = async () => {
-    if (!user) return;
-    
-    if (!confirm(`Hide conversation with ${otherUserName}? You can still find it by searching for them.`)) {
-      return;
-    }
-
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/messages/hide`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id,
-          conversationId,
-        }),
-      });
-
-      if (res.ok) {
-        setShowOptions(false);
-        onClose();
-        // Optionally refresh conversations list
-      }
-    } catch (err) {
-      console.error('Failed to hide conversation:', err);
-      alert('Failed to hide conversation. Please try again.');
-    }
-  };
-
-  const handleBlock = async () => {
-    if (!user) return;
-    
-    if (!confirm(`Block @${otherUserName}? They won't be able to message you, and you won't see their messages.`)) {
-      return;
-    }
-
-    try {
-      // Block the user
-      const blockRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/users/block`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id,
-          blockedUserId: otherUserId,
-        }),
-      });
-
-      if (!blockRes.ok) {
-        throw new Error('Failed to block user');
-      }
-
-      // Also hide the conversation
-      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/messages/hide`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id,
-          conversationId,
-        }),
-      });
-
-      setShowOptions(false);
-      onClose();
-      alert(`@${otherUserName} has been blocked.`);
-    } catch (err) {
-      console.error('Failed to block user:', err);
-      alert('Failed to block user. Please try again.');
-    }
-  };
-
-
-
-  const handleReport = () => {
-    setShowOptions(false);
-    setShowReportModal(true);
-  };
-
-  const formatMessageTime = (date: Date) => {
-    const messageDate = new Date(date);
-    const today = new Date();
-    const isToday = messageDate.toDateString() === today.toDateString();
-
-    if (isToday) {
-      return messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-    return messageDate.toLocaleString([], { 
-      month: 'short', 
-      day: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  };
-
-  const getLocalTime = () => {
-    try {
-      return new Date().toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        timeZone: otherUserTimezone 
-      });
-    } catch (err) {
-      // Fallback if timezone is invalid
-      return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-  };
+  const {
+    messages,
+    newMessage,
+    setNewMessage,
+    showOptions,
+    setShowOptions,
+    showEmojis,
+    setShowEmojis,
+    attachedFile,
+    imageModal,
+    setImageModal,
+    showReportModal,
+    setShowReportModal,
+    messagesEndRef,
+    optionsRef,
+    fileInputRef,
+    sendMessage,
+    handleFileSelect,
+    removeAttachment,
+    handleViewProfile,
+    handleRemoveChat,
+    handleBlock,
+    handleReport,
+    formatMessageTime,
+    getLocalTime,
+  } = useChatWindow(conversationId, otherUserId, otherUserName, user?.id || null, onClose);
 
   if (isMinimized) {
     return (
@@ -298,7 +91,7 @@ export const ChatWindow = ({
           <div className={styles.userDetails}>
             <div className={styles.userName}>{otherUserName}</div>
             <div className={styles.userMeta}>
-              {getLocalTime()} • @{otherUserId.slice(0, 8)}
+              {getLocalTime()} • @{otherUserUsername || otherUserId.slice(0, 8)}
             </div>
           </div>
         </div>
@@ -506,14 +299,10 @@ export const ChatWindow = ({
 
       {showReportModal && (
         <ReportModal
-          isOpen={showReportModal}
           reportedUserId={otherUserId}
           reportedUserName={otherUserName}
           conversationId={conversationId}
           onClose={() => setShowReportModal(false)}
-          onSuccess={() => {
-            // Optionally refresh or close chat
-          }}
         />
       )}
     </div>

@@ -13,3 +13,13 @@ export interface CounterResponse {
 export interface LeaderboardResponse {
   leaderboard: LeaderboardEntry[];
 }
+
+export interface DashboardResponse {
+  leaderboard: Array<{
+    user_id: string;
+    count: number;
+    display_name: string | null;
+    primary_email: string | null;
+  }>;
+  userCounter: { count: number } | null;
+}

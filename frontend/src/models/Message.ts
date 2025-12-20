@@ -1,9 +1,12 @@
 export interface Conversation {
-  id: number;
-  participantOneId: string;
-  participantTwoId: string;
+  conversationId: number;
+  otherUserId: string;
+  otherUserName?: string;
+  otherUserUsername?: string;
+  otherUserAvatar?: string;
+  lastMessage: string;
   lastMessageAt: Date;
-  createdAt: Date;
+  unreadCount: number;
 }
 
 export interface Message {

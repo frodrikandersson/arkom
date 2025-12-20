@@ -1,15 +1,5 @@
 import { config } from '../config/env';
-import type { CounterResponse, LeaderboardResponse } from '../models/Counter';
-
-export interface DashboardResponse {
-  leaderboard: Array<{
-    user_id: string;
-    count: number;
-    display_name: string | null;
-    primary_email: string | null;
-  }>;
-  userCounter: { count: number } | null;
-}
+import type { CounterResponse, LeaderboardResponse, DashboardResponse } from '../models/Counter';
 
 export const getDashboard = async (userId: string): Promise<DashboardResponse> => {
   const res = await fetch(`${config.apiUrl}/api/counter/dashboard/${userId}`);
