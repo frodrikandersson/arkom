@@ -6,6 +6,7 @@ import { useUserProfile } from '../../hooks/useUserProfile';
 import { getOrCreateConversation } from '../../services/userService';
 import { OnOpenChatFunction } from '../../models';
 import styles from './UserProfile.module.css';
+import { constructSocialUrl } from '../../utils/socialLinks';
 
 interface UserProfileProps {
   userId: string;
@@ -107,48 +108,25 @@ export const UserProfile = ({ userId, onOpenChat }: UserProfileProps) => {
           {/* Social Links */}
           {profile.socialLinks && Object.keys(profile.socialLinks).length > 0 && (
             <div className={styles.socialLinks}>
-              {profile.socialLinks.twitter && (
-                <a 
-                  href={profile.socialLinks.twitter} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className={styles.socialLink}
-                >
-                  Twitter
-                </a>
-              )}
-              {profile.socialLinks.instagram && (
-                <a 
-                  href={profile.socialLinks.instagram} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className={styles.socialLink}
-                >
-                  Instagram
-                </a>
-              )}
-              {profile.socialLinks.artstation && (
-                <a 
-                  href={profile.socialLinks.artstation} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className={styles.socialLink}
-                >
-                  ArtStation
-                </a>
-              )}
-              {profile.socialLinks.website && (
-                <a 
-                  href={profile.socialLinks.website} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className={styles.socialLink}
-                >
-                  Website
-                </a>
-              )}
+              {Object.entries(profile.socialLinks).map(([platform, link]) => {
+                const url = constructSocialUrl(link);
+                if (!url) return null;
+                
+                return (
+                  <a 
+                    key={platform}
+                    href={url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className={styles.socialLink}
+                  >
+                    {platform.charAt(0).toUpperCase() + platform.slice(1).replace(/_/g, ' ')}
+                  </a>
+                );
+              })}
             </div>
           )}
+
         </div>
       </div>
 

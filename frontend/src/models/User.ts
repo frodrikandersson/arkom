@@ -1,8 +1,10 @@
+export interface SocialLink {
+  domain: string;
+  handle: string;
+}
+
 export interface SocialLinks {
-  twitter?: string;
-  instagram?: string;
-  website?: string;
-  artstation?: string;
+  [key: string]: SocialLink;
 }
 
 export interface UserProfile {

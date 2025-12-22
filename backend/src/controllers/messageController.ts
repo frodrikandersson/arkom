@@ -229,14 +229,31 @@ export const sendMessage = async (req: Request, res: Response) => {
         );
 
       // Only create notification if this is the FIRST unread message
-      // (existingUnreadMessages only includes messages BEFORE this new one)
       const shouldNotify = existingUnreadMessages.length === 0;
 
       if (shouldNotify) {
+        // Get sender's display name
+        const senderResult = await db.execute(sql`
+          SELECT 
+            u.raw_json->>'display_name' as stack_display_name,
+            s.username as custom_username,
+            s.display_name as custom_display_name
+          FROM neon_auth.users_sync u
+          LEFT JOIN user_settings s ON u.raw_json->>'id' = s.user_id
+          WHERE u.raw_json->>'id' = ${senderId}
+          LIMIT 1
+        `);
+        
+        const sender = senderResult.rows[0] as any;
+        const senderName = sender?.custom_display_name || 
+                          sender?.custom_username || 
+                          sender?.stack_display_name || 
+                          'Someone';
+        
         await createNotification(
           recipientId,
           'message',
-          'New message',
+          `New message from ${senderName}`,
           content 
             ? (content.length > 100 ? content.substring(0, 100) + '...' : content)
             : 'Sent you a file',

@@ -9,6 +9,7 @@ import userRoutes from './routes/userRoutes.js';
 import artworkRoutes from './routes/artworkRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import pushRoutes from './routes/pushRoutes.js';
+import testRoutes from './routes/testRoutes.js';
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/artworks', artworkRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/push', pushRoutes);
+app.use('/api/test', testRoutes);
 
 // Only listen if not in Vercel
 if (process.env.NODE_ENV !== 'production') {

@@ -8,6 +8,7 @@ import { MainLayout } from '../layouts/MainLayout';
 const HomePage = lazy(() => import('../pages/HomePage').then(m => ({ default: m.HomePage })));
 const SettingsPage = lazy(() => import('../pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const UserProfilePage = lazy(() => import('../pages/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
+const TestNotifications = lazy(() => import('../pages/TestNotifications').then(m => ({ default: m.TestNotifications })));
 
 function HandlerRoutes() {
   const location = useLocation();
@@ -46,6 +47,7 @@ export const AppRoutes: React.FC = () => {
           <Route path="/characters" element={<div style={{ padding: '2rem' }}>Characters Page</div>} />
           <Route path="/saved" element={<div style={{ padding: '2rem' }}>Saved Page</div>} />
           <Route path="/artist-dashboard" element={<div style={{ padding: '2rem' }}>Artist Dashboard Page</div>} />
+          <Route path="/test-notifications" element={<TestNotifications />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/help" element={<div style={{ padding: '2rem' }}>Help Page</div>} />
           <Route path="/about" element={<div style={{ padding: '2rem' }}>About Us Page</div>} />

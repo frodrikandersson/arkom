@@ -213,6 +213,14 @@
   margin-top: 0.25rem;
 }
 
+.fieldLabel {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-textSecondary);
+  margin-bottom: 0.375rem;
+  font-weight: 500;
+}
+
 .socialLinkItem {
   display: flex;
   align-items: center;
@@ -226,6 +234,191 @@
   flex-shrink: 0;
 }
 
+.socialLinksContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.socialLinkRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.platformInput {
+  flex: 0 0 180px;
+  min-width: 50%;
+  padding: 0.75rem;
+  background: var(--color-foreground);
+  color: var(--color-text);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  transition: border-color 0.2s ease;
+}
+
+.platformInput:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.platformInput::placeholder {
+  color: var(--color-textSecondary);
+}
+
+.urlInput {
+  flex: 1;
+  padding: 0.75rem;
+  background: var(--color-foreground);
+  color: var(--color-text);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  transition: border-color 0.2s ease;
+}
+
+.urlInput:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.urlInput::placeholder {
+  color: var(--color-textSecondary);
+}
+
+.removeBtn {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-foreground);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 8px;
+  color: var(--color-error);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.removeBtn:hover {
+  background: var(--color-error);
+  color: var(--color-background);
+  border-color: var(--color-error);
+}
+
+.addSocialBtn {
+  padding: 0.75rem 1.5rem;
+  background: var(--color-foreground);
+  color: var(--color-accent);
+  border: 1px dashed var(--color-accent);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addSocialBtn:hover {
+  background: var(--color-accent);
+  color: var(--color-background);
+  border-style: solid;
+}
+
+.savedLinksContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.savedLinkBox {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--color-foreground);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 8px;
+  transition: border-color 0.2s ease;
+}
+
+.savedLinkBox:hover {
+  border-color: var(--color-accent);
+}
+
+.linkLogo {
+  font-size: 1.75rem;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.linkInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.linkDomain {
+  font-weight: 600;
+  color: var(--color-text);
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.linkUrl {
+  font-size: 0.8rem;
+  color: var(--color-textSecondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deleteBtn {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.deleteBtn:hover {
+  opacity: 1;
+}
+
+.addLinkBtn {
+  width: 100%;
+  padding: 0.875rem;
+  background: var(--color-foreground);
+  color: var(--color-accent);
+  border: 1px dashed var(--color-accent);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.addLinkBtn:hover {
+  background: var(--color-accent);
+  color: var(--color-background);
+  border-style: solid;
+}
+
+.message {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-card);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
 
 
 @media (max-width: 768px) {
@@ -245,4 +438,23 @@
   .profilePlaceholder {
     font-size: 2rem;
   }
+
+  .socialLinkRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .platformInput {
+    flex: 1;
+    width: 100%;
+  }
+
+  .urlInput {
+    width: 100%;
+  }
+
+  .removeBtn {
+    align-self: flex-end;
+  }
 }
+

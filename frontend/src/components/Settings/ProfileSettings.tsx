@@ -1,12 +1,16 @@
+import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useProfileSettings } from '../../hooks/useProfileSettings';
 import styles from './ProfileSettings.module.css';
+import { getLogo } from '../../utils/socialLinks';
+import { AddSocialLinkModal } from '../AddSocialLinkModal/AddSocialLinkModal';
 
 export const ProfileSettings = () => {
   const { user } = useAuth();
   const {
     loading,
     saving,
+    message,
     profileData,
     profilePreview,
     bannerPreview,
@@ -14,12 +18,17 @@ export const ProfileSettings = () => {
     bannerInputRef,
     handleInputChange,
     handleSocialLinkChange,
+    removeSocialLink,
     handleProfileImageChange,
     handleBannerImageChange,
     setProfilePreview,
     setBannerPreview,
     saveProfile,
+    saveSocialLink,
+    removeSocialLinkAndSave,
   } = useProfileSettings(user?.id || null);
+  const [showAddLinkModal, setShowAddLinkModal] = useState(false);
+
 
   if (!user) return null;
 
@@ -151,62 +160,51 @@ export const ProfileSettings = () => {
 
       <div className={styles.formGroup}>
         <label className={styles.label}>Social Links</label>
-        <div className={styles.hint} style={{ marginBottom: '0.75rem' }}>
-          Enter just your username/handle for each platform
+        
+        {/* Display saved links */}
+        <div className={styles.savedLinksContainer}>
+          {Object.entries(profileData.socialLinks).map(([platform, link]) => (
+            <div key={platform} className={styles.savedLinkBox}>
+              <div className={styles.linkLogo}>{getLogo(link.domain)}</div>
+              <div className={styles.linkInfo}>
+                <div className={styles.linkDomain}>{platform.charAt(0).toUpperCase() + platform.slice(1)}</div>
+                <div className={styles.linkUrl}>https://{link.domain}/{link.handle}</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  removeSocialLink(platform);  // Remove from local state first
+                  removeSocialLinkAndSave(platform);  // Then save to backend
+                }}
+                className={styles.deleteBtn}
+                title="Delete"
+              >
+                🗑️
+              </button>
+            </div>
+          ))}
         </div>
-        <div className={styles.socialLinks}>
-          <div className={styles.socialLinkItem}>
-            <span className={styles.socialPrefix}>twitter.com/</span>
-            <input
-              type="text"
-              value={profileData.socialLinks.twitter?.replace(/^https?:\/\/(www\.)?(twitter\.com|x\.com)\//, '') || ''}
-              onChange={(e) => {
-                const handle = e.target.value.replace(/^@/, '');
-                handleSocialLinkChange('twitter', handle ? `https://twitter.com/${handle}` : '');
-              }}
-              placeholder="username"
-              className={styles.input}
-            />
-          </div>
-          <div className={styles.socialLinkItem}>
-            <span className={styles.socialPrefix}>instagram.com/</span>
-            <input
-              type="text"
-              value={profileData.socialLinks.instagram?.replace(/^https?:\/\/(www\.)?instagram\.com\//, '') || ''}
-              onChange={(e) => {
-                const handle = e.target.value.replace(/^@/, '');
-                handleSocialLinkChange('instagram', handle ? `https://instagram.com/${handle}` : '');
-              }}
-              placeholder="username"
-              className={styles.input}
-            />
-          </div>
-          <div className={styles.socialLinkItem}>
-            <span className={styles.socialPrefix}>artstation.com/</span>
-            <input
-              type="text"
-              value={profileData.socialLinks.artstation?.replace(/^https?:\/\/(www\.)?artstation\.com\//, '') || ''}
-              onChange={(e) => {
-                const handle = e.target.value;
-                handleSocialLinkChange('artstation', handle ? `https://artstation.com/${handle}` : '');
-              }}
-              placeholder="username"
-              className={styles.input}
-            />
-          </div>
-          <div className={styles.socialLinkItem}>
-            <label className={styles.socialPrefix}>Website:</label>
-            <input
-              type="url"
-              value={profileData.socialLinks.website || ''}
-              onChange={(e) => handleSocialLinkChange('website', e.target.value)}
-              placeholder="https://yoursite.com"
-              className={styles.input}
-            />
-          </div>
-        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowAddLinkModal(true)}
+          className={styles.addLinkBtn}
+        >
+          + Add Link
+        </button>
       </div>
-      
+
+      {/* Add Link Modal */}
+      <AddSocialLinkModal
+        isOpen={showAddLinkModal}
+        onClose={() => setShowAddLinkModal(false)}
+        onSave={async (platform, link) => {
+          handleSocialLinkChange(platform, link.domain, link.handle);
+          await saveSocialLink(platform, link);
+          setShowAddLinkModal(false);
+        }}
+      />
+
       <button
         onClick={saveProfile}
         disabled={saving}
@@ -214,6 +212,10 @@ export const ProfileSettings = () => {
       >
         {saving ? 'Saving...' : 'Save Profile'}
       </button>
+
+      {message && (
+        <div className={styles.message}>{message}</div>
+      )}
     </div>
   );
 };
