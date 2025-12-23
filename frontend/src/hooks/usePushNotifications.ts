@@ -72,7 +72,6 @@ export const usePushNotifications = (userId: string | null) => {
       }
 
       setIsSubscribed(true);
-      console.log('Push subscription successful');
     } catch (err: any) {
       console.error('Push subscription failed:', err);
       setError(err.message || 'Failed to subscribe');
@@ -103,7 +102,6 @@ export const usePushNotifications = (userId: string | null) => {
         // Unsubscribe from browser
         await subscription.unsubscribe();
         setIsSubscribed(false);
-        console.log('Push unsubscription successful');
       }
     } catch (err: any) {
       console.error('Push unsubscription failed:', err);

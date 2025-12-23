@@ -51,7 +51,6 @@ export const subscribeToPushNotifications = async (userId: string): Promise<bool
     // Request permission if not already granted
     const permission = await requestNotificationPermission();
     if (permission !== 'granted') {
-      console.log('Notification permission denied');
       return false;
     }
 
@@ -87,7 +86,6 @@ export const subscribeToPushNotifications = async (userId: string): Promise<bool
       throw new Error('Failed to save push subscription');
     }
 
-    console.log('Successfully subscribed to push notifications');
     return true;
   } catch (error) {
     console.error('Failed to subscribe to push notifications:', error);
@@ -120,7 +118,6 @@ export const unsubscribeFromPushNotifications = async (): Promise<boolean> => {
       throw new Error('Failed to remove push subscription from backend');
     }
 
-    console.log('Successfully unsubscribed from push notifications');
     return true;
   } catch (error) {
     console.error('Failed to unsubscribe from push notifications:', error);

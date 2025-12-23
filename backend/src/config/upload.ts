@@ -1,47 +1,31 @@
 import multer from 'multer';
+import { FILE_RULES } from './fileConstraints.js';
 
-// Allowed file types
-const ALLOWED_TYPES = {
-  'image/jpeg': '.jpg',
-  'image/jpg': '.jpg',
-  'image/png': '.png',
-  'image/gif': '.gif',
-  'image/webp': '.webp',
-  'application/pdf': '.pdf',
-  'application/msword': '.doc',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
-  'text/plain': '.txt',
-  'application/vnd.ms-excel': '.xls',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
-  'application/vnd.ms-powerpoint': '.ppt',
-  'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
-  'audio/mpeg': '.mp3',
-  'audio/wav': '.wav',
-  'audio/mp4': '.m4a',
-  'audio/ogg': '.ogg',
-  'application/zip': '.zip',
-  'application/x-rar-compressed': '.rar',
+// Factory function to create upload middleware for different contexts
+export const createUploadMiddleware = (context: keyof typeof FILE_RULES) => {
+  const rules = FILE_RULES[context];
+  
+  return multer({
+    storage: multer.memoryStorage(),
+    fileFilter: (req, file, cb) => {
+      // Cast to string array for comparison
+      if ((rules.allowedTypes as readonly string[]).includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error(`Invalid file type. Allowed: ${rules.accept}`));
+      }
+    },
+    limits: {
+      fileSize: rules.maxSize,
+    },
+  });
 };
 
-// Max file size: 10MB
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+// Pre-configured middleware for common use cases
+export const messageUpload = createUploadMiddleware('MESSAGE_ATTACHMENT');
+export const artworkUpload = createUploadMiddleware('ARTWORK_PORTFOLIO');
+export const profileImageUpload = createUploadMiddleware('PROFILE_IMAGE');
+export const bannerImageUpload = createUploadMiddleware('BANNER_IMAGE');
 
-// Use memory storage for R2 upload
-const storage = multer.memoryStorage();
-
-// File filter
-const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  if (file.mimetype in ALLOWED_TYPES) {
-    cb(null, true);
-  } else {
-    cb(new Error('Invalid file type. Only images, documents, audio files, and archives are allowed.'));
-  }
-};
-
-export const upload = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: MAX_FILE_SIZE,
-  },
-});
+// Keep the old 'upload' export for backward compatibility with existing routes
+export const upload = messageUpload;

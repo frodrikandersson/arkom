@@ -7,7 +7,6 @@ import { eq, and, sql } from 'drizzle-orm';
 export const markConversationActive = async (req: Request, res: Response) => {
   try {
     const { userId, conversationId } = req.body;
-    console.log('Marking conversation active for user:', userId, 'conversation:', conversationId);
     if (!userId || !conversationId) {
       res.status(400).json({ error: 'userId and conversationId required' });
       return;
@@ -32,7 +31,6 @@ export const markConversationActive = async (req: Request, res: Response) => {
 export const markConversationInactive = async (req: Request, res: Response) => {
   try {
     const { userId, conversationId } = req.body;
-    console.log('Marking conversation inactive for user:', userId, 'conversation:', conversationId);
     if (!userId || !conversationId) {
       res.status(400).json({ error: 'userId and conversationId required' });
       return;

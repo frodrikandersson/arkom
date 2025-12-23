@@ -29,10 +29,6 @@ export const sendPushNotification = async (
   payload: PushNotificationPayload
 ): Promise<boolean> => {
   try {
-    console.log('=== PUSH SERVICE DEBUG ===');
-    console.log('VAPID configured:', !!(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY));
-    console.log('User ID:', userId);
-    console.log('Payload:', payload);
     
     // Get all push subscriptions for this user
     const subscriptions = await db
@@ -40,10 +36,7 @@ export const sendPushNotification = async (
       .from(pushSubscriptions)
       .where(eq(pushSubscriptions.userId, userId));
 
-    console.log('Push subscriptions found:', subscriptions.length);
-
     if (subscriptions.length === 0) {
-      console.log(`No push subscriptions found for user ${userId}`);
       return false;
     }
 
@@ -70,7 +63,6 @@ export const sendPushNotification = async (
             await db
               .delete(pushSubscriptions)
               .where(eq(pushSubscriptions.id, subscription.id));
-            console.log(`Removed invalid subscription ${subscription.id}`);
           }
           throw error;
         }
@@ -78,7 +70,6 @@ export const sendPushNotification = async (
     );
 
     const successCount = results.filter(r => r.status === 'fulfilled').length;
-    console.log(`Push notifications sent: ${successCount}/${subscriptions.length}`);
     
     return successCount > 0;
   } catch (error) {
@@ -106,7 +97,6 @@ export const savePushSubscription = async (
       .where(eq(pushSubscriptions.endpoint, subscription.endpoint));
 
     if (existing.length > 0) {
-      console.log('Push subscription already exists');
       return true;
     }
 
@@ -117,7 +107,6 @@ export const savePushSubscription = async (
       auth: subscription.keys.auth,
     });
 
-    console.log(`Push subscription saved for user ${userId}`);
     return true;
   } catch (error) {
     console.error('Failed to save push subscription:', error);
@@ -133,8 +122,6 @@ export const removePushSubscription = async (
     await db
       .delete(pushSubscriptions)
       .where(eq(pushSubscriptions.endpoint, endpoint));
-
-    console.log('Push subscription removed');
     return true;
   } catch (error) {
     console.error('Failed to remove push subscription:', error);

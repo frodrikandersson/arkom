@@ -4,6 +4,7 @@ import { EmojiPicker } from '../EmojiPicker/EmojiPicker';
 import { ImageModal } from '../ImageModal/ImageModal';
 import { ReportModal } from '../ReportModal/ReportModal';
 import { useConversationActivity } from '../../hooks/useConversationActivity';
+import { FILE_RULES } from '../../../../backend/src/config/fileConstraints';
 import styles from './ChatWindow.module.css';
 
 interface ChatWindowProps {
@@ -293,7 +294,7 @@ export const ChatWindow = ({
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*,video/*,.pdf,.doc,.docx,.txt"
+            accept={FILE_RULES.MESSAGE_ATTACHMENT.accept}
             onChange={handleFileSelect}
             style={{ display: 'none' }}
           />

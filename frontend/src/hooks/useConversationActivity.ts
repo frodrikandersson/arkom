@@ -34,7 +34,6 @@ export const useConversationActivity = (
       if (isCleanedUp) return;
       
       markConversationActive(userId, conversationId);
-      console.log(`Started tracking conversation ${conversationId} as active`);
     }, 100); // 100ms delay
 
     // Send heartbeat every 30 seconds
@@ -44,7 +43,6 @@ export const useConversationActivity = (
       // Only send heartbeat if tab is visible
       if (!document.hidden) {
         markConversationActive(userId, conversationId);
-        console.log(`Heartbeat: conversation ${conversationId} still active`);
       }
     }, 30000); // 30 seconds
 
@@ -52,16 +50,13 @@ export const useConversationActivity = (
     const handleVisibilityChange = () => {
       if (document.hidden && intervalRef.current !== null) {
         // Tab hidden - pause heartbeat but don't cleanup
-        console.log(`Tab hidden, pausing heartbeat for conversation ${conversationId}`);
         window.clearInterval(intervalRef.current);
         intervalRef.current = null;
       } else if (!document.hidden && intervalRef.current === null && !isCleanedUp) {
         // Tab visible again - resume heartbeat
-        console.log(`Tab visible, resuming heartbeat for conversation ${conversationId}`);
         intervalRef.current = window.setInterval(() => {
           if (!isCleanedUp && !document.hidden) {
             markConversationActive(userId, conversationId);
-            console.log(`Heartbeat: conversation ${conversationId} still active`);
           }
         }, 30000);
       }
@@ -79,7 +74,6 @@ export const useConversationActivity = (
       }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       markConversationInactive(userId, conversationId);
-      console.log(`Stopped tracking conversation ${conversationId}`);
     };
   }, [userId, conversationId, isActive]);
 };

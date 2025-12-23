@@ -13,9 +13,6 @@ export const sendNotificationEmail = async (
   actionUrl?: string
 ): Promise<boolean> => {
   try {
-    console.log('=== EMAIL SERVICE DEBUG ===');
-    console.log('RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY);
-    console.log('User ID:', userId);
     
     // Get user's email from Stack Auth
     const result = await db.execute(sql`
@@ -26,16 +23,12 @@ export const sendNotificationEmail = async (
       WHERE raw_json->>'id' = ${userId}
     `);
 
-    console.log('User query result rows:', result.rows.length);
-
     if (result.rows.length === 0) {
       console.error('User not found:', userId);
       return false;
     }
 
     const user = result.rows[0] as { email: string; display_name: string };
-    console.log('User email:', user.email);
-    console.log('User display name:', user.display_name);
     
     if (!user.email) {
       console.error('User has no email:', userId);
@@ -182,8 +175,6 @@ export const sendNotificationEmail = async (
       subject: `Arkom: ${title}`,
       html: emailHtml,
     });
-
-    console.log(`Email sent successfully to ${user.email}`);
     return true;
   } catch (error) {
     console.error('Failed to send notification email:', error);

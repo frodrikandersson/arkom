@@ -158,3 +158,81 @@ export const activeConversations = pgTable('active_conversations', {
   // Index for fast lookups
   userConvIdx: index('active_conv_user_conv_idx').on(table.userId, table.conversationId),
 }));
+
+// Provenance analysis results
+export const provenanceAnalysis = pgTable('provenance_analysis', {
+  id: serial('id').primaryKey(),
+  artworkId: integer('artwork_id').notNull().references(() => artworks.id, { onDelete: 'cascade' }),
+  analyzedAt: timestamp('analyzed_at').defaultNow().notNull(),
+  
+  // Layer scores (0-100 for easier integer storage, divide by 100 for 0-1 range)
+  metadataScore: integer('metadata_score'), // 0-100
+  fileAnalysisScore: integer('file_analysis_score'), // 0-100
+  visualAiScore: integer('visual_ai_score'), // 0-100
+  behavioralScore: integer('behavioral_score'), // 0-100
+  communityScore: integer('community_score'), // 0-100
+  
+  // Combined results
+  finalScore: integer('final_score'), // 0-100
+  confidenceLevel: text('confidence_level'), // 'low', 'medium', 'high', 'very_high'
+  verdict: text('verdict'), // 'likely_legitimate', 'uncertain', 'likely_ai', 'verified_artist'
+  
+  // Details stored as JSON
+  metadataDetails: text('metadata_details'), // JSON string
+  behavioralDetails: text('behavioral_details'), // JSON string
+  aiDetectionDetails: text('ai_detection_details'), // JSON string
+  
+  // Status
+  isFlagged: boolean('is_flagged').default(false),
+  isAppealed: boolean('is_appealed').default(false),
+  appealStatus: text('appeal_status'), // 'pending', 'approved', 'rejected', null
+});
+
+// Provenance appeals
+export const provenanceAppeals = pgTable('provenance_appeals', {
+  id: serial('id').primaryKey(),
+  analysisId: integer('analysis_id').notNull().references(() => provenanceAnalysis.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull(),
+  appealText: text('appeal_text').notNull(),
+  supportingEvidenceUrl: text('supporting_evidence_url'), // Link to process video, etc.
+  status: text('status').default('pending'), // 'pending', 'approved', 'rejected'
+  reviewedBy: text('reviewed_by'),
+  reviewedAt: timestamp('reviewed_at'),
+  resolutionNotes: text('resolution_notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Artist verification
+export const artistVerification = pgTable('artist_verification', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull().unique(),
+  verificationType: text('verification_type'), // 'process_video', 'portfolio_review', 'manual'
+  verifiedAt: timestamp('verified_at').defaultNow().notNull(),
+  verifiedBy: text('verified_by'),
+  verificationEvidence: text('verification_evidence'), // JSON string
+  expiresAt: timestamp('expires_at'), // Optional: annual re-verification
+});
+
+// Reporter reputation (for community reporting)
+export const reporterReputation = pgTable('reporter_reputation', {
+  userId: text('user_id').primaryKey(),
+  totalReports: integer('total_reports').default(0),
+  accurateReports: integer('accurate_reports').default(0),
+  falseReports: integer('false_reports').default(0),
+  reputationScore: integer('reputation_score').default(50), // 0-100 (50 = neutral start)
+  lastUpdated: timestamp('last_updated').defaultNow().notNull(),
+});
+
+// User upload behavior tracking (aggregated, privacy-friendly)
+export const userUploadBehavior = pgTable('user_upload_behavior', {
+  userId: text('user_id').primaryKey(),
+  totalUploads: integer('total_uploads').default(0),
+  uploadsLastHour: integer('uploads_last_hour').default(0),
+  uploadsLastDay: integer('uploads_last_day').default(0),
+  averageUploadInterval: integer('average_upload_interval'), // seconds
+  pasteUploadCount: integer('paste_upload_count').default(0),
+  fileUploadCount: integer('file_upload_count').default(0),
+  lastUploadAt: timestamp('last_upload_at'),
+  suspiciousPatterns: text('suspicious_patterns'), // JSON string
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});

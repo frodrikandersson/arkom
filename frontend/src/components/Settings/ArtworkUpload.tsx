@@ -1,5 +1,7 @@
 import { useAuth } from '../../contexts/AuthContext';
 import { useArtworkUpload } from '../../hooks/useArtworkUpload';
+import { FILE_RULES } from '../../../../backend/src/config/fileConstraints';
+
 import styles from './ArtworkUpload.module.css';
 
 interface ArtworkUploadProps {
@@ -42,7 +44,7 @@ export const ArtworkUpload = ({ onUploadComplete }: ArtworkUploadProps) => {
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept={FILE_RULES.ARTWORK_PORTFOLIO.accept}
           onChange={handleFileChange}
           className={styles.fileInput}
         />

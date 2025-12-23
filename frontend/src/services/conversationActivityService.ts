@@ -2,7 +2,6 @@ import { config } from '../config/env';
 
 export const markConversationActive = async (userId: string, conversationId: number): Promise<void> => {
   try {
-    console.log('Marking conversation active for user:', userId, 'conversation:', conversationId);
     await fetch(`${config.apiUrl}/api/conversation-activity/active`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -15,7 +14,6 @@ export const markConversationActive = async (userId: string, conversationId: num
 
 export const markConversationInactive = async (userId: string, conversationId: number): Promise<void> => {
   try {
-    console.log('Marking conversation inactive for user:', userId, 'conversation:', conversationId);
     await fetch(`${config.apiUrl}/api/conversation-activity/inactive`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

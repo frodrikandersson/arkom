@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getMessages, markAsRead, sendMessage, hideConversation } from '../services/messageService';
 import { blockUser } from '../services/userService';
 import { Message } from '../models';
+import { validateFile } from '../../../backend/src/config/fileConstraints';
 
 export const useChatWindow = (
   conversationId: number,
@@ -145,8 +146,9 @@ const retryMessage = async (tempId: string) => {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        alert('File size must be less than 10MB');
+      const validation = validateFile(file, 'MESSAGE_ATTACHMENT');
+      if (!validation.valid) {
+        alert(validation.error);
         return;
       }
       setAttachedFile(file);

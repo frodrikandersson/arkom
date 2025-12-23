@@ -146,7 +146,6 @@ export const sendMessage = async (req: Request, res: Response) => {
     .limit(1);
 
   if (existingMessage.length > 0) {
-    console.log('Duplicate message detected, returning existing:', messageId);
     res.json({ message: existingMessage[0] });
     return;
   }
@@ -236,11 +235,6 @@ export const sendMessage = async (req: Request, res: Response) => {
     
     // Create notification for recipient
     try {
-      console.log('=== MESSAGE NOTIFICATION DEBUG ===');
-      console.log('Sender ID:', senderId);
-      console.log('Recipient ID:', recipientId);
-      console.log('Conversation ID:', conversation.id);
-      console.log('New Message ID:', message.id);
       
       // Check 1: Any unread messages before this one?
       const existingUnreadMessages = await db
@@ -254,9 +248,6 @@ export const sendMessage = async (req: Request, res: Response) => {
             sql`${messages.id} < ${message.id}`
           )
         );
-
-      console.log('Existing unread messages:', existingUnreadMessages.length);
-
       // Check 2: Is recipient actively viewing this conversation?
       const activeViewing = await db
         .select()
@@ -269,7 +260,6 @@ export const sendMessage = async (req: Request, res: Response) => {
           )
         );
 
-      console.log('Recipient actively viewing:', activeViewing.length > 0);
 
       // Check 3: Recent notification sent for this conversation?
       const recentNotifications = await db
@@ -284,8 +274,6 @@ export const sendMessage = async (req: Request, res: Response) => {
           )
         );
 
-      console.log('Recent notifications:', recentNotifications.length);
-
       // Smart notification logic:
       // - Always notify on FIRST unread message
       // - Don't notify if user is actively viewing (last activity < 1 min ago)
@@ -295,15 +283,8 @@ export const sendMessage = async (req: Request, res: Response) => {
       const hasRecentNotification = recentNotifications.length > 0;
 
       const shouldNotify = isFirstUnread && !isActivelyViewing && !hasRecentNotification;
-      
-      console.log('Should notify:', shouldNotify, {
-        isFirstUnread,
-        isActivelyViewing,
-        hasRecentNotification
-      });
 
       if (shouldNotify) {
-        console.log('Creating notification for recipient:', recipientId);
         
         // Get sender's name
         const senderResult = await db.execute(sql`
@@ -333,14 +314,6 @@ export const sendMessage = async (req: Request, res: Response) => {
           message.id.toString(),
           senderId,
           `/messages?conversation=${conversation.id}`
-        );
-        
-        console.log('Notification created:', notification);
-      } else {
-        console.log('Skipping notification:', 
-          !isFirstUnread ? 'not first unread' : 
-          isActivelyViewing ? 'user actively viewing' : 
-          'recent notification sent'
         );
       }
     } catch (notifError) {
