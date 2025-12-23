@@ -11,7 +11,7 @@ export const useConversationActivity = (
   conversationId: number | null,
   isActive: boolean = true
 ) => {
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<number | null>(null);
 
   useEffect(() => {
     // Don't track if no user/conversation or explicitly disabled
@@ -30,7 +30,7 @@ export const useConversationActivity = (
     }
 
     // Small delay to prevent rapid mount/unmount in React Strict Mode
-    const activateTimeout = setTimeout(() => {
+    const activateTimeout = window.setTimeout(() => {
       if (isCleanedUp) return;
       
       markConversationActive(userId, conversationId);
@@ -38,7 +38,7 @@ export const useConversationActivity = (
     }, 100); // 100ms delay
 
     // Send heartbeat every 30 seconds
-    intervalRef.current = setInterval(() => {
+    intervalRef.current = window.setInterval(() => {
       if (isCleanedUp) return;
       
       // Only send heartbeat if tab is visible
@@ -50,15 +50,15 @@ export const useConversationActivity = (
 
     // Handle tab visibility changes
     const handleVisibilityChange = () => {
-      if (document.hidden && intervalRef.current) {
+      if (document.hidden && intervalRef.current !== null) {
         // Tab hidden - pause heartbeat but don't cleanup
         console.log(`Tab hidden, pausing heartbeat for conversation ${conversationId}`);
-        clearInterval(intervalRef.current);
+        window.clearInterval(intervalRef.current);
         intervalRef.current = null;
-      } else if (!document.hidden && !intervalRef.current && !isCleanedUp) {
+      } else if (!document.hidden && intervalRef.current === null && !isCleanedUp) {
         // Tab visible again - resume heartbeat
         console.log(`Tab visible, resuming heartbeat for conversation ${conversationId}`);
-        intervalRef.current = setInterval(() => {
+        intervalRef.current = window.setInterval(() => {
           if (!isCleanedUp && !document.hidden) {
             markConversationActive(userId, conversationId);
             console.log(`Heartbeat: conversation ${conversationId} still active`);
@@ -72,14 +72,14 @@ export const useConversationActivity = (
     // Cleanup: Mark as inactive and stop heartbeat
     return () => {
       isCleanedUp = true;
-      clearTimeout(activateTimeout);
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+      window.clearTimeout(activateTimeout);
+      if (intervalRef.current !== null) {
+        window.clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       markConversationInactive(userId, conversationId);
       console.log(`Stopped tracking conversation ${conversationId}`);
     };
-  }, [userId, conversationId, isActive]); // Removed isTabVisible from dependencies!
+  }, [userId, conversationId, isActive]);
 };
