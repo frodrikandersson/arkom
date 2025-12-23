@@ -564,3 +564,39 @@
   background: var(--color-foreground);
   color: var(--color-text);
 }
+
+.messageStatus {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.loadingSpinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.errorIcon {
+  color: var(--color-error, #ff4444);
+}
+
+.retryBtn {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.75rem;
+  text-decoration: underline;
+}
+
+.retryBtn:hover {
+  opacity: 0.8;
+}

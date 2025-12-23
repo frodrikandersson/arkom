@@ -13,7 +13,6 @@ export const useChatWindow = (
 ) => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isSending, setIsSending] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [showOptions, setShowOptions] = useState(false);
   const [showEmojis, setShowEmojis] = useState(false);
@@ -57,20 +56,90 @@ export const useChatWindow = (
   };
 
   const handleSendMessage = async () => {
-    if (isSending || (!newMessage.trim() && !attachedFile) || !userId) return;
+    if ((!newMessage.trim() && !attachedFile) || !userId) return;
 
-    setIsSending(true);
+    // Generate temporary ID for optimistic message
+    const tempId = crypto.randomUUID();
+    const messageContent = newMessage;
+    const messageFile = attachedFile;
+
+    // Create optimistic message
+    const optimisticMessage: Message = {
+      id: -1, // Temporary negative ID
+      tempId,
+      conversationId,
+      senderId: userId,
+      content: messageContent || null,
+      fileUrl: messageFile ? URL.createObjectURL(messageFile) : null,
+      fileName: messageFile?.name || null,
+      fileType: messageFile?.type || null,
+      fileSize: messageFile?.size || null,
+      isRead: true,
+      createdAt: new Date(),
+      status: 'pending',
+    };
+
+    // Immediately add to UI
+    setMessages(prev => [...prev, optimisticMessage]);
+    
+    // Clear input immediately
+    setNewMessage('');
+    setAttachedFile(null);
+
+    // Send in background
     try {
-      await sendMessage(userId, otherUserId, newMessage, attachedFile || undefined);
-      setNewMessage('');
-      setAttachedFile(null);
-      await loadMessages();
+      const sentMessage = await sendMessage(userId, otherUserId, messageContent, messageFile || undefined);
+      
+      // Replace optimistic message with real one
+      setMessages(prev => prev.map(msg => 
+        msg.tempId === tempId 
+          ? { ...sentMessage, status: 'sent' as const }
+          : msg
+      ));
     } catch (err) {
       console.error('Failed to send message:', err);
-    } finally {
-      setIsSending(false);
+      
+      // Mark as failed
+      setMessages(prev => prev.map(msg => 
+        msg.tempId === tempId 
+          ? { ...msg, status: 'failed' as const, error: 'Failed to send' }
+          : msg
+      ));
     }
   };
+
+const retryMessage = async (tempId: string) => {
+  const failedMsg = messages.find(m => m.tempId === tempId);
+  if (!failedMsg || !userId) return;
+
+  // Mark as pending again
+  setMessages(prev => prev.map(msg => 
+    msg.tempId === tempId 
+      ? { ...msg, status: 'pending' as const }
+      : msg
+  ));
+
+  try {
+    const sentMessage = await sendMessage(
+      userId, 
+      otherUserId, 
+      failedMsg.content || '', 
+      undefined // Can't retry file uploads easily
+    );
+    
+    setMessages(prev => prev.map(msg => 
+      msg.tempId === tempId 
+        ? { ...sentMessage, status: 'sent' as const }
+        : msg
+    ));
+  } catch (err) {
+    setMessages(prev => prev.map(msg => 
+      msg.tempId === tempId 
+        ? { ...msg, status: 'failed' as const }
+        : msg
+    ));
+  }
+};
 
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,7 +230,6 @@ export const useChatWindow = (
 
   return {
     messages,
-    isSending,
     newMessage,
     setNewMessage,
     showOptions,
@@ -177,6 +245,7 @@ export const useChatWindow = (
     optionsRef,
     fileInputRef,
     sendMessage: handleSendMessage,
+    retryMessage,
     handleFileSelect,
     removeAttachment,
     handleViewProfile,

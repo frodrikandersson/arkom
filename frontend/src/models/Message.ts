@@ -14,10 +14,14 @@ export interface Message {
   conversationId: number;
   senderId: string;
   content: string | null;
-  fileUrl: string | null;
-  fileName: string | null;
-  fileType: string | null;
-  fileSize: number | null;
+  fileUrl?: string | null;
+  fileName?: string | null;
+  fileType?: string | null;
+  fileSize?: number | null;
   isRead: boolean;
   createdAt: Date;
+  // Optimistic UI fields
+  tempId?: string;  // Temporary ID for optimistic messages
+  status?: 'pending' | 'sent' | 'failed';  // Message send status
+  error?: string;  // Error message if failed
 }

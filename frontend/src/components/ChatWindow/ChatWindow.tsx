@@ -31,7 +31,6 @@ export const ChatWindow = ({
   useConversationActivity(user?.id || null, conversationId, !isMinimized);
   const {
     messages,
-    isSending,
     newMessage,
     setNewMessage,
     showOptions,
@@ -47,6 +46,7 @@ export const ChatWindow = ({
     optionsRef,
     fileInputRef,
     sendMessage,
+    retryMessage,
     handleFileSelect,
     removeAttachment,
     handleViewProfile,
@@ -197,6 +197,29 @@ export const ChatWindow = ({
               <div className={styles.messageContent}>{message.content}</div>
             )}
             <div className={styles.messageTime}>{formatMessageTime(message.createdAt)}</div>
+            
+            {/* Status indicator for own messages */}
+            {message.senderId === user?.id && (
+              <>
+                {message.status === 'pending' && (
+                  <div className={styles.messageStatus}>
+                    <span className={styles.loadingSpinner}>⏳</span> Sending...
+                  </div>
+                )}
+                
+                {message.status === 'failed' && (
+                  <div className={styles.messageStatus}>
+                    <span className={styles.errorIcon}>❌</span> Failed to send
+                    <button 
+                      className={styles.retryBtn} 
+                      onClick={() => retryMessage(message.tempId!)}
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         ))}
         <div ref={messagesEndRef} />
@@ -232,7 +255,6 @@ export const ChatWindow = ({
               className={styles.input}
               placeholder="Type a message..."
               value={newMessage}
-              disabled={isSending}
               onChange={(e) => {
                 setNewMessage(e.target.value);
                 const target = e.target;
@@ -287,7 +309,7 @@ export const ChatWindow = ({
           <button 
             className={styles.sendBtn} 
             onClick={sendMessage} 
-            disabled={isSending || (!newMessage.trim() && !attachedFile)}
+            disabled={!newMessage.trim() && !attachedFile}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="22" y1="2" x2="11" y2="13"/>
