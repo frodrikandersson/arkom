@@ -22,7 +22,10 @@ export const sendMessage = async (
   content?: string,
   file?: File
 ): Promise<Message> => {
+  const messageId = crypto.randomUUID(); 
+  
   const formData = new FormData();
+  formData.append('messageId', messageId); 
   formData.append('senderId', senderId);
   formData.append('recipientId', recipientId);
   if (content) formData.append('content', content);

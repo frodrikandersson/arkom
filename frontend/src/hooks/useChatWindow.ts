@@ -13,6 +13,7 @@ export const useChatWindow = (
 ) => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
+  const [isSending, setIsSending] = useState(false);
   const [newMessage, setNewMessage] = useState('');
   const [showOptions, setShowOptions] = useState(false);
   const [showEmojis, setShowEmojis] = useState(false);
@@ -56,8 +57,9 @@ export const useChatWindow = (
   };
 
   const handleSendMessage = async () => {
-    if ((!newMessage.trim() && !attachedFile) || !userId) return;
+    if (isSending || (!newMessage.trim() && !attachedFile) || !userId) return;
 
+    setIsSending(true);
     try {
       await sendMessage(userId, otherUserId, newMessage, attachedFile || undefined);
       setNewMessage('');
@@ -65,8 +67,11 @@ export const useChatWindow = (
       await loadMessages();
     } catch (err) {
       console.error('Failed to send message:', err);
+    } finally {
+      setIsSending(false);
     }
   };
+
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -156,6 +161,7 @@ export const useChatWindow = (
 
   return {
     messages,
+    isSending,
     newMessage,
     setNewMessage,
     showOptions,

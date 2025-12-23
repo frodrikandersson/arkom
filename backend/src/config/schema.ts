@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, integer, json, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, timestamp, integer, json, boolean, unique, index } from 'drizzle-orm/pg-core';
 
 // User counter
 export const userCounters = pgTable('user_counters', {
@@ -59,6 +59,7 @@ export const conversations = pgTable('conversations', {
 // Messages
 export const messages = pgTable('messages', {
   id: serial('id').primaryKey(),
+  messageId: text('message_id').notNull().unique(),
   conversationId: integer('conversation_id').notNull(),
   senderId: text('sender_id').notNull(),
   content: text('content'),
@@ -69,6 +70,7 @@ export const messages = pgTable('messages', {
   isRead: boolean('is_read').default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
 
 // Hidden conversations
 export const hiddenConversations = pgTable('hidden_conversations', {
@@ -143,3 +145,16 @@ export const pushSubscriptions = pgTable('push_subscriptions', {
   auth: text('auth').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+// Active conversation tracking (to prevent notifications when user is viewing)
+export const activeConversations = pgTable('active_conversations', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  conversationId: integer('conversation_id').notNull().references(() => conversations.id, { onDelete: 'cascade' }),
+  lastActive: timestamp('last_active').notNull().defaultNow(),
+}, (table) => ({
+  // Unique constraint: one active session per user per conversation
+  uniqueUserConversation: unique().on(table.userId, table.conversationId),
+  // Index for fast lookups
+  userConvIdx: index('active_conv_user_conv_idx').on(table.userId, table.conversationId),
+}));

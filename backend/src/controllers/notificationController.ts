@@ -132,7 +132,6 @@ export const deleteNotification = async (req: Request, res: Response) => {
   }
 };
 
-// Create a notification (internal use)
 export const createNotification = async (
   userId: string,
   type: string,
@@ -143,6 +142,12 @@ export const createNotification = async (
   actionUrl?: string
 ) => {
   try {
+    console.log('=== CREATE NOTIFICATION DEBUG ===');
+    console.log('User ID:', userId);
+    console.log('Type:', type);
+    console.log('Title:', title);
+    console.log('Message:', message);
+    
     const [notification] = await db
       .insert(notifications)
       .values({
@@ -156,20 +161,31 @@ export const createNotification = async (
       })
       .returning();
 
+    console.log('Notification saved to DB:', notification.id);
+
     // Check if user has email/push notifications enabled
     const [settings] = await db
       .select()
       .from(userSettings)
       .where(eq(userSettings.userId, userId));
 
+    console.log('User settings found:', settings ? 'Yes' : 'No');
+    console.log('Email notifications enabled:', settings?.emailNotifications);
+    console.log('Push notifications enabled:', settings?.pushNotifications);
+
     // Send email notification if enabled
     if (settings?.emailNotifications) {
+      console.log('Attempting to send email notification...');
       sendNotificationEmail(userId, type, title, message, actionUrl)
+        .then(result => console.log('Email send result:', result))
         .catch(err => console.error('Email notification failed:', err));
+    } else {
+      console.log('Email notifications disabled for user');
     }
 
     // Send push notification if enabled
     if (settings?.pushNotifications) {
+      console.log('Attempting to send push notification...');
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
       const fullActionUrl = actionUrl ? `${frontendUrl}${actionUrl}` : undefined;
 
@@ -182,7 +198,10 @@ export const createNotification = async (
           url: fullActionUrl,
           notificationId: notification.id.toString(),
         },
-      }).catch(err => console.error('Push notification failed:', err));
+      }).then(result => console.log('Push send result:', result))
+        .catch(err => console.error('Push notification failed:', err));
+    } else {
+      console.log('Push notifications disabled for user');
     }
 
     return notification;
@@ -192,3 +211,4 @@ export const createNotification = async (
     throw error;
   }
 };
+

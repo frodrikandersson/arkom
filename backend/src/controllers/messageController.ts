@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { db } from '../config/db.js';
-import { conversations, messages, hiddenConversations, blockedUsers } from '../config/schema.js';
+import { conversations, messages, hiddenConversations, blockedUsers, activeConversations, notifications } from '../config/schema.js';
 import { eq, or, and, desc, not, sql } from 'drizzle-orm';
 import { uploadToR2, getSignedDownloadUrl } from '../config/r2.js';
 import { createNotification } from './notificationController.js';
@@ -124,18 +124,37 @@ export const getMessages = async (req: Request, res: Response) => {
 
 export const sendMessage = async (req: Request, res: Response) => {
   try {
-    const { senderId, recipientId, content } = req.body;
+    const { senderId, recipientId, content, messageId } = req.body;
     const file = req.file;
     
-    if (!senderId || !recipientId) {
-      res.status(400).json({ error: 'Sender and recipient are required' });
-      return;
-    }
+  if (!senderId || !recipientId) {
+    res.status(400).json({ error: 'Sender and recipient are required' });
+    return;
+  }
 
-    if (!content && !file) {
-      res.status(400).json({ error: 'Message content or file is required' });
-      return;
-    }
+  // Check if messageId is provided
+  if (!messageId) {
+    res.status(400).json({ error: 'messageId is required' });
+    return;
+  }
+
+  // Check for duplicate message (idempotency)
+  const existingMessage = await db
+    .select()
+    .from(messages)
+    .where(eq(messages.messageId, messageId))
+    .limit(1);
+
+  if (existingMessage.length > 0) {
+    console.log('Duplicate message detected, returning existing:', messageId);
+    res.json({ message: existingMessage[0] });
+    return;
+  }
+
+  if (!content && !file) {
+    res.status(400).json({ error: 'Message content or file is required' });
+    return;
+  }
 
     // Check if either user has blocked the other
     const blockCheck = await db
@@ -188,6 +207,7 @@ export const sendMessage = async (req: Request, res: Response) => {
     
     // Prepare message data
     const messageData: any = {
+      messageId,  // Add this
       conversationId: conversation.id,
       senderId,
       content: content || null,
@@ -216,7 +236,13 @@ export const sendMessage = async (req: Request, res: Response) => {
     
     // Create notification for recipient
     try {
-      // Check if recipient already has unread messages in this conversation
+      console.log('=== MESSAGE NOTIFICATION DEBUG ===');
+      console.log('Sender ID:', senderId);
+      console.log('Recipient ID:', recipientId);
+      console.log('Conversation ID:', conversation.id);
+      console.log('New Message ID:', message.id);
+      
+      // Check 1: Any unread messages before this one?
       const existingUnreadMessages = await db
         .select()
         .from(messages)
@@ -224,15 +250,62 @@ export const sendMessage = async (req: Request, res: Response) => {
           and(
             eq(messages.conversationId, conversation.id),
             eq(messages.senderId, senderId),
-            eq(messages.isRead, false)
+            eq(messages.isRead, false),
+            sql`${messages.id} < ${message.id}`
           )
         );
 
-      // Only create notification if this is the FIRST unread message
-      const shouldNotify = existingUnreadMessages.length === 0;
+      console.log('Existing unread messages:', existingUnreadMessages.length);
+
+      // Check 2: Is recipient actively viewing this conversation?
+      const activeViewing = await db
+        .select()
+        .from(activeConversations)
+        .where(
+          and(
+            eq(activeConversations.userId, recipientId),
+            eq(activeConversations.conversationId, conversation.id),
+            sql`${activeConversations.lastActive} > NOW() - INTERVAL '1 minute'`
+          )
+        );
+
+      console.log('Recipient actively viewing:', activeViewing.length > 0);
+
+      // Check 3: Recent notification sent for this conversation?
+      const recentNotifications = await db
+        .select()
+        .from(notifications)
+        .where(
+          and(
+            eq(notifications.userId, recipientId),
+            eq(notifications.type, 'message'),
+            eq(notifications.relatedUserId, senderId),
+            sql`${notifications.createdAt} > NOW() - INTERVAL '5 minutes'`
+          )
+        );
+
+      console.log('Recent notifications:', recentNotifications.length);
+
+      // Smart notification logic:
+      // - Always notify on FIRST unread message
+      // - Don't notify if user is actively viewing (last activity < 1 min ago)
+      // - Don't notify if we sent a notification < 5 minutes ago
+      const isFirstUnread = existingUnreadMessages.length === 0;
+      const isActivelyViewing = activeViewing.length > 0;
+      const hasRecentNotification = recentNotifications.length > 0;
+
+      const shouldNotify = isFirstUnread && !isActivelyViewing && !hasRecentNotification;
+      
+      console.log('Should notify:', shouldNotify, {
+        isFirstUnread,
+        isActivelyViewing,
+        hasRecentNotification
+      });
 
       if (shouldNotify) {
-        // Get sender's display name
+        console.log('Creating notification for recipient:', recipientId);
+        
+        // Get sender's name
         const senderResult = await db.execute(sql`
           SELECT 
             u.raw_json->>'display_name' as stack_display_name,
@@ -250,7 +323,7 @@ export const sendMessage = async (req: Request, res: Response) => {
                           sender?.stack_display_name || 
                           'Someone';
         
-        await createNotification(
+        const notification = await createNotification(
           recipientId,
           'message',
           `New message from ${senderName}`,
@@ -261,10 +334,19 @@ export const sendMessage = async (req: Request, res: Response) => {
           senderId,
           `/messages?conversation=${conversation.id}`
         );
+        
+        console.log('Notification created:', notification);
+      } else {
+        console.log('Skipping notification:', 
+          !isFirstUnread ? 'not first unread' : 
+          isActivelyViewing ? 'user actively viewing' : 
+          'recent notification sent'
+        );
       }
     } catch (notifError) {
       console.error('Failed to create notification:', notifError);
     }
+
 
     res.json({ message });
 

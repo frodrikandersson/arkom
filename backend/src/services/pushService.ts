@@ -29,11 +29,18 @@ export const sendPushNotification = async (
   payload: PushNotificationPayload
 ): Promise<boolean> => {
   try {
+    console.log('=== PUSH SERVICE DEBUG ===');
+    console.log('VAPID configured:', !!(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY));
+    console.log('User ID:', userId);
+    console.log('Payload:', payload);
+    
     // Get all push subscriptions for this user
     const subscriptions = await db
       .select()
       .from(pushSubscriptions)
       .where(eq(pushSubscriptions.userId, userId));
+
+    console.log('Push subscriptions found:', subscriptions.length);
 
     if (subscriptions.length === 0) {
       console.log(`No push subscriptions found for user ${userId}`);

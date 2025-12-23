@@ -3,6 +3,7 @@ import { useChatWindow } from '../../hooks/useChatWindow';
 import { EmojiPicker } from '../EmojiPicker/EmojiPicker';
 import { ImageModal } from '../ImageModal/ImageModal';
 import { ReportModal } from '../ReportModal/ReportModal';
+import { useConversationActivity } from '../../hooks/useConversationActivity';
 import styles from './ChatWindow.module.css';
 
 interface ChatWindowProps {
@@ -27,8 +28,10 @@ export const ChatWindow = ({
   onClose,
 }: ChatWindowProps) => {
   const { user } = useAuth();
+  useConversationActivity(user?.id || null, conversationId, !isMinimized);
   const {
     messages,
+    isSending,
     newMessage,
     setNewMessage,
     showOptions,
@@ -229,6 +232,7 @@ export const ChatWindow = ({
               className={styles.input}
               placeholder="Type a message..."
               value={newMessage}
+              disabled={isSending}
               onChange={(e) => {
                 setNewMessage(e.target.value);
                 const target = e.target;
@@ -280,7 +284,11 @@ export const ChatWindow = ({
               <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
             </svg>
           </button>
-          <button className={styles.sendBtn} onClick={sendMessage} disabled={!newMessage.trim() && !attachedFile}>
+          <button 
+            className={styles.sendBtn} 
+            onClick={sendMessage} 
+            disabled={isSending || (!newMessage.trim() && !attachedFile)}
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="22" y1="2" x2="11" y2="13"/>
               <polygon points="22 2 15 22 11 13 2 9 22 2"/>
