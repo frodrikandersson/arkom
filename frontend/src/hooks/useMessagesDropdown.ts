@@ -55,6 +55,12 @@ export const useMessagesDropdown = ({ userId, isOpen, onClose, autoOpenData }: U
         return;
       }
 
+      // Don't close if clicking inside the mobile chat view (it's portaled to body)
+      const mobileChatElement = target instanceof Element && target.closest('[class*="mobileChat"]');
+      if (mobileChatElement) {
+        return;
+      }
+
       // Don't close if clicking on UserMenu or its dropdown (mobile conflict fix)
       const userMenuElement = document.querySelector('[class*="userMenu"]');
       if (userMenuElement && userMenuElement.contains(target)) {
@@ -76,6 +82,7 @@ export const useMessagesDropdown = ({ userId, isOpen, onClose, autoOpenData }: U
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, onClose]);
+
 
 
   // Load conversations when opened
