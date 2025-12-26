@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { SocialLink } from '../../models';
 import styles from './AddSocialLinkModal.module.css';
-import { getLogo } from '../../utils/socialLinks';
+import { SocialIcon } from '../SocialIcon/SocialIcon';
 
 interface AddSocialLinkModalProps {
     isOpen: boolean;
@@ -33,8 +33,6 @@ export const AddSocialLinkModal = ({ isOpen, onClose, onSave, existingLink }: Ad
         onClose();
     };
 
-    const logoForDomain = getLogo(domain.trim().replace(/^https?:\/\//, '').replace(/^www\./, ''));
-
     return (
         <div className={styles.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
             <div className={styles.modal}>
@@ -47,7 +45,9 @@ export const AddSocialLinkModal = ({ isOpen, onClose, onSave, existingLink }: Ad
                 <div className={styles.content}>
                     <label className={styles.label}>Domain</label>
                     <div className={styles.urlInputWrapper}>
-                        <div className={styles.logoIcon}>{logoForDomain}</div>
+                        <div className={styles.logoIcon}>
+                            <SocialIcon domain={domain.trim().replace(/^https?:\/\//, '').replace(/^www\./, '')} size={20} />
+                        </div>
                         <input
                             type="text"
                             value={domain}

@@ -43,14 +43,27 @@ export const EmojiPicker = ({ onEmojiSelect, theme = 'auto' }: EmojiPickerProps)
           picker.style.setProperty('--rgb-color', getComputedRGB('--color-text'));
           picker.style.setProperty('--rgb-accent', getComputedRGB('--color-accent'));
           
-          // Access shadow DOM to apply mobile width
+          // Access shadow DOM to override :host width on mobile
           if (isMobile) {
             const shadowRoot = picker.shadowRoot;
-            const section = shadowRoot.querySelector('section');
-            if (section) {
-              (section as HTMLElement).style.width = '100vw';
-              (section as HTMLElement).style.maxWidth = '100vw';
+            
+            // Inject CSS to override :host { width: min-content }
+            let styleEl = shadowRoot.querySelector('#mobile-width-override') as HTMLStyleElement;
+            if (!styleEl) {
+              styleEl = document.createElement('style');
+              styleEl.id = 'mobile-width-override';
+              styleEl.textContent = `
+                :host {
+                  width: 100% !important;
+                  max-width: 100% !important;
+                }
+                .scroll {
+                  padding-right: var(--padding) !important;
+                }
+              `;
+              shadowRoot.appendChild(styleEl);
             }
+
           }
           return true;
         }
@@ -86,6 +99,7 @@ export const EmojiPicker = ({ onEmojiSelect, theme = 'auto' }: EmojiPickerProps)
         searchPosition="sticky"
         perLine={8}
         maxFrequentRows={2}
+        dynamicWidth={isMobile}  // Only enable on mobile
       />
     </div>
   );

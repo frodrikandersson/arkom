@@ -20,24 +20,24 @@ export const constructSocialUrl = (link: SocialLink): string => {
 };
 
 /**
- * Get logo/icon emoji for known social media domains
+ * Get display name for known social media domains
  * @param domain - The domain name (e.g., "github.com")
- * @returns Emoji or icon representing the platform
+ * @returns Display name for the platform
  */
-export function getLogo(domain: string): string {
-  const logos: Record<string, string> = {
-    'twitter.com': '𝕏',
-    'x.com': '𝕏',
-    'github.com': '⚡',
-    'linkedin.com': 'in',
-    'instagram.com': '📷',
-    'facebook.com': 'f',
-    'bluesky.app/profile': '🦋',
-    'youtube.com': '▶',
-    'tiktok.com': '♪',
-    'reddit.com': '🤖',
-    'discord.gg': '💬',
-    'twitch.tv': '📺',
+export function getPlatformName(domain: string): string {
+  const names: Record<string, string> = {
+    'twitter.com': 'Twitter/X',
+    'x.com': 'X',
+    'github.com': 'GitHub',
+    'linkedin.com': 'LinkedIn',
+    'instagram.com': 'Instagram',
+    'facebook.com': 'Facebook',
+    'bsky.app/profile': 'Bluesky',
+    'youtube.com': 'YouTube',
+    'tiktok.com': 'TikTok',
+    'reddit.com': 'Reddit',
+    'discord.gg': 'Discord',
+    'twitch.tv': 'Twitch',
   };
-  return logos[domain] || '🔗';
+  return names[domain] || domain;
 }

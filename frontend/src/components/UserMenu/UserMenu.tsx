@@ -120,8 +120,8 @@ export const UserMenu = () => {
               <Link to="/saved" className={styles.menuItem} onClick={() => setIsOpen(false)}>
                 Saved
               </Link>
-              <Link to="/artist-dashboard" className={styles.menuItem} onClick={() => setIsOpen(false)}>
-                Artist dashboard
+              <Link to="/shop-dashboard" className={styles.menuItem} onClick={() => setIsOpen(false)}>
+                Shop dashboard
               </Link>
               <Link to="/settings" className={styles.menuItem} onClick={() => setIsOpen(false)}>
                 Settings

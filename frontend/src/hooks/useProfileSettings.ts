@@ -333,27 +333,27 @@ export const useProfileSettings = (userId: string | null) => {
 
 
 
-return {
-  loading,
-  saving,
-  message,
-  profileData,
-  profilePreview,
-  bannerPreview,
-  profileInputRef,
-  bannerInputRef,
-  handleInputChange,
-  handleSocialLinkChange,
-  addSocialLink,
-  removeSocialLink,
-  renameSocialLink,
-  handleProfileImageChange,
-  handleBannerImageChange,
-  setProfilePreview,
-  setBannerPreview,
-  saveProfile,
-  saveSocialLink,
-  removeSocialLinkAndSave,
-};
+  return {
+    loading,
+    saving,
+    message,
+    profileData,
+    profilePreview,
+    bannerPreview,
+    profileInputRef,
+    bannerInputRef,
+    handleInputChange,
+    handleSocialLinkChange,
+    addSocialLink,
+    removeSocialLink,
+    renameSocialLink,
+    handleProfileImageChange,
+    handleBannerImageChange,
+    setProfilePreview,
+    setBannerPreview,
+    saveProfile,
+    saveSocialLink,
+    removeSocialLinkAndSave,
+  };
 
 };

@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { StackHandler } from '@stackframe/react';
 import { stackClientApp } from '../config/stack';
 import { MainLayout } from '../layouts/MainLayout';
+import { ShopDashboard } from '../pages/ShopDashboard';
 
 // Lazy load pages
 const HomePage = lazy(() => import('../pages/HomePage').then(m => ({ default: m.HomePage })));
@@ -46,7 +47,7 @@ export const AppRoutes: React.FC = () => {
           <Route path="/orders" element={<div style={{ padding: '2rem' }}>My Orders Page</div>} />
           <Route path="/characters" element={<div style={{ padding: '2rem' }}>Characters Page</div>} />
           <Route path="/saved" element={<div style={{ padding: '2rem' }}>Saved Page</div>} />
-          <Route path="/artist-dashboard" element={<div style={{ padding: '2rem' }}>Artist Dashboard Page</div>} />
+          <Route path="/shop-dashboard" element={<ShopDashboard />} />
           <Route path="/test-notifications" element={<TestNotifications />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/help" element={<div style={{ padding: '2rem' }}>Help Page</div>} />

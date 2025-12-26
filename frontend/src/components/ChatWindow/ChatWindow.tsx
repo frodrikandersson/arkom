@@ -16,7 +16,10 @@ interface ChatWindowProps {
   isMinimized: boolean;
   onMinimize: () => void;
   onClose: () => void;
+  isMobile?: boolean;  
+  onBack?: () => void; // for mobile back button
 }
+
 
 export const ChatWindow = ({
   conversationId,
@@ -27,6 +30,8 @@ export const ChatWindow = ({
   isMinimized,
   onMinimize,
   onClose,
+  isMobile = false,
+  onBack,
 }: ChatWindowProps) => {
   const { user } = useAuth();
   useConversationActivity(user?.id || null, conversationId, !isMinimized);
@@ -79,9 +84,17 @@ export const ChatWindow = ({
   }
 
   return (
-    <div className={styles.chatWindow}>
+    <div className={`${styles.chatWindow} ${isMobile ? styles.mobile : ''}`}>
       {/* Row 1: Header */}
       <div className={styles.header}>
+        {isMobile && onBack && (
+          <button className={styles.backBtn} onClick={onBack}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+          </button>
+        )}
+        
         <div className={styles.userInfo}>
           <div className={styles.avatar}>
             {otherUserAvatar ? (
@@ -122,11 +135,13 @@ export const ChatWindow = ({
               </div>
             )}
           </div>
-          <button className={styles.headerBtn} onClick={onMinimize} title="Minimize">
-            <svg className={styles.minimizeIcon} width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="2 5, 8 11, 14 5"></polyline>
-            </svg>
-          </button>
+          {!isMobile && (
+            <button className={styles.headerBtn} onClick={onMinimize} title="Minimize">
+              <svg className={styles.minimizeIcon} width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="2 5, 8 11, 14 5"></polyline>
+              </svg>
+            </button>
+          )}
           <button className={styles.headerBtn} onClick={onClose}>×</button>
         </div>
       </div>

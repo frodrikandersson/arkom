@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useProfileSettings } from '../../hooks/useProfileSettings';
 import styles from './ProfileSettings.module.css';
-import { getLogo } from '../../utils/socialLinks';
 import { AddSocialLinkModal } from '../AddSocialLinkModal/AddSocialLinkModal';
+import { SocialIcon } from '../SocialIcon/SocialIcon';
 
 export const ProfileSettings = () => {
   const { user } = useAuth();
@@ -165,7 +165,10 @@ export const ProfileSettings = () => {
         <div className={styles.savedLinksContainer}>
           {Object.entries(profileData.socialLinks).map(([platform, link]) => (
             <div key={platform} className={styles.savedLinkBox}>
-              <div className={styles.linkLogo}>{getLogo(link.domain)}</div>
+              <div className={styles.linkLogo}>
+                <SocialIcon domain={link.domain} size={20} />
+              </div>
+
               <div className={styles.linkInfo}>
                 <div className={styles.linkDomain}>{platform.charAt(0).toUpperCase() + platform.slice(1)}</div>
                 <div className={styles.linkUrl}>https://{link.domain}/{link.handle}</div>
