@@ -1,8 +1,16 @@
 import { Request, Response } from 'express';
 import { db } from '../config/db.js';
-import { artworks } from '../config/schema.js';
+import { artworks, provenanceAnalysis } from '../config/schema.js';
 import { eq, and, desc } from 'drizzle-orm';
 import { uploadToR2 } from '../config/r2.js';
+import { analyzeBehavior, updateUploadStats } from '../services/behavioralAnalysis.js';
+import { 
+  extractMetadata, 
+  analyzeMetadata, 
+  checkArtistVerification, 
+  calculateFinalScore 
+} from '../services/provenanceAnalysis.js';
+import { analyzeImageWithHiveAi } from '../services/detectAIService.js';
 
 export const uploadArtwork = async (req: Request, res: Response) => {
   try {
@@ -56,6 +64,96 @@ export const uploadArtwork = async (req: Request, res: Response) => {
       tags: parsedTags || null,
       isPublic: isPublic === 'true' || isPublic === true,
     }).returning();
+
+    // === Phase 3: Behavioral Tracking & Trigger-Based AI Detection ===
+
+// Step 1: Analyze behavioral patterns
+const uploadMethod = req.body.uploadMethod || 'file'; // 'file' or 'paste'
+const fileSize = file.size;
+
+const behavioralResult = await analyzeBehavior(
+  parseInt(userId),
+  uploadMethod as 'file' | 'paste',
+  fileSize
+);
+
+// Step 2: Update upload statistics
+await updateUploadStats(parseInt(userId), uploadMethod as 'file' | 'paste');
+
+// Step 3: Trigger AI detection if needed
+if (behavioralResult.shouldTriggerAiDetection) {
+  console.log(`🚨 Triggering AI detection for user ${userId} - Risk: ${behavioralResult.riskLevel}`);
+  
+  try {
+    // Download the just-uploaded image for analysis
+    const imageResponse = await fetch(url);
+    const arrayBuffer = await imageResponse.arrayBuffer();
+    const imageBuffer = Buffer.from(arrayBuffer);
+
+    // Phase 1: Metadata analysis
+    const metadata = await extractMetadata(imageBuffer);
+    const metadataAnalysis = analyzeMetadata(metadata);
+
+    // Check if verified artist
+    const isVerifiedArtist = await checkArtistVerification(userId);
+
+    // Phase 2: Visual AI detection
+    let visualAiScore = null;
+    let aiDetectionDetails = null;
+    
+    try {
+      const hiveResult = await analyzeImageWithHiveAi(
+        imageBuffer, 
+        file.originalname || 'upload.png'
+      );
+      visualAiScore = hiveResult.score;
+      aiDetectionDetails = JSON.stringify(hiveResult.details);
+    } catch (err) {
+      console.error('Visual AI detection failed:', err);
+    }
+
+    // Calculate final score with behavioral data
+    const { finalScore, verdict, confidenceLevel } = calculateFinalScore(
+      metadataAnalysis.score,
+      null, // fileAnalysisScore
+      visualAiScore,
+      behavioralResult.score, // Use behavioral score!
+      null, // communityScore
+      isVerifiedArtist
+    );
+
+    // Auto-flag if score is very low
+    const shouldFlag = finalScore < 30 && confidenceLevel === 'high';
+
+    // Save analysis
+    await db.insert(provenanceAnalysis).values({
+      artworkId: artwork.id,
+      analyzedAt: new Date(),
+      metadataScore: metadataAnalysis.score,
+      fileAnalysisScore: null,
+      visualAiScore,
+      behavioralScore: behavioralResult.score,
+      communityScore: null,
+      finalScore,
+      confidenceLevel,
+      verdict,
+      metadataDetails: JSON.stringify(metadataAnalysis.details),
+      behavioralDetails: JSON.stringify(behavioralResult.details),
+      aiDetectionDetails,
+      isFlagged: shouldFlag,
+      isAppealed: false,
+      appealStatus: null,
+    });
+
+    console.log(`✅ AI detection complete - Score: ${finalScore}, Verdict: ${verdict}`);
+  } catch (error) {
+    console.error('AI detection error:', error);
+    // Don't fail the upload if detection fails
+  }
+} else {
+  console.log(`✓ Skipping AI detection for user ${userId} - Trusted user (score: ${behavioralResult.score})`);
+}
+
 
     res.json({ artwork });
   } catch (error) {

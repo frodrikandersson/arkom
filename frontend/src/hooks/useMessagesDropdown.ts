@@ -48,9 +48,27 @@ export const useMessagesDropdown = ({ userId, isOpen, onClose, autoOpenData }: U
   // Click outside to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        onClose();
+      const target = event.target as Node;
+
+      // Don't close if clicking inside the dropdown
+      if (dropdownRef.current && dropdownRef.current.contains(target)) {
+        return;
       }
+
+      // Don't close if clicking on UserMenu or its dropdown (mobile conflict fix)
+      const userMenuElement = document.querySelector('[class*="userMenu"]');
+      if (userMenuElement && userMenuElement.contains(target)) {
+        return;
+      }
+
+      // Don't close if clicking on the message button itself
+      const messageButtonElement = target instanceof Element && target.closest('[aria-label="Messages"]');
+      if (messageButtonElement) {
+        return;
+      }
+
+      // Otherwise, close the dropdown
+      onClose();
     };
 
     if (isOpen) {
@@ -58,6 +76,7 @@ export const useMessagesDropdown = ({ userId, isOpen, onClose, autoOpenData }: U
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, onClose]);
+
 
   // Load conversations when opened
   useEffect(() => {

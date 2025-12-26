@@ -8,6 +8,8 @@ import {
   checkArtistVerification,
   calculateFinalScore,
 } from '../services/provenanceAnalysis.js';
+import { analyzeImageWithHiveAi } from '../services/detectAIService.js';
+
 
 /**
  * POST /api/provenance/analyze/:artworkId
@@ -74,11 +76,23 @@ export const analyzeArtwork = async (req: Request, res: Response) => {
     // Check if user is verified artist
     const isVerifiedArtist = await checkArtistVerification(artwork.userId);
 
-    // Phase 2 & 3: Not implemented yet (will be null)
+    // Phase 2: Visual AI detection (Hive AI)
+    let visualAiScore = null;
+    let aiDetectionDetails = null;
+    try {
+        const hiveResult = await analyzeImageWithHiveAi(imageBuffer, artwork.fileUrl.split('/').pop() || 'image.png');
+        visualAiScore = hiveResult.score;
+        aiDetectionDetails = JSON.stringify(hiveResult.details);
+    } catch (err) {
+        console.error('Hive AI analysis failed:', err);
+        // Continue with null score - don't fail entire analysis
+    }
+
+    // Phase 3: File analysis, behavioral, community (not implemented yet)
     const fileAnalysisScore = null;
-    const visualAiScore = null;
     const behavioralScore = null;
     const communityScore = null;
+
 
     // Calculate final score
     const { finalScore, verdict, confidenceLevel } = calculateFinalScore(
@@ -107,7 +121,7 @@ export const analyzeArtwork = async (req: Request, res: Response) => {
       verdict,
       metadataDetails: JSON.stringify(metadataAnalysis.details),
       behavioralDetails: null,
-      aiDetectionDetails: null,
+      aiDetectionDetails,
       isFlagged: shouldFlag,
       isAppealed: false,
       appealStatus: null,
@@ -137,7 +151,7 @@ export const analyzeArtwork = async (req: Request, res: Response) => {
         ...savedAnalysis,
         metadataDetails: metadataAnalysis.details,
         behavioralDetails: null,
-        aiDetectionDetails: null,
+        aiDetectionDetails: aiDetectionDetails ? JSON.parse(aiDetectionDetails) : null,
       },
       cached: false,
     });
