@@ -105,22 +105,104 @@ export const userReports = pgTable('user_reports', {
   actionTaken: text('action_taken'),
 });
 
-// Artworks
-export const artworks = pgTable('artworks', {
+// ============================================
+// PORTFOLIO SYSTEM
+// ============================================
+
+// Commission Services (placeholder - will be expanded later)
+export const commissionServices = pgTable('commission_services', {
   id: serial('id').primaryKey(),
   userId: text('user_id').notNull(),
-  title: text('title').notNull(),
+  serviceName: text('service_name').notNull(),
   description: text('description'),
-  fileUrl: text('file_url').notNull(),
-  thumbnailUrl: text('thumbnail_url'),
-  fileType: text('file_type').notNull(), // '2d', '3d', 'image'
-  tags: json('tags'), // Array of tags for categorization
-  isPublic: boolean('is_public').default(true),
-  viewCount: integer('view_count').default(0),
-  likeCount: integer('like_count').default(0),
+  isActive: boolean('is_active').default(true),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+// Portfolios (replaces artworks)
+export const portfolios = pgTable('portfolios', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  
+  // Status
+  status: text('status').notNull().default('draft'), // 'draft' or 'published'
+  
+  // Commission link
+  linkedToCommission: boolean('linked_to_commission').default(false),
+  commissionServiceId: integer('commission_service_id').references(() => commissionServices.id, { onDelete: 'set null' }),
+  
+  // Sensitive content
+  hasSensitiveContent: boolean('has_sensitive_content').default(false),
+  
+  // Portfolio details
+  title: text('title').notNull(),
+  description: text('description'),
+  tags: json('tags'), // Array of tags for searching
+  
+  // Stats
+  viewCount: integer('view_count').default(0),
+  likeCount: integer('like_count').default(0),
+  
+  // Timestamps
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  publishedAt: timestamp('published_at'), // Only set when status changes to 'published'
+}, (table) => ({
+  // Index for faster queries
+  userIdIdx: index('portfolios_user_id_idx').on(table.userId),
+  statusIdx: index('portfolios_status_idx').on(table.status),
+}));
+
+// Portfolio Media (multiple images/videos per portfolio)
+export const portfolioMedia = pgTable('portfolio_media', {
+  id: serial('id').primaryKey(),
+  portfolioId: integer('portfolio_id').notNull().references(() => portfolios.id, { onDelete: 'cascade' }),
+  
+  // Media details
+  mediaType: text('media_type').notNull(), // 'image' or 'youtube'
+  
+  // For images: fileUrl, thumbnailUrl, fileSize
+  fileUrl: text('file_url'), // S3/Storage URL for images
+  thumbnailUrl: text('thumbnail_url'), // Thumbnail for images
+  fileSize: integer('file_size'), // In bytes, max 8MB (8388608 bytes)
+  mimeType: text('mime_type'), // 'image/jpeg', 'image/png', 'image/gif', 'image/webp'
+  
+  // For YouTube: youtubeUrl, youtubeVideoId
+  youtubeUrl: text('youtube_url'), // Full YouTube URL
+  youtubeVideoId: text('youtube_video_id'), // Extracted video ID (e.g., 'dQw4w9WgXcQ')
+  
+  // Sorting order (0 = first to display)
+  sortOrder: integer('sort_order').notNull().default(0),
+  
+  // Timestamps
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  // Index for faster queries
+  portfolioIdIdx: index('portfolio_media_portfolio_id_idx').on(table.portfolioId),
+  sortOrderIdx: index('portfolio_media_sort_order_idx').on(table.portfolioId, table.sortOrder),
+}));
+
+// Sensitive Content Types (reference data)
+export const sensitiveContentTypes = pgTable('sensitive_content_types', {
+  id: serial('id').primaryKey(),
+  type: text('type').notNull().unique(), // 'gore', 'sexual_nudity_18+', 'other'
+  displayName: text('display_name').notNull(), // 'Gore', 'Sexual/Nudity (18+)', 'Other'
+  description: text('description'), // Optional description for what falls under this category
+});
+
+// Portfolio Sensitive Content (junction table - many-to-many)
+export const portfolioSensitiveContent = pgTable('portfolio_sensitive_content', {
+  id: serial('id').primaryKey(),
+  portfolioId: integer('portfolio_id').notNull().references(() => portfolios.id, { onDelete: 'cascade' }),
+  contentTypeId: integer('content_type_id').notNull().references(() => sensitiveContentTypes.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  // Unique constraint: prevent duplicate content type assignments
+  uniquePortfolioContentType: unique().on(table.portfolioId, table.contentTypeId),
+  // Index for faster queries
+  portfolioIdIdx: index('portfolio_sensitive_content_portfolio_id_idx').on(table.portfolioId),
+}));
 
 // Notifications
 export const notifications = pgTable('notifications', {
@@ -162,7 +244,7 @@ export const activeConversations = pgTable('active_conversations', {
 // Provenance analysis results
 export const provenanceAnalysis = pgTable('provenance_analysis', {
   id: serial('id').primaryKey(),
-  artworkId: integer('artwork_id').notNull().references(() => artworks.id, { onDelete: 'cascade' }),
+  portfolioId: integer('portfolio_id'), // Optional - admin can manually link when needed
   analyzedAt: timestamp('analyzed_at').defaultNow().notNull(),
   
   // Layer scores (0-100 for easier integer storage, divide by 100 for 0-1 range)

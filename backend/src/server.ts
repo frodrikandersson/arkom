@@ -6,12 +6,13 @@ import counterRoutes from './routes/counterRoutes.js';
 import themeRoutes from './routes/themeRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import userRoutes from './routes/userRoutes.js';
-import artworkRoutes from './routes/artworkRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import pushRoutes from './routes/pushRoutes.js';
 import testRoutes from './routes/testRoutes.js';
 import conversationActivityRoutes from './routes/conversationActivityRoutes.js';
 import provenanceRoutes from './routes/provenanceRoutes.js';
+import portfolioRoutes from './routes/portfolioRoutes.js';
+
 
 
 dotenv.config();
@@ -35,12 +36,13 @@ app.use('/api/counter', counterRoutes);
 app.use('/api/themes', themeRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/artworks', artworkRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/push', pushRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api/conversation-activity', conversationActivityRoutes);
 app.use('/api/provenance', provenanceRoutes);
+app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/portfolio', portfolioRoutes);
 
 // Only listen if not in Vercel
 if (process.env.NODE_ENV !== 'production') {

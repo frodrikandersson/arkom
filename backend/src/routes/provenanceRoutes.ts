@@ -7,13 +7,8 @@ import {
 
 const router = express.Router();
 
-// Analyze artwork for AI detection
-router.post('/analyze/:artworkId', analyzeArtwork);
-
-// Get existing analysis results
-router.get('/results/:artworkId', getAnalysisResults);
-
-// Submit appeal for flagged artwork
+router.post('/analyze', analyzeArtwork); 
+router.get('/results/:portfolioId', getAnalysisResults);
 router.post('/appeal/:analysisId', submitAppeal);
 
 export default router;

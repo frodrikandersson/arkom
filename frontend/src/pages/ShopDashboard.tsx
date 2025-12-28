@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { ShopSidebar } from '../components/ShopSidebar/ShopSidebar';
+import { ShopSidebar } from '../components/ShopPortfolio/ShopSidebar';
 import styles from './ShopDashboard.module.css';
+import { PortfolioManager } from '../components/ShopPortfolio/PortfolioManager';
 
 type SidebarSection = 
   | 'portfolio'
@@ -21,7 +22,7 @@ export const ShopDashboard = () => {
   const renderContent = () => {
     switch (activeSection) {
       case 'portfolio':
-        return <div className={styles.placeholder}>Portfolio Content</div>;
+        return <PortfolioManager />;
       case 'wallet':
         return <div className={styles.placeholder}>Wallet Content</div>;
       case 'commissions':

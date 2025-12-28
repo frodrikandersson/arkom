@@ -166,11 +166,11 @@ export const getUserProfile = async (req: Request, res: Response) => {
       .from(userSettings)
       .where(eq(userSettings.userId, userId));
 
-    // Get artwork count
-    const artworkCount = await db.execute(sql`
+    // Get portfolio count (published only)
+    const portfolioCount = await db.execute(sql`
       SELECT COUNT(*) as count
-      FROM artworks
-      WHERE user_id = ${userId} AND is_public = true
+      FROM portfolios
+      WHERE user_id = ${userId} AND status = 'published'
     `);
 
     const profile = {
@@ -182,7 +182,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
       bio: settings?.bio || null,
       location: settings?.location || null,
       socialLinks: settings?.socialLinks || null,
-      artworkCount: parseInt(artworkCount.rows[0]?.count as string || '0'),
+      portfolioCount: parseInt(portfolioCount.rows[0]?.count as string || '0'),
       memberSince: settings?.updatedAt || new Date(),
     };
 

@@ -3,7 +3,7 @@ export * from './Auth';
 export * from './Counter';
 export * from './Theme';
 export * from './User';
-export * from './Artwork';
+export * from './Portfolio';
 export * from './Message';
 export * from './Notification';
 export * from './Chat';

@@ -16,7 +16,7 @@ export interface UserProfile {
   profileImageUrl: string;
   bannerImageUrl: string;
   socialLinks: SocialLinks;
-  artworkCount?: number;
+  portfolioCount?: number;
   memberSince?: Date;
 }
 

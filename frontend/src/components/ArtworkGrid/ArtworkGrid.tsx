@@ -1,11 +1,11 @@
-import { useArtworkGrid } from '../../hooks/useArtworkGrid';
-import { Artwork } from '../../models';
+import { useArtworkGrid } from '../../hooks/usePortfolios';
+import { Portfolio } from '../../models/Portfolio';
 import styles from './ArtworkGrid.module.css';
 
 interface ArtworkGridProps {
   userId: string;
   isOwnProfile?: boolean;
-  onArtworkClick?: (artwork: Artwork) => void;
+  onArtworkClick?: (portfolio: Portfolio) => void;
 }
 
 export const ArtworkGrid = ({ userId, isOwnProfile = false, onArtworkClick }: ArtworkGridProps) => {
@@ -14,7 +14,7 @@ export const ArtworkGrid = ({ userId, isOwnProfile = false, onArtworkClick }: Ar
   if (loading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>Loading artworks...</div>
+        <div className={styles.loading}>Loading portfolio...</div>
       </div>
     );
   }
@@ -24,8 +24,8 @@ export const ArtworkGrid = ({ userId, isOwnProfile = false, onArtworkClick }: Ar
       <div className={styles.container}>
         <div className={styles.empty}>
           {isOwnProfile 
-            ? 'No artworks yet. Upload your first piece!' 
-            : 'No public artworks to display.'}
+            ? 'No portfolio pieces yet. Upload your first piece!' 
+            : 'No published portfolio to display.'}
         </div>
       </div>
     );
@@ -34,43 +34,58 @@ export const ArtworkGrid = ({ userId, isOwnProfile = false, onArtworkClick }: Ar
   return (
     <div className={styles.container}>
       <div className={styles.grid}>
-        {artworks.map((artwork) => (
-          <div
-            key={artwork.id}
-            className={styles.artworkCard}
-            onClick={() => onArtworkClick?.(artwork)}
-          >
-            <div className={styles.imageContainer}>
-              <img
-                src={artwork.thumbnailUrl || artwork.fileUrl}
-                alt={artwork.title}
-                className={styles.image}
-              />
-              {!artwork.isPublic && isOwnProfile && (
-                <div className={styles.privateBadge}>Private</div>
-              )}
-            </div>
-            <div className={styles.info}>
-              <h3 className={styles.title}>{artwork.title}</h3>
-              {artwork.description && (
-                <p className={styles.description}>{artwork.description}</p>
-              )}
-              <div className={styles.meta}>
-                <span className={styles.type}>{artwork.fileType.toUpperCase()}</span>
-                <span className={styles.views}>{artwork.viewCount} views</span>
+        {artworks.map((portfolio) => {
+          // Get the first media item for display
+          const firstMedia = portfolio.media?.[0];
+          const thumbnailUrl = firstMedia?.thumbnailUrl || firstMedia?.fileUrl;
+
+          return (
+            <div
+              key={portfolio.id}
+              className={styles.artworkCard}
+              onClick={() => onArtworkClick?.(portfolio)}
+            >
+              <div className={styles.imageContainer}>
+                {thumbnailUrl ? (
+                  <img
+                    src={thumbnailUrl}
+                    alt={portfolio.title}
+                    className={styles.image}
+                  />
+                ) : (
+                  <div className={styles.noImage}>No image</div>
+                )}
+                {portfolio.status === 'draft' && isOwnProfile && (
+                  <div className={styles.privateBadge}>Draft</div>
+                )}
+                {portfolio.hasSensitiveContent && (
+                  <div className={styles.sensitiveBadge}>Sensitive</div>
+                )}
               </div>
-              {artwork.tags && artwork.tags.length > 0 && (
-                <div className={styles.tags}>
-                  {artwork.tags.map((tag, index) => (
-                    <span key={index} className={styles.tag}>
-                      {tag}
-                    </span>
-                  ))}
+              <div className={styles.info}>
+                <h3 className={styles.title}>{portfolio.title}</h3>
+                {portfolio.description && (
+                  <p className={styles.description}>{portfolio.description}</p>
+                )}
+                <div className={styles.meta}>
+                  <span className={styles.type}>
+                    {portfolio.media?.length || 0} {portfolio.media?.length === 1 ? 'item' : 'items'}
+                  </span>
+                  <span className={styles.views}>{portfolio.viewCount} views</span>
                 </div>
-              )}
+                {portfolio.tags && portfolio.tags.length > 0 && (
+                  <div className={styles.tags}>
+                    {portfolio.tags.map((tag, index) => (
+                      <span key={index} className={styles.tag}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

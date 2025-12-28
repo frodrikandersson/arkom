@@ -8,7 +8,9 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "seed": "tsx src/seed.ts",
-    "migrate:social-links": "tsx src/scripts/run-migration.ts"
+    "migrate:social-links": "tsx src/scripts/run-migration.ts",
+    "seed:sensitive-content": "tsx src/scripts/seedSensitiveContentTypes.ts",
+    "migrate:artworks": "tsx src/scripts/migrateArtworksToPortfolios.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.952.0",

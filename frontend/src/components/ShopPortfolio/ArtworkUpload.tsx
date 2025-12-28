@@ -17,6 +17,7 @@ export const ArtworkUpload = ({ onUploadComplete }: ArtworkUploadProps) => {
     fileInputRef,
     handleFileChange,
     handleInputChange,
+    toggleSensitiveType,
     handleUpload,
     setPreview,
   } = useArtworkUpload(user?.id || null, onUploadComplete);
@@ -25,7 +26,7 @@ export const ArtworkUpload = ({ onUploadComplete }: ArtworkUploadProps) => {
 
   return (
     <div className={styles.section}>
-      <h2 className={styles.sectionTitle}>Upload Artwork</h2>
+      <h2 className={styles.sectionTitle}>Upload Portfolio Piece</h2>
       <p className={styles.description}>
         Share your creations with the community.
       </p>
@@ -40,14 +41,15 @@ export const ArtworkUpload = ({ onUploadComplete }: ArtworkUploadProps) => {
       )}
 
       <div className={styles.formGroup}>
-        <label className={styles.label}>Image File</label>
+        <label className={styles.label}>Image File *</label>
         <input
           ref={fileInputRef}
           type="file"
-          accept={FILE_RULES.ARTWORK_PORTFOLIO.accept}
+          accept={FILE_RULES.PORTFOLIO_MEDIA.accept}
           onChange={handleFileChange}
           className={styles.fileInput}
         />
+        <small className={styles.hint}>{FILE_RULES.PORTFOLIO_MEDIA.description}</small>
       </div>
 
       <div className={styles.formGroup}>
@@ -56,7 +58,7 @@ export const ArtworkUpload = ({ onUploadComplete }: ArtworkUploadProps) => {
           type="text"
           value={formData.title}
           onChange={(e) => handleInputChange('title', e.target.value)}
-          placeholder="Give your artwork a title"
+          placeholder="Give your portfolio piece a title"
           className={styles.input}
           maxLength={100}
         />
@@ -67,24 +69,11 @@ export const ArtworkUpload = ({ onUploadComplete }: ArtworkUploadProps) => {
         <textarea
           value={formData.description}
           onChange={(e) => handleInputChange('description', e.target.value)}
-          placeholder="Describe your artwork..."
+          placeholder="Describe your work..."
           className={styles.textarea}
           maxLength={1000}
           rows={3}
         />
-      </div>
-
-      <div className={styles.formGroup}>
-        <label className={styles.label}>Type</label>
-        <select
-          value={formData.fileType}
-          onChange={(e) => handleInputChange('fileType', e.target.value)}
-          className={styles.select}
-        >
-          <option value="2d">2D Art</option>
-          <option value="3d">3D Art</option>
-          <option value="image">Photography</option>
-        </select>
       </div>
 
       <div className={styles.formGroup}>
@@ -99,23 +88,70 @@ export const ArtworkUpload = ({ onUploadComplete }: ArtworkUploadProps) => {
       </div>
 
       <div className={styles.formGroup}>
+        <label className={styles.label}>Status</label>
+        <select
+          value={formData.status}
+          onChange={(e) => handleInputChange('status', e.target.value as 'draft' | 'published')}
+          className={styles.select}
+        >
+          <option value="draft">Draft (not visible to others)</option>
+          <option value="published">Published (visible to everyone)</option>
+        </select>
+      </div>
+
+      <div className={styles.formGroup}>
         <label className={styles.checkboxLabel}>
           <input
             type="checkbox"
-            checked={formData.isPublic}
-            onChange={(e) => handleInputChange('isPublic', e.target.checked)}
+            checked={formData.hasSensitiveContent}
+            onChange={(e) => handleInputChange('hasSensitiveContent', e.target.checked)}
             className={styles.checkbox}
           />
-          Make this artwork public
+          Contains sensitive content
         </label>
       </div>
+
+      {formData.hasSensitiveContent && (
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Sensitive Content Types</label>
+          <div className={styles.checkboxGroup}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={formData.sensitiveContentTypes.includes('gore')}
+                onChange={() => toggleSensitiveType('gore')}
+                className={styles.checkbox}
+              />
+              Gore
+            </label>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={formData.sensitiveContentTypes.includes('sexual_nudity_18+')}
+                onChange={() => toggleSensitiveType('sexual_nudity_18+')}
+                className={styles.checkbox}
+              />
+              Sexual/Nudity (18+)
+            </label>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={formData.sensitiveContentTypes.includes('other')}
+                onChange={() => toggleSensitiveType('other')}
+                className={styles.checkbox}
+              />
+              Other
+            </label>
+          </div>
+        </div>
+      )}
 
       <button
         onClick={handleUpload}
         disabled={uploading || !preview || !formData.title}
         className={styles.uploadBtn}
       >
-        {uploading ? 'Uploading...' : 'Upload Artwork'}
+        {uploading ? 'Uploading...' : 'Upload Portfolio'}
       </button>
     </div>
   );

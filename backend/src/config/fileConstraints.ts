@@ -175,6 +175,23 @@ export const FILE_RULES = {
     maxSize: FILE_SIZE_LIMITS.DIGITAL_PRODUCT,
     accept: `${FILE_TYPES.IMAGE.accept},${FILE_TYPES.IMAGE_PROFESSIONAL.accept},${FILE_TYPES.VIDEO.accept},${FILE_TYPES.AUDIO.accept},${FILE_TYPES.MODEL_3D.accept},${FILE_TYPES.ARCHIVE.accept}`,
   },
+  // New portfolio media rules
+  PORTFOLIO_MEDIA: {
+    allowedTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+    maxSize: 8 * 1024 * 1024, // 8MB in bytes
+    accept: 'image/jpeg,image/png,image/gif,image/webp',
+    acceptedExtensions: ['.jpg', '.jpeg', '.png', '.gif', '.webp'],
+    maxFiles: 20, // Max 20 media items per portfolio (can adjust)
+    description: 'JPG, PNG, GIF, or WEBP up to 8MB each',
+  },
+  
+  // YouTube validation (doesn't follow the same structure since it's URL-based)
+  PORTFOLIO_YOUTUBE: {
+    maxUrlLength: 500,
+    allowedHosts: ['youtube.com', 'www.youtube.com', 'youtu.be', 'm.youtube.com'],
+    allowedVisibility: ['public', 'unlisted'], // Note: We can't enforce this, but document it
+    description: 'YouTube links (public or unlisted)',
+  },
 } as const;
 
 // Helper to format bytes for display
@@ -187,8 +204,27 @@ export const formatFileSize = (bytes: number): string => {
 };
 
 // Helper to validate file
-export const validateFile = (file: File, context: keyof typeof FILE_RULES): { valid: boolean; error?: string } => {
+export const validateFile = (
+  file: File, 
+  context: keyof typeof FILE_RULES
+): { valid: boolean; error?: string } => {
   const rules = FILE_RULES[context];
+  
+  // PORTFOLIO_YOUTUBE is URL-based, not file-based, so skip validation
+  if (context === 'PORTFOLIO_YOUTUBE') {
+    return {
+      valid: false,
+      error: 'Use validateYouTubeUrl for YouTube URLs',
+    };
+  }
+  
+  // Type guard to ensure we have file validation rules
+  if (!('maxSize' in rules) || !('allowedTypes' in rules)) {
+    return {
+      valid: false,
+      error: 'Invalid validation context',
+    };
+  }
   
   // Check size
   if (file.size > rules.maxSize) {
@@ -198,7 +234,7 @@ export const validateFile = (file: File, context: keyof typeof FILE_RULES): { va
     };
   }
   
-  // Check type - cast to readonly string array for comparison
+  // Check type
   const allowedTypes = rules.allowedTypes as readonly string[];
   if (!allowedTypes.includes(file.type)) {
     return {
@@ -210,3 +246,60 @@ export const validateFile = (file: File, context: keyof typeof FILE_RULES): { va
   return { valid: true };
 };
 
+
+// YouTube URL validation helper
+export function validateYouTubeUrl(url: string): { valid: boolean; videoId?: string; error?: string } {
+  try {
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname.replace('www.', '');
+    
+    // Check if it's a valid YouTube domain
+    if (!['youtube.com', 'youtu.be', 'm.youtube.com'].includes(hostname)) {
+      return { valid: false, error: 'Not a valid YouTube URL' };
+    }
+    
+    let videoId: string | null = null;
+    
+    // Extract video ID from different YouTube URL formats
+    if (hostname === 'youtu.be') {
+      // https://youtu.be/VIDEO_ID
+      videoId = urlObj.pathname.slice(1);
+    } else {
+      // https://youtube.com/watch?v=VIDEO_ID
+      // https://m.youtube.com/watch?v=VIDEO_ID
+      videoId = urlObj.searchParams.get('v');
+    }
+    
+    if (!videoId || videoId.length !== 11) {
+      return { valid: false, error: 'Could not extract valid video ID' };
+    }
+    
+    return { valid: true, videoId };
+  } catch (error) {
+    return { valid: false, error: 'Invalid URL format' };
+  }
+}
+
+// File size validation helper
+export function validateFileSize(file: File, maxSize: number): { valid: boolean; error?: string } {
+  if (file.size > maxSize) {
+    const maxSizeMB = (maxSize / (1024 * 1024)).toFixed(1);
+    const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+    return {
+      valid: false,
+      error: `File size (${fileSizeMB}MB) exceeds maximum allowed size (${maxSizeMB}MB)`,
+    };
+  }
+  return { valid: true };
+}
+
+// MIME type validation helper
+export function validateMimeType(file: File, allowedMimeTypes: string[]): { valid: boolean; error?: string } {
+  if (!allowedMimeTypes.includes(file.type)) {
+    return {
+      valid: false,
+      error: `File type ${file.type} is not allowed. Accepted types: ${allowedMimeTypes.join(', ')}`,
+    };
+  }
+  return { valid: true };
+}

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { db } from '../config/db.js';
-import { artworks, provenanceAnalysis, artistVerification } from '../config/schema.js';
+import { provenanceAnalysis, artistVerification } from '../config/schema.js';
 import { eq } from 'drizzle-orm';
 import {
   extractMetadata,
@@ -12,56 +12,48 @@ import { analyzeImageWithHiveAi } from '../services/detectAIService.js';
 
 
 /**
- * POST /api/provenance/analyze/:artworkId
- * Analyze an artwork for AI detection
+ * POST /api/provenance/analyze
+ * Analyze an image for AI detection (admin use - manual portfolioId input)
  */
 export const analyzeArtwork = async (req: Request, res: Response) => {
   try {
-    const { artworkId } = req.params;
+    const { portfolioId, imageUrl, userId } = req.body;
 
-    // Get artwork from database
-    const artworkResult = await db
-      .select()
-      .from(artworks)
-      .where(eq(artworks.id, parseInt(artworkId)))
-      .limit(1);
-
-    if (artworkResult.length === 0) {
-      res.status(404).json({ error: 'Artwork not found' });
-      return;
+    if (!imageUrl) {
+      return res.status(400).json({ error: 'imageUrl is required' });
     }
 
-    const artwork = artworkResult[0];
+    // Check if analysis already exists for this portfolio (cache for 30 days)
+    if (portfolioId) {
+      const existingAnalysis = await db
+        .select()
+        .from(provenanceAnalysis)
+        .where(eq(provenanceAnalysis.portfolioId, parseInt(portfolioId)))
+        .limit(1);
 
-    // Check if analysis already exists (cache for 30 days)
-    const existingAnalysis = await db
-      .select()
-      .from(provenanceAnalysis)
-      .where(eq(provenanceAnalysis.artworkId, parseInt(artworkId)))
-      .limit(1);
+      if (existingAnalysis.length > 0) {
+        const analysis = existingAnalysis[0];
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    if (existingAnalysis.length > 0) {
-      const analysis = existingAnalysis[0];
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-      // Return cached result if less than 30 days old
-      if (analysis.analyzedAt > thirtyDaysAgo) {
-        res.json({
-          analysis: {
-            ...analysis,
-            metadataDetails: analysis.metadataDetails ? JSON.parse(analysis.metadataDetails) : null,
-            behavioralDetails: analysis.behavioralDetails ? JSON.parse(analysis.behavioralDetails) : null,
-            aiDetectionDetails: analysis.aiDetectionDetails ? JSON.parse(analysis.aiDetectionDetails) : null,
-          },
-          cached: true,
-        });
-        return;
+        // Return cached result if less than 30 days old
+        if (analysis.analyzedAt > thirtyDaysAgo) {
+          res.json({
+            analysis: {
+              ...analysis,
+              metadataDetails: analysis.metadataDetails ? JSON.parse(analysis.metadataDetails) : null,
+              behavioralDetails: analysis.behavioralDetails ? JSON.parse(analysis.behavioralDetails) : null,
+              aiDetectionDetails: analysis.aiDetectionDetails ? JSON.parse(analysis.aiDetectionDetails) : null,
+            },
+            cached: true,
+          });
+          return;
+        }
       }
     }
 
     // Download image from R2 using fetch
-    const imageResponse = await fetch(artwork.fileUrl);
+    const imageResponse = await fetch(imageUrl);
     if (!imageResponse.ok) {
       throw new Error(`Failed to fetch image: ${imageResponse.statusText}`);
     }
@@ -74,13 +66,13 @@ export const analyzeArtwork = async (req: Request, res: Response) => {
     const metadataAnalysis = analyzeMetadata(metadata);
 
     // Check if user is verified artist
-    const isVerifiedArtist = await checkArtistVerification(artwork.userId);
+    const isVerifiedArtist = userId ? await checkArtistVerification(userId) : false;
 
     // Phase 2: Visual AI detection (Hive AI)
     let visualAiScore = null;
     let aiDetectionDetails = null;
     try {
-        const hiveResult = await analyzeImageWithHiveAi(imageBuffer, artwork.fileUrl.split('/').pop() || 'image.png');
+        const hiveResult = await analyzeImageWithHiveAi(imageBuffer, imageUrl.split('/').pop() || 'image.png');
         visualAiScore = hiveResult.score;
         aiDetectionDetails = JSON.stringify(hiveResult.details);
     } catch (err) {
@@ -92,7 +84,6 @@ export const analyzeArtwork = async (req: Request, res: Response) => {
     const fileAnalysisScore = null;
     const behavioralScore = null;
     const communityScore = null;
-
 
     // Calculate final score
     const { finalScore, verdict, confidenceLevel } = calculateFinalScore(
@@ -109,7 +100,7 @@ export const analyzeArtwork = async (req: Request, res: Response) => {
 
     // Save or update analysis
     const analysisData = {
-      artworkId: parseInt(artworkId),
+      portfolioId: portfolioId ? parseInt(portfolioId) : null,
       analyzedAt: new Date(),
       metadataScore: metadataAnalysis.score,
       fileAnalysisScore,
@@ -128,16 +119,32 @@ export const analyzeArtwork = async (req: Request, res: Response) => {
     };
 
     let savedAnalysis;
-    if (existingAnalysis.length > 0) {
-      // Update existing
-      await db
-        .update(provenanceAnalysis)
-        .set(analysisData)
-        .where(eq(provenanceAnalysis.id, existingAnalysis[0].id));
-      
-      savedAnalysis = { ...analysisData, id: existingAnalysis[0].id };
+    if (portfolioId) {
+      const existingAnalysis = await db
+        .select()
+        .from(provenanceAnalysis)
+        .where(eq(provenanceAnalysis.portfolioId, parseInt(portfolioId)))
+        .limit(1);
+
+      if (existingAnalysis.length > 0) {
+        // Update existing
+        await db
+          .update(provenanceAnalysis)
+          .set(analysisData)
+          .where(eq(provenanceAnalysis.id, existingAnalysis[0].id));
+        
+        savedAnalysis = { ...analysisData, id: existingAnalysis[0].id };
+      } else {
+        // Insert new
+        const inserted = await db
+          .insert(provenanceAnalysis)
+          .values(analysisData)
+          .returning();
+        
+        savedAnalysis = inserted[0];
+      }
     } else {
-      // Insert new
+      // No portfolioId - just insert without linking
       const inserted = await db
         .insert(provenanceAnalysis)
         .values(analysisData)
@@ -163,21 +170,21 @@ export const analyzeArtwork = async (req: Request, res: Response) => {
 
 
 /**
- * GET /api/provenance/results/:artworkId
- * Get existing analysis results for an artwork
+ * GET /api/provenance/results/:portfolioId
+ * Get existing analysis results for a portfolio
  */
 export const getAnalysisResults = async (req: Request, res: Response) => {
   try {
-    const { artworkId } = req.params;
+    const { portfolioId } = req.params;
 
     const results = await db
       .select()
       .from(provenanceAnalysis)
-      .where(eq(provenanceAnalysis.artworkId, parseInt(artworkId)))
+      .where(eq(provenanceAnalysis.portfolioId, parseInt(portfolioId)))
       .limit(1);
 
     if (results.length === 0) {
-      res.status(404).json({ error: 'No analysis found for this artwork' });
+      res.status(404).json({ error: 'No analysis found for this portfolio' });
       return;
     }
 

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { getUserArtworks } from '../services/artworkService';
-import { Artwork } from '../models';
+import { getUserPortfolios } from '../services/portfolioService';
+import { Portfolio } from '../models/index';
 
 export const useArtworkGrid = (userId: string, isOwnProfile: boolean) => {
-  const [artworks, setArtworks] = useState<Artwork[]>([]);
+  const [artworks, setArtworks] = useState<Portfolio[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -13,14 +13,16 @@ export const useArtworkGrid = (userId: string, isOwnProfile: boolean) => {
   const loadArtworks = async () => {
     try {
       setLoading(true);
-      const data = await getUserArtworks({
+      
+      // If own profile, fetch all (including drafts), otherwise only published
+      const data = await getUserPortfolios({
         userId,
-        includePrivate: isOwnProfile,
-        requesterId: isOwnProfile ? userId : undefined,
+        status: isOwnProfile ? undefined : 'published',
       });
-      setArtworks(data.artworks || []);
+      
+      setArtworks(data.portfolios || []);
     } catch (error) {
-      console.error('Failed to load artworks:', error);
+      console.error('Failed to load portfolios:', error);
       setArtworks([]);
     } finally {
       setLoading(false);
