@@ -1,7 +1,7 @@
 .dropdown {
   position: absolute;
   top: calc(100% + 0.5rem);
-  right: 0;
+  /* right: 0; */
   width: 400px;
   max-height: 600px;
   background: var(--color-card);

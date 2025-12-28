@@ -63,6 +63,7 @@ export const getConversations = async (req: Request, res: Response) => {
             u.raw_json->>'id' as id,
             u.raw_json->>'display_name' as stack_display_name,
             u.raw_json->>'profile_image_url' as stack_profile_image,
+            u.raw_json->>'primary_email' as primary_email,
             s.username as custom_username,
             s.display_name as custom_display_name,
             s.profile_image_url as custom_profile_image
@@ -71,14 +72,17 @@ export const getConversations = async (req: Request, res: Response) => {
           WHERE u.raw_json->>'id' = ${otherUserId}
           LIMIT 1
         `);
+
         
         const otherUser = result.rows[0] as any;
         
         // Prioritize custom settings over Stack Auth defaults
         const displayName = otherUser?.custom_display_name || 
-                           otherUser?.custom_username || 
-                           otherUser?.stack_display_name || 
-                           'Unknown User';
+                            otherUser?.custom_username || 
+                            otherUser?.stack_display_name || 
+                            otherUser?.primary_email ||
+                            'Unknown User';
+
         
         const profileImage = otherUser?.custom_profile_image || 
                             otherUser?.stack_profile_image || 
