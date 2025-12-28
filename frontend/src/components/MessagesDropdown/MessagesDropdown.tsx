@@ -5,6 +5,7 @@ import { ReportModal } from '../ReportModal/ReportModal';
 import { OnOpenChatFunction } from '../../models';
 import styles from './MessagesDropdown.module.css';
 import { ChatWindow } from '../ChatWindow/ChatWindow';
+import { useEffect, useState } from 'react';
 
 interface MessagesDropdownProps {
   isOpen: boolean;
@@ -20,7 +21,8 @@ interface MessagesDropdownProps {
 
 export const MessagesDropdown = ({ isOpen, onClose, onOpenChat, autoOpenData }: MessagesDropdownProps) => {
   const { user } = useAuth();
-  
+  const [alignRight, setAlignRight] = useState(false);
+  const [overflowThreshold, setOverflowThreshold] = useState<number | null>(null);
   const {
     conversations,
     searchTerm,
@@ -46,6 +48,37 @@ export const MessagesDropdown = ({ isOpen, onClose, onOpenChat, autoOpenData }: 
     autoOpenData,
   });
 
+    // Detect if dropdown would overflow
+  useEffect(() => {
+    if (!isOpen || !dropdownRef.current) return;
+
+    const checkOverflow = () => {
+      const dropdown = dropdownRef.current;
+      if (!dropdown) return;
+
+      const rect = dropdown.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const wouldOverflow = rect.right > viewportWidth;
+      
+      if (wouldOverflow && !alignRight) {
+        // Starting to overflow, save threshold and switch to right alignment
+        setOverflowThreshold(viewportWidth);
+        setAlignRight(true);
+      } else if (!wouldOverflow && alignRight && overflowThreshold) {
+        // Check if we're above the threshold again
+        if (viewportWidth > overflowThreshold) {
+          setAlignRight(false);
+          setOverflowThreshold(null);
+        }
+      }
+    };
+
+    // Check immediately and on resize
+    setTimeout(checkOverflow, 0);
+    window.addEventListener('resize', checkOverflow);
+
+    return () => window.removeEventListener('resize', checkOverflow);
+  }, [isOpen, alignRight, overflowThreshold]);
 
   if (!isOpen) return null;
 
@@ -89,7 +122,7 @@ export const MessagesDropdown = ({ isOpen, onClose, onOpenChat, autoOpenData }: 
 
 
   const dropdownContent = (
-    <div className={styles.dropdown} ref={dropdownRef}>
+    <div className={`${styles.dropdown} ${alignRight ? styles.dropdownAlignRight : ''}`} ref={dropdownRef}>
       <div className={styles.header}>
         <h3>Messages</h3>
         <button className={styles.closeBtn} onClick={onClose}>×</button>
