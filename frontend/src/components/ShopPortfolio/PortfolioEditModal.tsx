@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { Portfolio } from '../../models/Portfolio';
-import { config } from '../../config/env';
+import { usePortfolioOperations } from '../../hooks/usePortfolioOperations';
 import styles from './PortfolioEditModal.module.css';
 
 interface PortfolioEditModalProps {
@@ -10,7 +9,7 @@ interface PortfolioEditModalProps {
 }
 
 export const PortfolioEditModal = ({ portfolio, onClose, onDelete }: PortfolioEditModalProps) => {
-  const [deleting, setDeleting] = useState(false);
+  const { deleting, deletePortfolio } = usePortfolioOperations();
 
   const handleDelete = async () => {
     if (!confirm(`Are you sure you want to delete "${portfolio.title}"? This action cannot be undone.`)) {
@@ -18,22 +17,11 @@ export const PortfolioEditModal = ({ portfolio, onClose, onDelete }: PortfolioEd
     }
 
     try {
-      setDeleting(true);
-      const res = await fetch(`${config.apiUrl}/api/portfolio/${portfolio.id}`, {
-        method: 'DELETE',
-      });
-
-      if (!res.ok) {
-        throw new Error('Failed to delete portfolio');
-      }
-
+      await deletePortfolio(portfolio.id);
       alert('Portfolio deleted successfully');
       onDelete();
     } catch (error: any) {
-      console.error('Delete error:', error);
       alert(error.message || 'Failed to delete portfolio');
-    } finally {
-      setDeleting(false);
     }
   };
 

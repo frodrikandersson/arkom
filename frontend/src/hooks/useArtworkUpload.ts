@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { PortfolioFormData, SensitiveContentType } from '../models/Portfolio';
+import { config } from '../config/env';
 
 export const useArtworkUpload = (userId: string | null, onUploadComplete?: () => void) => {
   const [uploading, setUploading] = useState(false);
@@ -83,7 +84,7 @@ export const useArtworkUpload = (userId: string | null, onUploadComplete?: () =>
         sensitiveContentTypeIds: [], // Will be populated if we fetch sensitive content types from API
       };
 
-      const portfolioRes = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/portfolio`, {
+      const portfolioRes = await fetch(`${config.apiUrl}/api/portfolio`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(portfolioPayload),
@@ -100,7 +101,7 @@ export const useArtworkUpload = (userId: string | null, onUploadComplete?: () =>
       formDataUpload.append('file', fileInputRef.current.files[0]);
 
       const mediaRes = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/portfolio/${portfolio.id}/media`,
+        `${config.apiUrl}/api/portfolio/${portfolio.id}/media`,
         {
           method: 'POST',
           body: formDataUpload,
