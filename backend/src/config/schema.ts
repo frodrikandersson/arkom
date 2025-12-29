@@ -40,8 +40,8 @@ export const userSettings = pgTable('user_settings', {
   profileImageUrl: text('profile_image_url'),
   bannerImageUrl: text('banner_image_url'),
   socialLinks: json('social_links'),
-  emailNotifications: boolean('email_notifications').default(true),
-  pushNotifications: boolean('push_notifications').default(true),
+  emailNotifications: boolean('email_notifications').default(false),
+  pushNotifications: boolean('push_notifications').default(false),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
