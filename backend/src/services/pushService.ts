@@ -52,14 +52,23 @@ export const sendPushNotification = async (
         };
 
         try {
-          await webpush.sendNotification(
+          console.log('📤 Sending push to endpoint:', subscription.endpoint.substring(0, 50) + '...');
+          const result = await webpush.sendNotification(
             pushSubscription,
             JSON.stringify(payload)
           );
+          console.log('✅ Push sent successfully to:', subscription.endpoint.substring(0, 50) + '...', result);
           return { success: true, endpoint: subscription.endpoint };
         } catch (error: any) {
+          console.error('❌ Push send failed for endpoint:', subscription.endpoint.substring(0, 50) + '...', {
+            statusCode: error.statusCode,
+            message: error.message,
+            body: error.body
+          });
+          
           // If subscription is invalid (410 Gone), remove it
           if (error.statusCode === 410) {
+            console.log('🗑️ Removing invalid subscription:', subscription.id);
             await db
               .delete(pushSubscriptions)
               .where(eq(pushSubscriptions.id, subscription.id));
