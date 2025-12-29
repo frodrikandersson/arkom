@@ -163,13 +163,6 @@ export const createNotification = async (
 
     // Send email notification if enabled
     if (settings?.emailNotifications) {
-      sendNotificationEmail(userId, type, title, message, actionUrl)
-        .then(result => console.log('Email send result:', result))
-        .catch(err => console.error('Email notification failed:', err));
-    }
-
-    // Send email notification if enabled
-    if (settings?.emailNotifications) {
       try {
         const emailResult = await sendNotificationEmail(userId, type, title, message, actionUrl);
         console.log('Email sent successfully:', emailResult);
