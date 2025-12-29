@@ -91,7 +91,7 @@ export const UserMenu = () => {
               <img src={profileImage} alt="Profile" className={styles.avatarImage} />
             ) : (
               <div className={styles.avatarPlaceholder}>
-                {user?.displayName?.[0]?.toUpperCase() || 'U'}
+                {user?.displayName?.[0]?.toUpperCase() || user?.primaryEmail?.[0]?.toUpperCase() || 'U'}
               </div>
             )}
           </div>

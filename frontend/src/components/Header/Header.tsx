@@ -66,7 +66,7 @@ export const Header = ({
             <div className={styles.desktopOnly}>
               <BasketButton itemCount={basketCount} />
               <MessageButton unreadCount={messageCount} onOpenChat={onOpenChat} />
-              <AlertButton />
+              <AlertButton onOpenChat={onOpenChat} />
               <UserMenu />
             </div>
           )}

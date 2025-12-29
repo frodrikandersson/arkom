@@ -43,6 +43,19 @@ export const useChatWindow = (
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Poll for new messages every 3 seconds
+  useEffect(() => {
+    if (!conversationId || !userId) return;
+
+    const pollInterval = setInterval(() => {
+      loadMessages();
+    }, 3000); // 3 seconds
+
+    return () => {
+      clearInterval(pollInterval);
+    };
+  }, [conversationId, userId]);
+
   const loadMessages = async () => {
     try {
       const msgs = await getMessages(conversationId);

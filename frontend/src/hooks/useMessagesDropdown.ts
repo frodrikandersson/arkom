@@ -38,49 +38,57 @@ export const useMessagesDropdown = ({ userId, isOpen, onClose, autoOpenData }: U
 
   // Click outside to close
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
+    if (!isOpen) return;
 
-      // Don't close if clicking inside the dropdown
-      if (dropdownRef.current && dropdownRef.current.contains(target)) {
-        return;
-      }
+    // Delay adding the listener to ensure the dropdown ref is set
+    const timeoutId = setTimeout(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        const target = event.target as Node;
 
-      // Don't close if clicking inside the mobile chat view (ChatWindow component)
-      const mobileChatElement = target instanceof Element && (
-        target.closest('[class*="chatWindow"]') || 
-        target.closest('[class*="emojiPicker"]') ||
-        target.closest('[class*="imageModal"]') ||
-        target.closest('[class*="reportModal"]')
-      );
-      if (mobileChatElement) {
-        return;
-      }
+        // Don't close if clicking inside the dropdown
+        if (dropdownRef.current && dropdownRef.current.contains(target)) {
+          return;
+        }
 
+        // Don't close if clicking inside the mobile chat view (ChatWindow component)
+        const mobileChatElement = target instanceof Element && (
+          target.closest('[class*="chatWindow"]') || 
+          target.closest('[class*="emojiPicker"]') ||
+          target.closest('[class*="imageModal"]') ||
+          target.closest('[class*="reportModal"]')
+        );
+        if (mobileChatElement) {
+          return;
+        }
 
-      // Don't close if clicking on UserMenu or its dropdown (mobile conflict fix)
-      const userMenuElement = document.querySelector('[class*="userMenu"]');
-      if (userMenuElement && userMenuElement.contains(target)) {
-        return;
-      }
+        // Don't close if clicking on UserMenu or its dropdown (mobile conflict fix)
+        const userMenuElement = document.querySelector('[class*="userMenu"]');
+        if (userMenuElement && userMenuElement.contains(target)) {
+          return;
+        }
 
-      // Don't close if clicking on the message button itself
-      const messageButtonElement = target instanceof Element && target.closest('[aria-label="Messages"]');
-      if (messageButtonElement) {
-        return;
-      }
+        // Don't close if clicking on the message button itself
+        const messageButtonElement = target instanceof Element && target.closest('[aria-label="Messages"]');
+        if (messageButtonElement) {
+          return;
+        }
 
-      // Otherwise, close the dropdown
-      onClose();
-    };
+        // Otherwise, close the dropdown
+        onClose();
+      };
 
-    if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+
+      // Return cleanup function for this timeout
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, 100); // 100ms delay to ensure ref is set
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [isOpen, onClose]);
-
-
 
   // Load conversations when opened
   useEffect(() => {
@@ -144,12 +152,18 @@ export const useMessagesDropdown = ({ userId, isOpen, onClose, autoOpenData }: U
 
 
   const filteredConversations = conversations.filter((conv) => {
-    const matchesSearch = conv.otherUserName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          conv.lastMessage.toLowerCase().includes(searchTerm.toLowerCase());
+    // Safety check: ensure required fields exist
+    if (!conv.otherUserName || conv.lastMessage === null || conv.lastMessage === undefined) {
+      return false;
+    }
+    
+    const matchesSearch = conv.otherUserName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (conv.lastMessage || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     // TODO: Implement filter logic for active clients and requests
     return matchesSearch;
   });
+
 
   return {
     // State

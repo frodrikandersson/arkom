@@ -1,14 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom'; // Add this import
+import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNotifications } from '../../hooks/useNotifications';
-import { Notification } from '../../models';
+import { Notification, OnOpenChatFunction } from '../../models';
+import { getConversations } from '../../services/messageService';
 import styles from './AlertButton.module.css';
 
-export const AlertButton = () => {
+interface AlertButtonProps {
+  onOpenChat?: OnOpenChatFunction;
+}
+
+export const AlertButton = ({ onOpenChat }: AlertButtonProps) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false); // Add this state
+  const [isMobile, setIsMobile] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   const {
@@ -29,16 +36,75 @@ export const AlertButton = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Handle notification click
-  const handleNotificationClick = (notification: Notification) => {
+  // Handle notification click with improved UX
+  const handleNotificationClick = async (notification: Notification) => {
+    // Close the dropdown immediately
+    setIsOpen(false);
+
+    // Handle navigation first, before deleting
+    if (notification.actionUrl) {
+      // Parse the actionUrl to check if it's a message notification
+      const url = new URL(notification.actionUrl, window.location.origin);
+      
+      if (url.pathname === '/messages' && notification.type === 'message') {
+        // Extract conversation ID from URL params
+        const conversationId = url.searchParams.get('conversation');
+        
+        if (conversationId && notification.relatedUserId && user?.id) {
+          // Fetch user conversations to get proper user details
+          try {
+            const conversations = await getConversations(user.id);
+            const conversation = conversations.find(c => c.conversationId === parseInt(conversationId));
+            
+            // Check if mobile view
+            if (window.innerWidth <= 768) {
+              // For mobile: Navigate with state to trigger auto-open
+              navigate('/', {
+                state: {
+                  openMobileChat: true,
+                  conversationId: parseInt(conversationId),
+                  otherUserId: notification.relatedUserId,
+                  otherUserName: conversation?.otherUserName,
+                  otherUserAvatar: conversation?.otherUserAvatar,
+                }
+              });
+            } else if (onOpenChat) {
+              // For desktop: Navigate and open chat window with proper user details
+              navigate('/');
+              
+              onOpenChat(
+                parseInt(conversationId),
+                notification.relatedUserId,
+                conversation?.otherUserName,
+                conversation?.otherUserAvatar,
+                conversation?.otherUserUsername
+              );
+            } else {
+              // Fallback if no onOpenChat provided
+              navigate(url.pathname + url.search);
+            }
+          } catch (error) {
+            console.error('Failed to fetch conversation details:', error);
+            // Fallback to navigation without details
+            navigate(url.pathname + url.search);
+          }
+        } else {
+          // Fallback to normal navigation if missing data
+          navigate(url.pathname + url.search);
+        }
+      } else {
+        // For other notification types, just navigate normally
+        navigate(url.pathname + url.search);
+      }
+    }
+
+    // Mark as read and delete AFTER navigation has been triggered
     if (!notification.isRead) {
       markAsRead(notification.id);
     }
-    
-    if (notification.actionUrl) {
-      window.location.href = notification.actionUrl;
-    }
+    deleteNotification(notification.id);
   };
+
 
   // Format timestamp
   const formatTime = (timestamp: string) => {
@@ -92,14 +158,6 @@ export const AlertButton = () => {
             ×
           </button>
         )}
-        {unreadCount > 0 && (
-          <button 
-            className={styles.markAllRead}
-            onClick={markAllAsRead}
-          >
-            Mark all read
-          </button>
-        )}
       </div>
 
       <div className={styles.notificationList}>
@@ -133,8 +191,18 @@ export const AlertButton = () => {
           ))
         )}
       </div>
+
+      {unreadCount > 0 && (
+        <button 
+          className={styles.markAllReadBottom}
+          onClick={markAllAsRead}
+        >
+          Mark all as read
+        </button>
+      )}
     </div>
   );
+
 
   return (
     <div className={styles.container}>
