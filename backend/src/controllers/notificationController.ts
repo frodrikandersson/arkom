@@ -168,22 +168,36 @@ export const createNotification = async (
         .catch(err => console.error('Email notification failed:', err));
     }
 
+    // Send email notification if enabled
+    if (settings?.emailNotifications) {
+      try {
+        const emailResult = await sendNotificationEmail(userId, type, title, message, actionUrl);
+        console.log('Email sent successfully:', emailResult);
+      } catch (err) {
+        console.error('Email notification failed:', err);
+      }
+    }
+
     // Send push notification if enabled
     if (settings?.pushNotifications) {
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-      const fullActionUrl = actionUrl ? `${frontendUrl}${actionUrl}` : undefined;
+      try {
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const fullActionUrl = actionUrl ? `${frontendUrl}${actionUrl}` : undefined;
 
-      sendPushNotification(userId, {
-        title,
-        body: message,
-        icon: `${frontendUrl}/icon-192.png`,
-        badge: `${frontendUrl}/badge-96.png`,
-        data: {
-          url: fullActionUrl,
-          notificationId: notification.id.toString(),
-        },
-      }).then(result => console.log('Push send result:', result))
-        .catch(err => console.error('Push notification failed:', err));
+        const pushResult = await sendPushNotification(userId, {
+          title,
+          body: message,
+          icon: `${frontendUrl}/icon-192.png`,
+          badge: `${frontendUrl}/badge-96.png`,
+          data: {
+            url: fullActionUrl,
+            notificationId: notification.id.toString(),
+          },
+        });
+        console.log('Push notification sent successfully:', pushResult);
+      } catch (err) {
+        console.error('Push notification failed:', err);
+      }
     }
 
     return notification;
