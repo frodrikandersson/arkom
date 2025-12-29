@@ -90,7 +90,7 @@ export const useNotifications = (userId: string | null) => {
       if (userId) {
         fetchNotifications();
       }
-    }, 30000); // 30 seconds
+    }, 3000); // 30 seconds
     
     return () => {
       clearInterval(pollInterval);

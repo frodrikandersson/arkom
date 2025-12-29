@@ -1,64 +1,22 @@
-import { config } from '../config/env';
+import { api } from '../utils/apiClient';
 import { Notification, NotificationResponse } from '../models';
 
 export const getUserNotifications = async (userId: string): Promise<NotificationResponse> => {
-  const res = await fetch(`${config.apiUrl}/api/notifications/${userId}`);
-  const data = await res.json();
-  
-  if (!res.ok) {
-    throw new Error(data.error || 'Failed to fetch notifications');
-  }
-  
-  return data;
+  return api.get<NotificationResponse>(`/api/notifications/${userId}`);
 };
 
 export const getUnreadNotifications = async (userId: string): Promise<NotificationResponse> => {
-  const res = await fetch(`${config.apiUrl}/api/notifications/${userId}?unreadOnly=true`);
-  const data = await res.json();
-  
-  if (!res.ok) {
-    throw new Error(data.error || 'Failed to fetch unread notifications');
-  }
-  
-  return data;
+  return api.get<NotificationResponse>(`/api/notifications/${userId}`, { unreadOnly: 'true' });
 };
 
 export const markNotificationAsRead = async (notificationId: number, userId: string): Promise<Notification> => {
-  const res = await fetch(`${config.apiUrl}/api/notifications/${notificationId}/read`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId }),
-  });
-  const data = await res.json();
-  
-  if (!res.ok) {
-    throw new Error(data.error || 'Failed to mark notification as read');
-  }
-  
-  return data;
+  return api.put<Notification>(`/api/notifications/${notificationId}/read`, { userId });
 };
 
 export const markAllNotificationsAsRead = async (userId: string): Promise<void> => {
-  const res = await fetch(`${config.apiUrl}/api/notifications/${userId}/read-all`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-  });
-  const data = await res.json();
-  
-  if (!res.ok) {
-    throw new Error(data.error || 'Failed to mark all notifications as read');
-  }
+  await api.put<void>(`/api/notifications/${userId}/read-all`);
 };
 
 export const deleteNotification = async (notificationId: number, userId: string): Promise<void> => {
-  const res = await fetch(`${config.apiUrl}/api/notifications/${notificationId}`, {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId }),
-  });
-  const data = await res.json();
-  
-  if (!res.ok) {
-    throw new Error(data.error || 'Failed to delete notification');
-  }
+  await api.delete<void>(`/api/notifications/${notificationId}`);
 };

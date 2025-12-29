@@ -1,53 +1,42 @@
 import { Request, Response } from 'express';
 import { savePushSubscription, removePushSubscription } from '../services/pushService.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { AppError } from '../middleware/errorMiddleware.js';
 
 // Subscribe to push notifications
-export const subscribeToPush = async (req: Request, res: Response) => {
-  try {
-    const { userId, subscription } = req.body;
+export const subscribeToPush = asyncHandler(async (req: Request, res: Response) => {
+  const { userId, subscription } = req.body;
 
-    if (!userId || !subscription) {
-      res.status(400).json({ error: 'Missing required fields' });
-      return;
-    }
-
-    if (!subscription.endpoint || !subscription.keys?.p256dh || !subscription.keys?.auth) {
-      res.status(400).json({ error: 'Invalid subscription format' });
-      return;
-    }
-
-    const success = await savePushSubscription(userId, subscription);
-    
-    if (success) {
-      res.json({ success: true });
-    } else {
-      res.status(500).json({ error: 'Failed to save subscription' });
-    }
-  } catch (error) {
-    console.error('Subscribe error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+  if (!userId || !subscription) {
+    throw new AppError(400, 'Missing required fields');
   }
-};
+
+  if (!subscription.endpoint || !subscription.keys?.p256dh || !subscription.keys?.auth) {
+    throw new AppError(400, 'Invalid subscription format');
+  }
+
+  const success = await savePushSubscription(userId, subscription);
+  
+  if (!success) {
+    throw new AppError(500, 'Failed to save subscription');
+  }
+  
+  res.json({ success: true });
+});
 
 // Unsubscribe from push notifications
-export const unsubscribeFromPush = async (req: Request, res: Response) => {
-  try {
-    const { endpoint } = req.body;
+export const unsubscribeFromPush = asyncHandler(async (req: Request, res: Response) => {
+  const { endpoint } = req.body;
 
-    if (!endpoint) {
-      res.status(400).json({ error: 'Endpoint is required' });
-      return;
-    }
-
-    const success = await removePushSubscription(endpoint);
-    
-    if (success) {
-      res.json({ success: true });
-    } else {
-      res.status(500).json({ error: 'Failed to remove subscription' });
-    }
-  } catch (error) {
-    console.error('Unsubscribe error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+  if (!endpoint) {
+    throw new AppError(400, 'Endpoint is required');
   }
-};
+
+  const success = await removePushSubscription(endpoint);
+  
+  if (!success) {
+    throw new AppError(500, 'Failed to remove subscription');
+  }
+  
+  res.json({ success: true });
+});

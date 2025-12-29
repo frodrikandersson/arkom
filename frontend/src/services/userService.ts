@@ -1,4 +1,6 @@
-import { config } from '../config/env';
+// frontend/src/services/userService.ts (REFACTORED)
+
+import { api } from '../utils/apiClient';
 import { UserSearchResult, UserProfile, SocialLinks, BlockedUser } from '../models';
 
 export interface UserSearchResponse {
@@ -26,107 +28,45 @@ export interface BlockedUsersResponse {
 }
 
 export const searchUsers = async (query: string, userId?: string): Promise<UserSearchResponse> => {
-  const queryParams = new URLSearchParams({
+  return api.get<UserSearchResponse>('/api/users/search', {
     q: query,
     ...(userId && { userId }),
   });
-  
-  const res = await fetch(`${config.apiUrl}/api/users/search?${queryParams}`);
-  const data = await res.json();
-  
-  if (!res.ok) {
-    throw new Error(data.error || 'Failed to search users');
-  }
-  
-  return data;
 };
 
 export const getUserProfile = async (userId: string): Promise<UserProfileResponse> => {
-  const res = await fetch(`${config.apiUrl}/api/users/profile/${userId}`);
-  const data = await res.json();
-  
-  if (!res.ok) {
-    throw new Error(data.error || 'Profile not found');
-  }
-  
-  return data;
+  return api.get<UserProfileResponse>(`/api/users/profile/${userId}`);
 };
 
 export const getOrCreateConversation = async (
   userId: string,
   otherUserId: string
 ): Promise<ConversationResponse> => {
-  const res = await fetch(`${config.apiUrl}/api/messages/get-or-create`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId, otherUserId }),
+  return api.post<ConversationResponse>('/api/messages/get-or-create', {
+    userId,
+    otherUserId,
   });
-  const data = await res.json();
-  
-  if (!res.ok) {
-    throw new Error(data.error || 'Failed to create conversation');
-  }
-  
-  return data;
 };
 
 export const uploadProfileImage = async (userId: string, imageFile: File): Promise<{ profileImageUrl: string }> => {
   const formData = new FormData();
   formData.append('image', imageFile);
-
-  const res = await fetch(`${config.apiUrl}/api/users/${userId}/profile-image`, {
-    method: 'POST',
-    body: formData,
-  });
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.error || 'Failed to upload profile image');
-  }
-
-  return data;
+  return api.uploadFile<{ profileImageUrl: string }>(`/api/users/${userId}/profile-image`, formData);
 };
 
 export const uploadBannerImage = async (userId: string, imageFile: File): Promise<{ bannerImageUrl: string }> => {
   const formData = new FormData();
   formData.append('image', imageFile);
-
-  const res = await fetch(`${config.apiUrl}/api/users/${userId}/banner-image`, {
-    method: 'POST',
-    body: formData,
-  });
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.error || 'Failed to upload banner image');
-  }
-
-  return data;
+  return api.uploadFile<{ bannerImageUrl: string }>(`/api/users/${userId}/banner-image`, formData);
 };
 
 export const updateUserProfile = async (userId: string, profileData: UpdateProfileData): Promise<void> => {
-  const res = await fetch(`${config.apiUrl}/api/users/${userId}/profile`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(profileData),
-  });
-  const data = await res.json();
-
-  if (!res.ok) {
-    throw new Error(data.error || 'Failed to update profile');
-  }
-
-  return data;
+  return api.put<void>(`/api/users/${userId}/profile`, profileData);
 };
 
 export const getBlockedUsers = async (userId: string): Promise<BlockedUsersResponse> => {
-  const res = await fetch(`${config.apiUrl}/api/users/${userId}/blocked`);
-  const data = await res.json();
+  const data = await api.get<BlockedUsersResponse>(`/api/users/${userId}/blocked`);
   
-  if (!res.ok) {
-    throw new Error(data.error || 'Failed to load blocked users');
-  }
-
   // Fetch user details for each blocked user
   const usersWithDetails = await Promise.all(
     data.blockedUsers.map(async (blocked: BlockedUser) => {
@@ -150,16 +90,7 @@ export const getBlockedUsers = async (userId: string): Promise<BlockedUsersRespo
 };
 
 export const unblockUser = async (userId: string, blockedUserId: string): Promise<void> => {
-  const res = await fetch(`${config.apiUrl}/api/users/unblock`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId, blockedUserId }),
-  });
-  const data = await res.json();
-  
-  if (!res.ok) {
-    throw new Error(data.error || 'Failed to unblock user');
-  }
+  return api.post<void>('/api/users/unblock', { userId, blockedUserId });
 };
 
 export const reportUser = async (
@@ -169,22 +100,13 @@ export const reportUser = async (
   description: string | null,
   conversationId: number | null
 ): Promise<void> => {
-  const res = await fetch(`${config.apiUrl}/api/users/report`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      reporterId,
-      reportedUserId,
-      reportType,
-      description,
-      conversationId,
-    }),
+  return api.post<void>('/api/users/report', {
+    reporterId,
+    reportedUserId,
+    reportType,
+    description,
+    conversationId,
   });
-  const data = await res.json();
-  
-  if (!res.ok) {
-    throw new Error(data.error || 'Failed to submit report');
-  }
 };
 
 export const blockUser = async (
@@ -192,18 +114,9 @@ export const blockUser = async (
   blockedUserId: string,
   reason: string
 ): Promise<void> => {
-  const res = await fetch(`${config.apiUrl}/api/users/block`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      userId,
-      blockedUserId,
-      reason,
-    }),
+  return api.post<void>('/api/users/block', {
+    userId,
+    blockedUserId,
+    reason,
   });
-  const data = await res.json();
-  
-  if (!res.ok) {
-    throw new Error(data.error || 'Failed to block user');
-  }
 };

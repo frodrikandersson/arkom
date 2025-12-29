@@ -1,4 +1,4 @@
-import { config } from '../config/env';
+import { api } from '../utils/apiClient';
 import { Portfolio, GetPortfoliosResponse } from '../models/Portfolio';
 
 export interface GetUserPortfoliosParams {
@@ -8,45 +8,16 @@ export interface GetUserPortfoliosParams {
   offset?: number;
 }
 
-/**
- * Get portfolios for a specific user
- */
 export const getUserPortfolios = async (params: GetUserPortfoliosParams): Promise<GetPortfoliosResponse> => {
-  const queryParams = new URLSearchParams();
+  const queryParams: Record<string, string> = {};
   
-  if (params.status) {
-    queryParams.append('status', params.status);
-  }
-  if (params.limit) {
-    queryParams.append('limit', params.limit.toString());
-  }
-  if (params.offset) {
-    queryParams.append('offset', params.offset.toString());
-  }
+  if (params.status) queryParams.status = params.status;
+  if (params.limit) queryParams.limit = params.limit.toString();
+  if (params.offset) queryParams.offset = params.offset.toString();
 
-  const res = await fetch(
-    `${config.apiUrl}/api/portfolio/user/${params.userId}?${queryParams}`
-  );
-  
-  const data = await res.json();
-  
-  if (!res.ok) {
-    throw new Error(data.error || 'Failed to load portfolios');
-  }
-  
-  return data;
+  return api.get<GetPortfoliosResponse>(`/api/portfolio/user/${params.userId}`, queryParams);
 };
 
-/**
- * Get a single portfolio by ID
- */
 export const getPortfolio = async (portfolioId: number): Promise<{ success: boolean; portfolio: Portfolio }> => {
-  const res = await fetch(`${config.apiUrl}/api/portfolio/${portfolioId}`);
-  const data = await res.json();
-  
-  if (!res.ok) {
-    throw new Error(data.error || 'Failed to load portfolio');
-  }
-  
-  return data;
+  return api.get<{ success: boolean; portfolio: Portfolio }>(`/api/portfolio/${portfolioId}`);
 };

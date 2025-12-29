@@ -4,134 +4,113 @@ import { notifications, userSettings } from '../config/schema.js';
 import { eq, and, desc } from 'drizzle-orm';
 import { sendNotificationEmail } from '../services/emailService.js';
 import { sendPushNotification } from '../services/pushService.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { AppError } from '../middleware/errorMiddleware.js';
 
 // Get all notifications for a user
-export const getUserNotifications = async (req: Request, res: Response) => {
-  try {
-    const { userId } = req.params;
-    const { unreadOnly } = req.query;
+export const getUserNotifications = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { unreadOnly } = req.query;
 
-    let query = db
+  let query = db
+    .select()
+    .from(notifications)
+    .where(eq(notifications.userId, userId))
+    .orderBy(desc(notifications.createdAt));
+
+  if (unreadOnly === 'true') {
+    query = db
       .select()
       .from(notifications)
-      .where(eq(notifications.userId, userId))
-      .orderBy(desc(notifications.createdAt));
-
-    if (unreadOnly === 'true') {
-      query = db
-        .select()
-        .from(notifications)
-        .where(
-          and(
-            eq(notifications.userId, userId),
-            eq(notifications.isRead, false)
-          )
-        )
-        .orderBy(desc(notifications.createdAt));
-    }
-
-    const result = await query;
-
-    res.json({
-      notifications: result,
-      unreadCount: result.filter(n => !n.isRead).length,
-    });
-  } catch (error) {
-    console.error('Get notifications error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-// Mark notification as read
-export const markNotificationAsRead = async (req: Request, res: Response) => {
-  try {
-    const { notificationId } = req.params;
-    const { userId } = req.body;
-
-    // Verify the notification belongs to the user
-    const [notification] = await db
-      .select()
-      .from(notifications)
-      .where(eq(notifications.id, parseInt(notificationId)));
-
-    if (!notification) {
-      res.status(404).json({ error: 'Notification not found' });
-      return;
-    }
-
-    if (notification.userId !== userId) {
-      res.status(403).json({ error: 'Unauthorized' });
-      return;
-    }
-
-    const [updated] = await db
-      .update(notifications)
-      .set({ isRead: true })
-      .where(eq(notifications.id, parseInt(notificationId)))
-      .returning();
-
-    res.json(updated);
-  } catch (error) {
-    console.error('Mark notification as read error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-};
-
-// Mark all notifications as read for a user
-export const markAllNotificationsAsRead = async (req: Request, res: Response) => {
-  try {
-    const { userId } = req.params;
-
-    await db
-      .update(notifications)
-      .set({ isRead: true })
       .where(
         and(
           eq(notifications.userId, userId),
           eq(notifications.isRead, false)
         )
-      );
-
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Mark all notifications as read error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+      )
+      .orderBy(desc(notifications.createdAt));
   }
-};
+
+  const result = await query;
+
+  res.json({
+    notifications: result,
+    unreadCount: result.filter(n => !n.isRead).length,
+  });
+});
+
+// Mark notification as read
+export const markNotificationAsRead = asyncHandler(async (req: Request, res: Response) => {
+  const { notificationId } = req.params;
+  const { userId } = req.body;
+
+  // Verify the notification belongs to the user
+  const [notification] = await db
+    .select()
+    .from(notifications)
+    .where(eq(notifications.id, parseInt(notificationId)));
+
+  if (!notification) {
+    throw new AppError(404, 'Notification not found');
+  }
+
+  if (notification.userId !== userId) {
+    throw new AppError(403, 'Unauthorized');
+  }
+
+  const [updated] = await db
+    .update(notifications)
+    .set({ isRead: true })
+    .where(eq(notifications.id, parseInt(notificationId)))
+    .returning();
+
+  res.json(updated);
+});
+
+// Mark all notifications as read for a user
+export const markAllNotificationsAsRead = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = req.params;
+
+  await db
+    .update(notifications)
+    .set({ isRead: true })
+    .where(
+      and(
+        eq(notifications.userId, userId),
+        eq(notifications.isRead, false)
+      )
+    );
+
+  res.json({ success: true });
+});
 
 // Delete a notification
-export const deleteNotification = async (req: Request, res: Response) => {
-  try {
-    const { notificationId } = req.params;
-    const { userId } = req.body;
+export const deleteNotification = asyncHandler(async (req: Request, res: Response) => {
+  const { notificationId } = req.params;
+  const { userId } = req.body;
 
-    // Verify the notification belongs to the user
-    const [notification] = await db
-      .select()
-      .from(notifications)
-      .where(eq(notifications.id, parseInt(notificationId)));
+  // Verify the notification belongs to the user
+  const [notification] = await db
+    .select()
+    .from(notifications)
+    .where(eq(notifications.id, parseInt(notificationId)));
 
-    if (!notification) {
-      res.status(404).json({ error: 'Notification not found' });
-      return;
-    }
-
-    if (notification.userId !== userId) {
-      res.status(403).json({ error: 'Unauthorized' });
-      return;
-    }
-
-    await db
-      .delete(notifications)
-      .where(eq(notifications.id, parseInt(notificationId)));
-
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Delete notification error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+  if (!notification) {
+    throw new AppError(404, 'Notification not found');
   }
-};
 
+  if (notification.userId !== userId) {
+    throw new AppError(403, 'Unauthorized');
+  }
+
+  await db
+    .delete(notifications)
+    .where(eq(notifications.id, parseInt(notificationId)));
+
+  res.json({ success: true });
+});
+
+// Keep createNotification as-is since it's not a route handler
 export const createNotification = async (
   userId: string,
   type: string,
@@ -149,13 +128,14 @@ export const createNotification = async (
         type,
         title,
         message,
-        relatedId,
-        relatedUserId,
-        actionUrl,
+        relatedId: relatedId || null,
+        relatedUserId: relatedUserId || null,
+        actionUrl: actionUrl || null,
+        isRead: false,
       })
       .returning();
 
-    // Check if user has email/push notifications enabled
+    // Get user notification settings
     const [settings] = await db
       .select()
       .from(userSettings)
@@ -194,10 +174,8 @@ export const createNotification = async (
     }
 
     return notification;
-
   } catch (error) {
-    console.error('Create notification error:', error);
+    console.error('Failed to create notification:', error);
     throw error;
   }
 };
-

@@ -1,4 +1,4 @@
-import { config } from '../config/env';
+import { api } from '../utils/apiClient';
 
 export interface UserSettings {
   timezone: string;
@@ -13,30 +13,12 @@ export interface UserSettingsResponse {
 }
 
 export const getUserSettings = async (userId: string): Promise<UserSettingsResponse> => {
-  const res = await fetch(`${config.apiUrl}/api/users/${userId}/settings`);
-  const data = await res.json();
-  
-  if (!res.ok) {
-    throw new Error(data.error || 'Failed to load settings');
-  }
-  
-  return data;
+  return api.get<UserSettingsResponse>(`/api/users/${userId}/settings`);
 };
 
 export const updateUserSettings = async (
   userId: string,
   settings: Partial<UserSettings>
 ): Promise<UserSettingsResponse> => {
-  const res = await fetch(`${config.apiUrl}/api/users/${userId}/settings`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(settings),
-  });
-  const data = await res.json();
-  
-  if (!res.ok) {
-    throw new Error(data.error || 'Failed to save settings');
-  }
-  
-  return data;
+  return api.put<UserSettingsResponse>(`/api/users/${userId}/settings`, settings);
 };
