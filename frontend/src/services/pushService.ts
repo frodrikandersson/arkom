@@ -1,4 +1,3 @@
-import { config } from '../config/env';
 import { api } from '../utils/apiClient';
 
 // Get VAPID public key from backend environment
