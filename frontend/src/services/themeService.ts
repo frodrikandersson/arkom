@@ -1,5 +1,5 @@
 import { api } from '../utils/apiClient';
-import type { Theme } from '../models/Theme';
+import type { Theme, ThemeRow } from '../models/Theme';
 
 export const getUserActiveTheme = async (userId: string) => {
   const data = await api.get<{ activeThemeId: string }>(`/api/themes/active/${userId}`);
@@ -7,12 +7,12 @@ export const getUserActiveTheme = async (userId: string) => {
 };
 
 export const getUserThemes = async (userId: string) => {
-  const data = await api.get<{ themes: Theme[] }>(`/api/themes/${userId}`);
+  const data = await api.get<{ themes: ThemeRow[] }>(`/api/themes/${userId}`);
   return data.themes;
 };
 
 export const createTheme = async (userId: string, theme: Theme, isActive: boolean = false) => {
-  const data = await api.post<{ theme: Theme }>('/api/themes', {
+  const data = await api.post<{ theme: ThemeRow }>('/api/themes', {
     userId,
     themeId: theme.id,
     themeName: theme.name,
@@ -23,7 +23,7 @@ export const createTheme = async (userId: string, theme: Theme, isActive: boolea
 };
 
 export const updateTheme = async (theme: Theme) => {
-  const data = await api.patch<{ theme: Theme }>(`/api/themes/${theme.id}`, {
+  const data = await api.patch<{ theme: ThemeRow }>(`/api/themes/${theme.id}`, {
     themeName: theme.name,
     themeData: theme,
   });
@@ -35,6 +35,6 @@ export const deleteTheme = async (themeId: string) => {
 };
 
 export const setActiveTheme = async (userId: string, themeId: string) => {
-  const data = await api.post<{ theme: Theme }>('/api/themes/active', { userId, themeId });
+  const data = await api.post<{ theme: ThemeRow }>('/api/themes/active', { userId, themeId });
   return data.theme;
 };

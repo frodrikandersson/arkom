@@ -76,9 +76,10 @@ export const ThemeProvider = ({ children, userId }: ThemeProviderProps) => {
       
       // Get the user's custom theme (should only be one)
       if (themes && Array.isArray(themes) && themes.length > 0) {
-      const userCustomTheme = themes.find((t: any) => t.id.startsWith('custom-'));
+        const userCustomTheme = themes.find((t: any) => t.themeData?.id?.startsWith('custom-'));
       if (userCustomTheme) {
-        setCustomTheme(userCustomTheme);
+        setCustomTheme(userCustomTheme.themeData);
+
       }
       }
       
@@ -92,10 +93,10 @@ export const ThemeProvider = ({ children, userId }: ThemeProviderProps) => {
           setCurrentTheme(defaultLightTheme);
         } else {
           // It's the custom theme
-        const customTheme = themes?.find((t: any) => t.id === activeThemeId);
-        if (customTheme) {
-          setCurrentTheme(customTheme);
-        }
+          const customTheme = themes?.find((t: any) => t.themeData?.id === activeThemeId);
+          if (customTheme) {
+            setCurrentTheme(customTheme.themeData);
+          }
         }
       }
     } catch (err) {

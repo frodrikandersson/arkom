@@ -15,6 +15,18 @@ export interface Theme {
   };
 }
 
+// Database row type for theme storage
+export interface ThemeRow {
+  id: number;
+  userId: string;
+  themeId: string;
+  themeName: string;
+  themeData: Theme;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const defaultDarkTheme: Theme = {
   id: 'dark',
   name: 'Dark Portfolio',
