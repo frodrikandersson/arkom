@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { SocialLink } from '../../models';
 import styles from './AddSocialLinkModal.module.css';
-import { SocialIcon } from '../SocialIcon/SocialIcon';
+import { SocialIcon } from '../common/SocialIcon';
 
 interface AddSocialLinkModalProps {
     isOpen: boolean;

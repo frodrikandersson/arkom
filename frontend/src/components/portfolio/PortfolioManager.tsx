@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Portfolio } from '../../models/Portfolio';
-import { ArtworkUpload } from './ArtworkUpload';
+import { ArtworkUpload } from './ArtworkUpload.tsx';
 import { PortfolioGrid } from './PortfolioGrid.tsx';
 import { PortfolioEditModal } from './PortfolioEditModal.tsx';
 import styles from './PortfolioManager.module.css';

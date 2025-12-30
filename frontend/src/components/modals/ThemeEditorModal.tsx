@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import type { Theme } from '../../models/Theme';
-import { ColorPickerModal } from '../ColorPickerModal/ColorPickerModal';
+import { ColorPickerModal } from './ColorPickerModal';
 import styles from './ThemeEditorModal.module.css';
 
 interface ThemeEditorModalProps {

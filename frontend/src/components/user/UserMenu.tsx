@@ -5,8 +5,8 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { defaultDarkTheme, defaultLightTheme, createDefaultCustomTheme } from '../../models/Theme';
 import { stackClientApp } from '../../config/stack';
-import { SocialFooter } from '../SocialFooter/SocialFooter';
-import { ThemeEditorModal } from '../ThemeEditorModal/ThemeEditorModal';
+import { SocialFooter } from '../layout/SocialFooter';
+import { ThemeEditorModal } from '../modals/ThemeEditorModal';
 import styles from './UserMenu.module.css';
 
 export const UserMenu = () => {

@@ -83,19 +83,15 @@ export const useNotifications = (userId: string | null) => {
   }, [userId]);
 
   useEffect(() => {
-    fetchNotifications();
+    if (!userId) return;
     
-    // Poll for new notifications every 30 seconds
-    const pollInterval = setInterval(() => {
-      if (userId) {
-        fetchNotifications();
-      }
-    }, 3000); // 30 seconds
+    fetchNotifications(); // Initial fetch
     
-    return () => {
-      clearInterval(pollInterval);
-    };
-  }, [fetchNotifications, userId]);
+    const pollInterval = setInterval(fetchNotifications, 3000); // 3 seconds
+    
+    return () => clearInterval(pollInterval);
+  }, [userId]); // Only userId in deps, not fetchNotifications
+
 
 
   return {

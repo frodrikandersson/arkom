@@ -1,8 +1,8 @@
 import { useAuth } from '../../contexts/AuthContext';
 import { useChatWindow } from '../../hooks/useChatWindow';
-import { EmojiPicker } from '../EmojiPicker/EmojiPicker';
-import { ImageModal } from '../ImageModal/ImageModal';
-import { ReportModal } from '../ReportModal/ReportModal';
+import { EmojiPicker } from './EmojiPicker';
+import { ImageModal } from '../modals/ImageModal';
+import { ReportModal } from '../modals/ReportModal';
 import { useConversationActivity } from '../../hooks/useConversationActivity';
 import { FILE_RULES } from '../../../../backend/src/config/fileConstraints';
 import styles from './ChatWindow.module.css';

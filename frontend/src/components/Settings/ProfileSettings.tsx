@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useProfileSettings } from '../../hooks/useProfileSettings';
 import styles from './ProfileSettings.module.css';
-import { AddSocialLinkModal } from '../AddSocialLinkModal/AddSocialLinkModal';
-import { SocialIcon } from '../SocialIcon/SocialIcon';
+import { AddSocialLinkModal } from '../modals/AddSocialLinkModal';
+import { SocialIcon } from '../common/SocialIcon';
 
 export const ProfileSettings = () => {
   const { user } = useAuth();

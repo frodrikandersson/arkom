@@ -1,5 +1,3 @@
-// frontend/src/services/userService.ts (REFACTORED)
-
 import { api } from '../utils/apiClient';
 import { UserSearchResult, UserProfile, SocialLinks, BlockedUser } from '../models';
 

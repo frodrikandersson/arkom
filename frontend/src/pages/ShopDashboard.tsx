@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { ShopSidebar } from '../components/ShopPortfolio/ShopSidebar';
+import { ShopSidebar } from '../components/portfolio/ShopSidebar';
 import styles from './ShopDashboard.module.css';
-import { PortfolioManager } from '../components/ShopPortfolio/PortfolioManager';
+import { PortfolioManager } from '../components/portfolio/PortfolioManager';
 
 type SidebarSection = 
   | 'portfolio'

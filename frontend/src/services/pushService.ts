@@ -1,7 +1,6 @@
 import { api } from '../utils/apiClient';
 
-// Get VAPID public key from backend environment
-const VAPID_PUBLIC_KEY = 'BFJ_G-tS0dZ7LDpQzcmuyFWBbzLPjwTy0K78jyqKagYX09Xq6TY162bTAVruLh-CHT1V1UpPrxB5VI70Ls3P6Xw';
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
 // Convert base64 VAPID key to Uint8Array
 function urlBase64ToUint8Array(base64String: string): Uint8Array {

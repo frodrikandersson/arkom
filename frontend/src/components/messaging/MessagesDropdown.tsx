@@ -1,10 +1,10 @@
 import { createPortal } from 'react-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMessagesDropdown } from '../../hooks/useMessagesDropdown';
-import { ReportModal } from '../ReportModal/ReportModal';
+import { ReportModal } from '../modals/ReportModal';
 import { OnOpenChatFunction } from '../../models';
 import styles from './MessagesDropdown.module.css';
-import { ChatWindow } from '../ChatWindow/ChatWindow';
+import { ChatWindow } from './ChatWindow';
 import { useEffect, useState } from 'react';
 
 interface MessagesDropdownProps {

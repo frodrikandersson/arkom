@@ -1,9 +1,9 @@
 import { useAuth } from '../contexts/AuthContext';
 import { useCounter } from '../hooks/useCounter';
 import { useLeaderboard } from '../hooks/useLeaderboard';
-import { AuthButtons } from '../components/AuthButtons/AuthButtons';
-import { CounterButton } from '../components/CounterButton/CounterButton';
-import { Leaderboard } from '../components/Leaderboard/Leaderboard';
+import { AuthButtons } from '../components/auth/AuthButtons';
+import { CounterButton } from '../components/navigation/CounterButton';
+import { Leaderboard } from '../components/navigation/Leaderboard';
 
 export const HomePage = () => {
   const { user, isLoggedIn } = useAuth();

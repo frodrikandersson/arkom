@@ -1,5 +1,5 @@
 import { useParams, useOutletContext } from 'react-router-dom';
-import { UserProfile } from '../components/UserProfile/UserProfile';
+import { UserProfile } from '../components/user/UserProfile';
 import { OnOpenChatFunction } from '../models';
 import styles from './UserProfilePage.module.css';
 

@@ -1,4 +1,4 @@
-import { ChatWindow } from '../ChatWindow/ChatWindow';
+import { ChatWindow } from './ChatWindow';
 import { OpenChat } from '../../models';
 import styles from './ChatManager.module.css';
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getUserPortfolios } from '../services/portfolioService';
 import { Portfolio } from '../models/index';
 
@@ -6,11 +6,7 @@ export const useArtworkGrid = (userId: string, isOwnProfile: boolean) => {
   const [artworks, setArtworks] = useState<Portfolio[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadArtworks();
-  }, [userId]);
-
-  const loadArtworks = async () => {
+  const loadArtworks = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -27,7 +23,11 @@ export const useArtworkGrid = (userId: string, isOwnProfile: boolean) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, isOwnProfile]);
+
+  useEffect(() => {
+    loadArtworks();
+  }, [loadArtworks]);
 
   return {
     artworks,

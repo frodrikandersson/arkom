@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { ArtworkGrid } from '../ArtworkGrid/ArtworkGrid';
+import { ArtworkGrid } from '../portfolio/ArtworkGrid';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { getOrCreateConversation } from '../../services/userService';
 import { OnOpenChatFunction } from '../../models';

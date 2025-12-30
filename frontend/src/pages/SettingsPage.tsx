@@ -1,7 +1,7 @@
-import { TimezoneSettings } from '../components/Settings/TimezoneSettings';
-import { BlockedUsersSettings } from '../components/Settings/BlockedUsersSettings';
-import { ProfileSettings } from '../components/Settings/ProfileSettings';
-import { NotificationSettings } from '../components/Settings/NotificationSettings';
+import { TimezoneSettings } from '../components/settings/TimezoneSettings';
+import { BlockedUsersSettings } from '../components/settings/BlockedUsersSettings';
+import { ProfileSettings } from '../components/settings/ProfileSettings';
+import { NotificationSettings } from '../components/settings/NotificationSettings';
 import styles from './SettingsPage.module.css';
 
 export const SettingsPage = () => {

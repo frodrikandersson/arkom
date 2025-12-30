@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Header } from '../components/Header/Header';
-import { MobileNav } from '../components/MobileNav/MobileNav';
-import { ChatManager } from '../components/ChatManager/ChatManager';
+import { Header } from '../components/layout/Header';
+import { MobileNav } from '../components/layout/MobileNav';
+import { ChatManager } from '../components/messaging/ChatManager';
 import { OnOpenChatFunction, OpenChat } from '../models';
 import styles from './MainLayout.module.css';
 

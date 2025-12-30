@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { BasketButton } from '../BasketButton/BasketButton';
-import { MessageButton } from '../MessageButton/MessageButton';
-import { AlertButton } from '../AlertButton/AlertButton';
-import { UserMenu } from '../UserMenu/UserMenu';
+import { BasketButton } from '../navigation/BasketButton';
+import { MessageButton } from '../messaging/MessageButton';
+import { AlertButton } from '../navigation/AlertButton';
+import { UserMenu } from '../user/UserMenu';
 import { useAuth } from '../../contexts/AuthContext';
 import { OnOpenChatFunction } from '../../models';
 import styles from './MobileNav.module.css';

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessagesDropdown } from '../MessagesDropdown/MessagesDropdown';
+import { MessagesDropdown } from './MessagesDropdown';
 import { OnOpenChatFunction } from '../../models';
 import styles from './MessageButton.module.css';
 

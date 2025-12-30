@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Logo } from '../Logo/Logo';
-import { BrowseMenu } from '../BrowseMenu/BrowseMenu';
-import { UserSearch } from '../UserSearch/UserSearch';
-import { BasketButton } from '../BasketButton/BasketButton';
-import { MessageButton } from '../MessageButton/MessageButton';
-import { AlertButton } from '../AlertButton/AlertButton';
-import { UserMenu } from '../UserMenu/UserMenu';
+import { Logo } from './Logo';
+import { BrowseMenu } from '../navigation/BrowseMenu';
+import { UserSearch } from '../user/UserSearch';
+import { BasketButton } from '../navigation/BasketButton';
+import { MessageButton } from '../messaging/MessageButton';
+import { AlertButton } from '../navigation/AlertButton';
+import { UserMenu } from '../user/UserMenu';
 import { useAuth } from '../../contexts/AuthContext';
 import { OnOpenChatFunction } from '../../models';
 import styles from './Header.module.css';

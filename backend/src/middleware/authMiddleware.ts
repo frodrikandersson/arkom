@@ -40,19 +40,16 @@ export const requireAuth = async (
   next: NextFunction
 ) => {
   try {
-    console.log('🔐 Auth middleware - checking request to:', req.method, req.path);
     
     // Extract token from Authorization header
     const authHeader = req.headers.authorization;
-    console.log('📋 Authorization header:', authHeader ? 'Present' : 'MISSING');
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('❌ No valid Bearer token');
+      console.error('❌ No valid Bearer token');
       return res.status(401).json({ error: 'No authentication token provided' });
     }
 
     const token = authHeader.substring(7);
-    console.log('🎫 Token extracted, length:', token.length);
 
     // Verify JWT token with Stack Auth's public key
     const decoded = await new Promise<any>((resolve, reject) => {
@@ -65,15 +62,12 @@ export const requireAuth = async (
       });
     });
 
-    console.log('👤 JWT verified, user ID:', decoded.sub);
-
     req.user = {
       id: decoded.sub,
       email: decoded.email || '',
       displayName: decoded.name || undefined,
     };
 
-    console.log('✅ Auth successful for user:', decoded.sub);
     next();
   } catch (error) {
     console.error('❌ Auth middleware error:', error);

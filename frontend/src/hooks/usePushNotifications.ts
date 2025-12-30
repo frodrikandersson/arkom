@@ -9,13 +9,18 @@ export const usePushNotifications = (userId: string | null) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if push notifications are supported
+  // Check support once on mount
   useEffect(() => {
-    if ('serviceWorker' in navigator && 'PushManager' in window) {
-      setIsSupported(true);
+    const isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
+    setIsSupported(isSupported);
+  }, []); // Empty deps - only run once
+
+  // Check subscription when userId changes
+  useEffect(() => {
+    if (userId && isSupported) {
       checkSubscription();
     }
-  }, [userId]);
+  }, [userId, isSupported]);
 
   // Check if already subscribed
   const checkSubscription = async () => {
