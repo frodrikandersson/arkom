@@ -65,8 +65,8 @@ export const useNotifications = (userId: string | null) => {
     if (!userId) return;
 
     try {
-      await deleteNotificationService(notificationId, userId);
-      
+      await deleteNotificationService(notificationId);
+
       setNotifications(prev => {
         const deleted = prev.find(n => n.id === notificationId);
         const newNotifications = prev.filter(n => n.id !== notificationId);
