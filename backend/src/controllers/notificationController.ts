@@ -9,7 +9,7 @@ import { AppError } from '../middleware/errorMiddleware.js';
 
 // Get all notifications for a user
 export const getUserNotifications = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
+  const userId = req.user!.id;
   const { unreadOnly } = req.query;
 
   let query = db
@@ -41,8 +41,8 @@ export const getUserNotifications = asyncHandler(async (req: Request, res: Respo
 
 // Mark notification as read
 export const markNotificationAsRead = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user!.id;
   const { notificationId } = req.params;
-  const { userId } = req.body;
 
   // Verify the notification belongs to the user
   const [notification] = await db
@@ -69,7 +69,7 @@ export const markNotificationAsRead = asyncHandler(async (req: Request, res: Res
 
 // Mark all notifications as read for a user
 export const markAllNotificationsAsRead = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
+  const userId = req.user!.id;
 
   await db
     .update(notifications)
@@ -86,8 +86,8 @@ export const markAllNotificationsAsRead = asyncHandler(async (req: Request, res:
 
 // Delete a notification
 export const deleteNotification = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user!.id;
   const { notificationId } = req.params;
-  const { userId } = req.body;
 
   // Verify the notification belongs to the user
   const [notification] = await db

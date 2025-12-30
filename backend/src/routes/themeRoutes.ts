@@ -1,14 +1,16 @@
 import express from 'express';
 import { getUserThemes, createTheme, updateTheme, deleteTheme, setActiveTheme, getUserActiveTheme, setUserActiveTheme } from '../controllers/themeController.js';
+import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/:userId', getUserThemes);
-router.get('/active/:userId', getUserActiveTheme);
-router.post('/', createTheme);
-router.patch('/:themeId', updateTheme);
-router.delete('/:themeId', deleteTheme);
-router.post('/set-active', setActiveTheme);
-router.post('/active', setUserActiveTheme);
+// All theme routes require authentication
+router.get('/:userId', requireAuth, getUserThemes);
+router.get('/active/:userId', requireAuth, getUserActiveTheme);
+router.post('/', requireAuth, createTheme);
+router.patch('/:themeId', requireAuth, updateTheme);
+router.delete('/:themeId', requireAuth, deleteTheme);
+router.post('/set-active', requireAuth, setActiveTheme);
+router.post('/active', requireAuth, setUserActiveTheme);
 
 export default router;

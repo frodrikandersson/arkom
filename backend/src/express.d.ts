@@ -1,12 +1,11 @@
-import '@clerk/express';
+import { AuthenticatedUser } from './middleware/authMiddleware.js';
 
 declare global {
   namespace Express {
     interface Request {
-      auth: {
-        userId: string | null;
-        sessionId: string | null;
-      };
+      user?: AuthenticatedUser;
     }
   }
 }
+
+export {};

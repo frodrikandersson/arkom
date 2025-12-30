@@ -5,10 +5,11 @@ import { AppError } from '../middleware/errorMiddleware.js';
 
 // Subscribe to push notifications
 export const subscribeToPush = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, subscription } = req.body;
+  const userId = req.user!.id;
+  const { subscription } = req.body;
 
-  if (!userId || !subscription) {
-    throw new AppError(400, 'Missing required fields');
+  if (!subscription) {
+    throw new AppError(400, 'Missing subscription');
   }
 
   if (!subscription.endpoint || !subscription.keys?.p256dh || !subscription.keys?.auth) {

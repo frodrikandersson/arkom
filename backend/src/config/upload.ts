@@ -1,14 +1,17 @@
 import multer from 'multer';
 import { FILE_RULES } from './fileConstraints.js';
 
+// Helper type to filter out non-file rules
+type FileUploadContext = Exclude<keyof typeof FILE_RULES, 'PORTFOLIO_YOUTUBE'>;
+
 // Factory function to create upload middleware for different contexts
-export const createUploadMiddleware = (context: keyof typeof FILE_RULES) => {
+export const createUploadMiddleware = (context: FileUploadContext) => {
   const rules = FILE_RULES[context];
   
   return multer({
     storage: multer.memoryStorage(),
     fileFilter: (req, file, cb) => {
-      // Cast to string array for comparison
+      // Now TypeScript knows rules has allowedTypes
       if ((rules.allowedTypes as readonly string[]).includes(file.mimetype)) {
         cb(null, true);
       } else {

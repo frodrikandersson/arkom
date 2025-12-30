@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { config } from '../config/env';
+import { api } from '../utils/apiClient';
 
 export const usePortfolioOperations = () => {
   const [deleting, setDeleting] = useState(false);
@@ -7,15 +7,7 @@ export const usePortfolioOperations = () => {
   const deletePortfolio = useCallback(async (portfolioId: number) => {
     try {
       setDeleting(true);
-      const res = await fetch(`${config.apiUrl}/api/portfolio/${portfolioId}`, {
-        method: 'DELETE',
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to delete portfolio');
-      }
-
+      await api.delete(`/api/portfolio/${portfolioId}`);
       return { success: true };
     } catch (error: any) {
       console.error('Delete error:', error);

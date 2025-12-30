@@ -20,3 +20,16 @@ export const markAllNotificationsAsRead = async (userId: string): Promise<void> 
 export const deleteNotification = async (notificationId: number, userId: string): Promise<void> => {
   await api.delete<void>(`/api/notifications/${notificationId}`);
 };
+
+// Test notification endpoints
+export const sendTestEmail = async (userId: string) => {
+  return api.post<{ success: boolean; error?: string }>('/api/test/test-email', { userId });
+};
+
+export const sendTestPush = async (userId: string) => {
+  return api.post<{ success: boolean; message?: string }>('/api/test/test-push', { userId });
+};
+
+export const sendTestNotification = async (userId: string) => {
+  return api.post<{ success: boolean; error?: string }>('/api/test/test-notification', { userId });
+};

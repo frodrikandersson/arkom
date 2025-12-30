@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
-import { PortfolioFormData, SensitiveContentType } from '../models/Portfolio';
-import { config } from '../config/env';
+import { PortfolioFormData, SensitiveContentType, CreatePortfolioResponse } from '../models/Portfolio';
+import { api } from '../utils/apiClient';
 
 export const useArtworkUpload = (userId: string | null, onUploadComplete?: () => void) => {
   const [uploading, setUploading] = useState(false);
@@ -81,36 +81,16 @@ export const useArtworkUpload = (userId: string | null, onUploadComplete?: () =>
         status: formData.status,
         linkedToCommission: formData.linkedToCommission,
         hasSensitiveContent: formData.hasSensitiveContent,
-        sensitiveContentTypeIds: [], // Will be populated if we fetch sensitive content types from API
+        sensitiveContentTypeIds: [],
       };
 
-      const portfolioRes = await fetch(`${config.apiUrl}/api/portfolio`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(portfolioPayload),
-      });
-
-      if (!portfolioRes.ok) {
-        throw new Error('Failed to create portfolio');
-      }
-
-      const { portfolio } = await portfolioRes.json();
+      const { portfolio } = await api.post<CreatePortfolioResponse>('/api/portfolio', portfolioPayload);
 
       // Upload media file
       const formDataUpload = new FormData();
       formDataUpload.append('file', fileInputRef.current.files[0]);
 
-      const mediaRes = await fetch(
-        `${config.apiUrl}/api/portfolio/${portfolio.id}/media`,
-        {
-          method: 'POST',
-          body: formDataUpload,
-        }
-      );
-
-      if (!mediaRes.ok) {
-        throw new Error('Failed to upload media');
-      }
+      await api.uploadFile(`/api/portfolio/${portfolio.id}/media`, formDataUpload);
 
       alert('Portfolio uploaded successfully!');
       resetForm();

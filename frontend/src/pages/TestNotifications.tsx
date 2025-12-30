@@ -1,92 +1,16 @@
-import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { config } from '../config/env';
-import { sendTestNotification } from '../services/pushService';
+import { useTestNotifications } from '../hooks/useTestNotifications';
 
 export const TestNotifications = () => {
   const { user } = useAuth();
-  const [result, setResult] = useState<string>('');
-  const [loading, setLoading] = useState(false);
-
-  const testEmail = async () => {
-    if (!user?.id) return;
-    
-    setLoading(true);
-    setResult('Sending test email...');
-    
-    try {
-      const res = await fetch(`${config.apiUrl}/api/test/test-email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id }),
-      });
-      
-      const data = await res.json();
-      setResult(data.success 
-        ? '✅ Test email sent! Check your inbox.' 
-        : `❌ Failed: ${data.error || 'Unknown error'}`
-      );
-    } catch (error: any) {
-      setResult(`❌ Error: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const testPush = async () => {
-    if (!user?.id) return;
-    
-    setLoading(true);
-    setResult('Sending test push notification...');
-    
-    try {
-      const res = await fetch(`${config.apiUrl}/api/test/test-push`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id }),
-      });
-      
-      const data = await res.json();
-      setResult(data.success 
-        ? '✅ Test push sent! Check your browser.' 
-        : `⚠️ ${data.message || 'No active subscriptions'}`
-      );
-    } catch (error: any) {
-      setResult(`❌ Error: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const testBoth = async () => {
-    if (!user?.id) return;
-    
-    setLoading(true);
-    setResult('Sending full test notification...');
-    
-    try {
-      const res = await fetch(`${config.apiUrl}/api/test/test-notification`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id }),
-      });
-      
-      const data = await res.json();
-      setResult(data.success 
-        ? '✅ Full notification sent! Check your email and browser.' 
-        : `❌ Failed: ${data.error || 'Unknown error'}`
-      );
-    } catch (error: any) {
-      setResult(`❌ Error: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const testBrowserNotification = () => {
-    sendTestNotification();
-    setResult('✅ Browser notification triggered (if permission granted)');
-  };
+  const {
+    result,
+    loading,
+    testEmail,
+    testPush,
+    testBoth,
+    testBrowserNotification,
+  } = useTestNotifications(user?.id || null);
 
   if (!user) {
     return <div style={{ padding: '20px' }}>Please log in to test notifications</div>;

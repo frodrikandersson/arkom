@@ -10,16 +10,18 @@ import {
   unhideConversation 
 } from '../controllers/messageController.js';
 import { upload } from '../config/upload.js';
+import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/conversations/:userId', getConversations);
-router.get('/download-url', getDownloadUrl);
-router.get('/:conversationId', getMessages);
-router.post('/send', upload.single('file'), sendMessage);
-router.post('/mark-read', markAsRead);
-router.post('/get-or-create', getOrCreateConversation);
-router.post('/hide', hideConversation);
-router.post('/unhide', unhideConversation);
+// All message routes require authentication
+router.get('/conversations/:userId', requireAuth, getConversations);
+router.get('/download-url', requireAuth, getDownloadUrl);
+router.get('/:conversationId', requireAuth, getMessages);
+router.post('/send', requireAuth, upload.single('file'), sendMessage);
+router.post('/mark-read', requireAuth, markAsRead);
+router.post('/get-or-create', requireAuth, getOrCreateConversation);
+router.post('/hide', requireAuth, hideConversation);
+router.post('/unhide', requireAuth, unhideConversation);
 
 export default router;

@@ -7,7 +7,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { AppError } from '../middleware/errorMiddleware.js';
 
 export const getUserSettings = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
+  const userId = req.user!.id;
   
   let [settings] = await db
     .select()
@@ -26,7 +26,7 @@ export const getUserSettings = asyncHandler(async (req: Request, res: Response) 
 });
 
 export const updateUserSettings = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
+  const userId = req.user!.id;
   const updateData = req.body;
   
   // Validate that at least one field is being updated
@@ -68,7 +68,7 @@ export const updateUserSettings = asyncHandler(async (req: Request, res: Respons
 
 export const searchUsers = asyncHandler(async (req: Request, res: Response) => {
   const query = req.query.q as string;
-  const currentUserId = req.query.userId as string;
+  const currentUserId = req.user?.id; // Optional auth - may be undefined
   
   if (!query || query.length < 2) {
     res.json({ users: [] });
@@ -171,9 +171,10 @@ export const getUserProfile = asyncHandler(async (req: Request, res: Response) =
 });
 
 export const blockUser = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, blockedUserId, reason } = req.body;
+  const userId = req.user!.id;
+  const { blockedUserId, reason } = req.body;
   
-  if (!userId || !blockedUserId) {
+  if (!blockedUserId) {
     throw new AppError(400, 'Missing required fields');
   }
 
@@ -207,9 +208,10 @@ export const blockUser = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const unblockUser = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, blockedUserId } = req.body;
+  const userId = req.user!.id;
+  const { blockedUserId } = req.body;
   
-  if (!userId || !blockedUserId) {
+  if (!blockedUserId) {
     throw new AppError(400, 'Missing required fields');
   }
 
@@ -226,7 +228,7 @@ export const unblockUser = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getBlockedUsers = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
+  const userId = req.user!.id;
   
   const blocked = await db
     .select()
@@ -237,10 +239,21 @@ export const getBlockedUsers = asyncHandler(async (req: Request, res: Response) 
 });
 
 export const checkIfBlocked = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, otherUserId } = req.query;
+  const userId = req.user?.id; // Optional auth
+  const { otherUserId } = req.query;
   
-  if (!userId || !otherUserId) {
+  if (!otherUserId) {
     throw new AppError(400, 'Missing required parameters');
+  }
+
+  // If no authenticated user, not blocked
+  if (!userId) {
+    res.json({ 
+      isBlocked: false,
+      blockedByMe: false,
+      blockedByThem: false
+    });
+    return;
   }
 
   const blocked = await db
@@ -249,12 +262,12 @@ export const checkIfBlocked = asyncHandler(async (req: Request, res: Response) =
     .where(
       or(
         and(
-          eq(blockedUsers.userId, userId as string),
+          eq(blockedUsers.userId, userId),
           eq(blockedUsers.blockedUserId, otherUserId as string)
         ),
         and(
           eq(blockedUsers.userId, otherUserId as string),
-          eq(blockedUsers.blockedUserId, userId as string)
+          eq(blockedUsers.blockedUserId, userId)
         )
       )
     );
@@ -267,9 +280,10 @@ export const checkIfBlocked = asyncHandler(async (req: Request, res: Response) =
 });
 
 export const reportUser = asyncHandler(async (req: Request, res: Response) => {
-  const { reporterId, reportedUserId, reportType, description, conversationId, messageId } = req.body;
+  const reporterId = req.user!.id;
+  const { reportedUserId, reportType, description, conversationId, messageId } = req.body;
   
-  if (!reporterId || !reportedUserId || !reportType) {
+  if (!reportedUserId || !reportType) {
     throw new AppError(400, 'Missing required fields');
   }
 
@@ -296,7 +310,7 @@ export const reportUser = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const updateUserProfile = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
+  const userId = req.user!.id;
   const { username, displayName, bio, location, socialLinks } = req.body;
   
   // Validate username (alphanumeric, underscores, hyphens only, 3-20 chars)
@@ -364,7 +378,7 @@ export const updateUserProfile = asyncHandler(async (req: Request, res: Response
 });
 
 export const uploadProfileImage = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
+  const userId = req.user!.id;
   const file = req.file;
 
   if (!file) {
@@ -410,7 +424,7 @@ export const uploadProfileImage = asyncHandler(async (req: Request, res: Respons
 });
 
 export const uploadBannerImage = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
+  const userId = req.user!.id;
   const file = req.file;
 
   if (!file) {

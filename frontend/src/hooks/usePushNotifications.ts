@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
+import { subscribePush, unsubscribePush } from '../services/pushService';
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 export const usePushNotifications = (userId: string | null) => {
   const [isSupported, setIsSupported] = useState(false);
@@ -57,19 +57,8 @@ export const usePushNotifications = (userId: string | null) => {
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       });
 
-      // Send subscription to backend
-      const response = await fetch(`${API_URL}/api/push/subscribe`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          subscription: subscription.toJSON(),
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save subscription');
-      }
+      // Send subscription to backend via service
+      await subscribePush(userId, subscription.toJSON());
 
       setIsSubscribed(true);
     } catch (err: any) {
@@ -90,14 +79,8 @@ export const usePushNotifications = (userId: string | null) => {
       const subscription = await registration.pushManager.getSubscription();
 
       if (subscription) {
-        // Remove from backend
-        await fetch(`${API_URL}/api/push/unsubscribe`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            endpoint: subscription.endpoint,
-          }),
-        });
+        // Remove from backend via service
+        await unsubscribePush(subscription.endpoint);
 
         // Unsubscribe from browser
         await subscription.unsubscribe();

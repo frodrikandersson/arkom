@@ -6,7 +6,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { AppError } from '../middleware/errorMiddleware.js';
 
 export const getUserActiveTheme = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
+  const userId = req.user!.id;
   
   const [active] = await db.select().from(userActiveTheme).where(eq(userActiveTheme.userId, userId));
   
@@ -14,10 +14,11 @@ export const getUserActiveTheme = asyncHandler(async (req: Request, res: Respons
 });
 
 export const setUserActiveTheme = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, themeId } = req.body;
+  const userId = req.user!.id;
+  const { themeId } = req.body;
   
-  if (!userId || !themeId) {
-    throw new AppError(400, 'Missing required fields');
+  if (!themeId) {
+    throw new AppError(400, 'themeId is required');
   }
 
   // Upsert active theme
@@ -38,7 +39,7 @@ export const setUserActiveTheme = asyncHandler(async (req: Request, res: Respons
 });
 
 export const getUserThemes = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
+  const userId = req.user!.id;
   
   const themes = await db.select().from(userThemes).where(eq(userThemes.userId, userId));
   
@@ -46,10 +47,11 @@ export const getUserThemes = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const createTheme = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, themeId, themeName, themeData, isActive } = req.body;
+  const userId = req.user!.id;
+  const { themeId, themeName, themeData, isActive } = req.body;
   
-  if (!userId || !themeId || !themeName || !themeData) {
-    throw new AppError(400, 'Missing required fields');
+  if (!themeId || !themeName || !themeData) {
+    throw new AppError(400, 'themeId, themeName, and themeData are required');
   }
 
   // If setting as active, deactivate all other themes for this user
@@ -71,8 +73,20 @@ export const createTheme = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const updateTheme = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user!.id;
   const { themeId } = req.params;
   const { themeName, themeData, isActive } = req.body;
+  
+  // Verify ownership
+  const [existingTheme] = await db.select().from(userThemes).where(eq(userThemes.themeId, themeId));
+  
+  if (!existingTheme) {
+    throw new AppError(404, 'Theme not found');
+  }
+  
+  if (existingTheme.userId !== userId) {
+    throw new AppError(403, 'Unauthorized');
+  }
   
   const updateData: any = { updatedAt: new Date() };
   if (themeName !== undefined) updateData.themeName = themeName;
@@ -82,15 +96,12 @@ export const updateTheme = asyncHandler(async (req: Request, res: Response) => {
     
     // If setting as active, deactivate all other themes for this user
     if (isActive) {
-      const [theme] = await db.select().from(userThemes).where(eq(userThemes.themeId, themeId));
-      if (theme) {
-        await db.update(userThemes)
-          .set({ isActive: false })
-          .where(and(
-            eq(userThemes.userId, theme.userId),
-            eq(userThemes.isActive, true)
-          ));
-      }
+      await db.update(userThemes)
+        .set({ isActive: false })
+        .where(and(
+          eq(userThemes.userId, userId),
+          eq(userThemes.isActive, true)
+        ));
     }
   }
 
@@ -99,32 +110,37 @@ export const updateTheme = asyncHandler(async (req: Request, res: Response) => {
     .where(eq(userThemes.themeId, themeId))
     .returning();
   
-  if (!theme) {
-    throw new AppError(404, 'Theme not found');
-  }
-  
   res.json({ theme });
 });
 
 export const deleteTheme = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user!.id;
   const { themeId } = req.params;
+  
+  // Verify ownership
+  const [existingTheme] = await db.select().from(userThemes).where(eq(userThemes.themeId, themeId));
+  
+  if (!existingTheme) {
+    throw new AppError(404, 'Theme not found');
+  }
+  
+  if (existingTheme.userId !== userId) {
+    throw new AppError(403, 'Unauthorized');
+  }
   
   const [deletedTheme] = await db.delete(userThemes)
     .where(eq(userThemes.themeId, themeId))
     .returning();
   
-  if (!deletedTheme) {
-    throw new AppError(404, 'Theme not found');
-  }
-  
   res.json({ success: true, themeId });
 });
 
 export const setActiveTheme = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, themeId } = req.body;
+  const userId = req.user!.id;
+  const { themeId } = req.body;
   
-  if (!userId || !themeId) {
-    throw new AppError(400, 'Missing required fields');
+  if (!themeId) {
+    throw new AppError(400, 'themeId is required');
   }
 
   // Deactivate all themes for this user
@@ -142,7 +158,7 @@ export const setActiveTheme = asyncHandler(async (req: Request, res: Response) =
     .returning();
   
   if (!theme) {
-    throw new AppError(404, 'Theme not found');
+    throw new AppError(404, 'Theme not found for this user');
   }
   
   res.json({ theme });

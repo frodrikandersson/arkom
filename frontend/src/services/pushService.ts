@@ -1,4 +1,5 @@
 import { config } from '../config/env';
+import { api } from '../utils/apiClient';
 
 // Get VAPID public key from backend environment
 const VAPID_PUBLIC_KEY = 'BFJ_G-tS0dZ7LDpQzcmuyFWBbzLPjwTy0K78jyqKagYX09Xq6TY162bTAVruLh-CHT1V1UpPrxB5VI70Ls3P6Xw';
@@ -73,18 +74,8 @@ export const subscribeToPushNotifications = async (userId: string): Promise<bool
     }
 
     // Send subscription to backend
-    const res = await fetch(`${config.apiUrl}/api/push/subscribe`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId,
-        subscription: subscription.toJSON(),
-      }),
-    });
+    await subscribePush(userId, subscription.toJSON());
 
-    if (!res.ok) {
-      throw new Error('Failed to save push subscription');
-    }
 
     return true;
   } catch (error) {
@@ -106,17 +97,8 @@ export const unsubscribeFromPushNotifications = async (): Promise<boolean> => {
     await subscription.unsubscribe();
 
     // Remove from backend
-    const res = await fetch(`${config.apiUrl}/api/push/unsubscribe`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        endpoint: subscription.endpoint,
-      }),
-    });
+    await unsubscribePush(subscription.endpoint);
 
-    if (!res.ok) {
-      throw new Error('Failed to remove push subscription from backend');
-    }
 
     return true;
   } catch (error) {
@@ -160,3 +142,13 @@ export const sendTestNotification = async () => {
     badge: '/badge-96.png',
   });
 };
+
+// API calls for push subscriptions
+export const subscribePush = async (userId: string, subscription: PushSubscriptionJSON) => {
+  return api.post('/api/push/subscribe', { userId, subscription });
+};
+
+export const unsubscribePush = async (endpoint: string) => {
+  return api.post('/api/push/unsubscribe', { endpoint });
+};
+

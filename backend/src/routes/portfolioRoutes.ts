@@ -10,6 +10,7 @@ import {
   deletePortfolioMedia,
   getSensitiveContentTypes,
 } from '../controllers/portfolioController.js';
+import { requireAuth, optionalAuth } from '../middleware/authMiddleware.js';
 
 const router = Router();
 
@@ -29,28 +30,16 @@ const upload = multer({
   },
 });
 
-// Get sensitive content types (public - for UI dropdown)
+// Public routes
 router.get('/sensitive-content-types', getSensitiveContentTypes);
+router.get('/:id', optionalAuth, getPortfolio); // Public but shows more if authenticated
+router.get('/user/:userId', optionalAuth, getUserPortfolios); // Public but filters by status
 
-// Create new portfolio
-router.post('/', createPortfolio);
-
-// Get portfolio by ID
-router.get('/:id', getPortfolio);
-
-// Get user's portfolios
-router.get('/user/:userId', getUserPortfolios);
-
-// Update portfolio
-router.put('/:id', updatePortfolio);
-
-// Delete portfolio
-router.delete('/:id', deletePortfolio);
-
-// Upload media to portfolio (image or YouTube)
-router.post('/:id/media', upload.single('file'), uploadPortfolioMedia);
-
-// Delete media from portfolio
-router.delete('/media/:mediaId', deletePortfolioMedia);
+// Protected routes
+router.post('/', requireAuth, createPortfolio);
+router.put('/:id', requireAuth, updatePortfolio);
+router.delete('/:id', requireAuth, deletePortfolio);
+router.post('/:id/media', requireAuth, upload.single('file'), uploadPortfolioMedia);
+router.delete('/media/:mediaId', requireAuth, deletePortfolioMedia);
 
 export default router;

@@ -7,10 +7,11 @@ import { AppError } from '../middleware/errorMiddleware.js';
 
 // Mark conversation as actively being viewed
 export const markConversationActive = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, conversationId } = req.body;
+  const userId = req.user!.id;
+  const { conversationId } = req.body;
   
-  if (!userId || !conversationId) {
-    throw new AppError(400, 'userId and conversationId required');
+  if (!conversationId) {
+    throw new AppError(400, 'conversationId required');
   }
 
   // Upsert: Insert or update last_active timestamp
@@ -26,10 +27,11 @@ export const markConversationActive = asyncHandler(async (req: Request, res: Res
 
 // Mark conversation as inactive (user closed/left conversation)
 export const markConversationInactive = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, conversationId } = req.body;
+  const userId = req.user!.id;
+  const { conversationId } = req.body;
   
-  if (!userId || !conversationId) {
-    throw new AppError(400, 'userId and conversationId required');
+  if (!conversationId) {
+    throw new AppError(400, 'conversationId required');
   }
 
   await db

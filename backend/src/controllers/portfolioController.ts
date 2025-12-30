@@ -14,8 +14,8 @@ import { AppError } from '../middleware/errorMiddleware.js';
 
 // Create new portfolio
 export const createPortfolio = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user!.id;
   const {
-    userId,
     title,
     description,
     tags,
@@ -25,11 +25,6 @@ export const createPortfolio = asyncHandler(async (req: Request, res: Response) 
     hasSensitiveContent,
     sensitiveContentTypeIds,
   } = req.body;
-
-  // Validate userId
-  if (!userId) {
-    throw new AppError(401, 'User ID is required');
-  }
 
   // Validate required fields
   if (!title || title.trim().length === 0) {
@@ -162,9 +157,9 @@ export const getUserPortfolios = asyncHandler(async (req: Request, res: Response
 export const updatePortfolio = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const portfolioId = parseInt(id);
+  const userId = req.user!.id;
 
   const {
-    userId, // Frontend should send this for ownership verification
     title,
     description,
     tags,
@@ -174,10 +169,6 @@ export const updatePortfolio = asyncHandler(async (req: Request, res: Response) 
     hasSensitiveContent,
     sensitiveContentTypeIds,
   } = req.body;
-
-  if (!userId) {
-    throw new AppError(401, 'User ID is required');
-  }
 
   // Check if portfolio exists and belongs to user
   const [existingPortfolio] = await db
@@ -240,12 +231,8 @@ export const updatePortfolio = asyncHandler(async (req: Request, res: Response) 
 // Delete portfolio
 export const deletePortfolio = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { userId } = req.body; // Frontend should send this
+  const userId = req.user!.id;
   const portfolioId = parseInt(id);
-
-  if (!userId) {
-    throw new AppError(401, 'User ID is required');
-  }
 
   // Check if portfolio exists and belongs to user
   const [portfolio] = await db
@@ -293,11 +280,8 @@ export const deletePortfolio = asyncHandler(async (req: Request, res: Response) 
 export const uploadPortfolioMedia = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const portfolioId = parseInt(id);
-  const { userId, youtubeUrl, sortOrder } = req.body;
-
-  if (!userId) {
-    throw new AppError(401, 'User ID is required');
-  }
+  const userId = req.user!.id;
+  const { youtubeUrl, sortOrder } = req.body;
 
   // Check if portfolio exists and belongs to user
   const [portfolio] = await db
@@ -368,12 +352,8 @@ export const uploadPortfolioMedia = asyncHandler(async (req: Request, res: Respo
 // Delete media from portfolio
 export const deletePortfolioMedia = asyncHandler(async (req: Request, res: Response) => {
   const { mediaId } = req.params;
-  const { userId } = req.body;
+  const userId = req.user!.id;
   const mediaIdInt = parseInt(mediaId);
-
-  if (!userId) {
-    throw new AppError(401, 'User ID is required');
-  }
 
   // Get media with portfolio info
   const [mediaItem] = await db

@@ -8,7 +8,7 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { AppError } from '../middleware/errorMiddleware.js';
 
 export const getConversations = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
+  const userId = req.user!.id;
 
   // Get all conversations for this user
   const userConversations = await db
@@ -119,11 +119,12 @@ export const getMessages = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const sendMessage = asyncHandler(async (req: Request, res: Response) => {
-  const { senderId, recipientId, content, messageId } = req.body;
+  const senderId = req.user!.id;
+  const { recipientId, content, messageId } = req.body;
   const file = req.file;
 
-  if (!senderId || !recipientId) {
-    throw new AppError(400, 'Sender and recipient are required');
+  if (!recipientId) {
+    throw new AppError(400, 'Recipient is required');
   }
 
   // Check if messageId is provided
@@ -317,9 +318,10 @@ export const sendMessage = asyncHandler(async (req: Request, res: Response) => {
 
 
 export const markAsRead = asyncHandler(async (req: Request, res: Response) => {
-  const { conversationId, userId } = req.body;
+  const userId = req.user!.id;
+  const { conversationId } = req.body;
 
-  if (!conversationId || !userId) {
+  if (!conversationId) {
     throw new AppError(400, 'Missing required fields');
   }
 
@@ -360,10 +362,11 @@ export const getDownloadUrl = asyncHandler(async (req: Request, res: Response) =
 });
 
 export const getOrCreateConversation = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, otherUserId } = req.body;
+  const userId = req.user!.id;
+  const { otherUserId } = req.body;
 
-  if (!userId || !otherUserId) {
-    throw new AppError(400, 'Both userId and otherUserId are required');
+  if (!otherUserId) {
+    throw new AppError(400, 'otherUserId is required');
   }
 
   // Find existing conversation
@@ -413,9 +416,10 @@ export const getOrCreateConversation = asyncHandler(async (req: Request, res: Re
 });
 
 export const hideConversation = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, conversationId } = req.body;
+  const userId = req.user!.id;
+  const { conversationId } = req.body;
 
-  if (!userId || !conversationId) {
+  if (!conversationId) {
     throw new AppError(400, 'Missing required fields');
   }
 
@@ -442,9 +446,10 @@ export const hideConversation = asyncHandler(async (req: Request, res: Response)
 });
 
 export const unhideConversation = asyncHandler(async (req: Request, res: Response) => {
-  const { userId, conversationId } = req.body;
+  const userId = req.user!.id;
+  const { conversationId } = req.body;
 
-  if (!userId || !conversationId) {
+  if (!conversationId) {
     throw new AppError(400, 'Missing required fields');
   }
 

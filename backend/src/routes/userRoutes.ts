@@ -14,27 +14,28 @@ import {
   reportUser
 } from '../controllers/userController.js';
 import { upload } from '../config/upload.js';
+import { requireAuth, optionalAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Settings
-router.get('/:userId/settings', getUserSettings);
-router.put('/:userId/settings', updateUserSettings);
+// Public routes
+router.get('/search', optionalAuth, searchUsers); // Public but hides blocked users if authenticated
+router.get('/profile/:userId', optionalAuth, getUserProfile); // Public
+router.get('/check-blocked', optionalAuth, checkIfBlocked); // Public
 
-// Profile
-router.get('/profile/:userId', getUserProfile);
-router.put('/:userId/profile', updateUserProfile);
-router.post('/:userId/profile-image', upload.single('image'), uploadProfileImage);
-router.post('/:userId/banner-image', upload.single('image'), uploadBannerImage);
+// Protected routes - Settings
+router.get('/:userId/settings', requireAuth, getUserSettings);
+router.put('/:userId/settings', requireAuth, updateUserSettings);
 
-// User search
-router.get('/search', searchUsers);
+// Protected routes - Profile updates
+router.put('/:userId/profile', requireAuth, updateUserProfile);
+router.post('/:userId/profile-image', requireAuth, upload.single('image'), uploadProfileImage);
+router.post('/:userId/banner-image', requireAuth, upload.single('image'), uploadBannerImage);
 
-// Block/Report
-router.post('/block', blockUser);
-router.post('/unblock', unblockUser);
-router.get('/:userId/blocked', getBlockedUsers);
-router.get('/check-blocked', checkIfBlocked);
-router.post('/report', reportUser);
+// Protected routes - Block/Report
+router.post('/block', requireAuth, blockUser);
+router.post('/unblock', requireAuth, unblockUser);
+router.get('/:userId/blocked', requireAuth, getBlockedUsers);
+router.post('/report', requireAuth, reportUser);
 
 export default router;

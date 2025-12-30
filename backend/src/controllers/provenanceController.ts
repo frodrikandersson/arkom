@@ -201,7 +201,8 @@ export const getAnalysisResults = asyncHandler(async (req: Request, res: Respons
  */
 export const submitAppeal = asyncHandler(async (req: Request, res: Response) => {
   const { analysisId } = req.params;
-  const { userId, appealText, supportingEvidenceUrl } = req.body;
+  const userId = req.user!.id;
+  const { appealText, supportingEvidenceUrl } = req.body;
 
   if (!userId || !appealText) {
     throw new AppError(400, 'userId and appealText are required');

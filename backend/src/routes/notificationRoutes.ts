@@ -5,19 +5,14 @@ import {
   markAllNotificationsAsRead,
   deleteNotification,
 } from '../controllers/notificationController.js';
+import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// GET /api/notifications/:userId - Get user's notifications
-router.get('/:userId', getUserNotifications);
-
-// PUT /api/notifications/:notificationId/read - Mark notification as read
-router.put('/:notificationId/read', markNotificationAsRead);
-
-// PUT /api/notifications/:userId/read-all - Mark all notifications as read
-router.put('/:userId/read-all', markAllNotificationsAsRead);
-
-// DELETE /api/notifications/:notificationId - Delete a notification
-router.delete('/:notificationId', deleteNotification);
+// All notification routes require authentication
+router.get('/:userId', requireAuth, getUserNotifications);
+router.put('/:notificationId/read', requireAuth, markNotificationAsRead);
+router.put('/:userId/read-all', requireAuth, markAllNotificationsAsRead);
+router.delete('/:notificationId', requireAuth, deleteNotification);
 
 export default router;
