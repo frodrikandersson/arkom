@@ -75,7 +75,7 @@ export const getUserCounter = asyncHandler(async (req: Request, res: Response) =
 });
 
 export const incrementCounter = asyncHandler(async (req: Request, res: Response) => {
-  const { userId } = req.params;
+  const userId = req.user!.id;
   
   let [counter] = await db.select().from(userCounters).where(eq(userCounters.userId, userId));
   
