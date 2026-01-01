@@ -175,6 +175,9 @@ export const portfolioMedia = pgTable('portfolio_media', {
   // Sorting order (0 = first to display)
   sortOrder: integer('sort_order').notNull().default(0),
   
+  // Sensitive content (media-level) - NEW FIELD
+  hasSensitiveContent: boolean('has_sensitive_content').default(false).notNull(),
+
   // Timestamps
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
@@ -203,6 +206,20 @@ export const portfolioSensitiveContent = pgTable('portfolio_sensitive_content', 
   // Index for faster queries
   portfolioIdIdx: index('portfolio_sensitive_content_portfolio_id_idx').on(table.portfolioId),
 }));
+
+// Portfolio Media Sensitive Content (junction table - many-to-many for media-level)
+export const portfolioMediaSensitiveContent = pgTable('portfolio_media_sensitive_content', {
+  id: serial('id').primaryKey(),
+  mediaId: integer('media_id').notNull().references(() => portfolioMedia.id, { onDelete: 'cascade' }),
+  contentTypeId: integer('content_type_id').notNull().references(() => sensitiveContentTypes.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  // Unique constraint: prevent duplicate content type assignments
+  uniqueMediaContentType: unique().on(table.mediaId, table.contentTypeId),
+  // Index for faster queries
+  mediaIdIdx: index('portfolio_media_sensitive_content_media_id_idx').on(table.mediaId),
+}));
+
 
 // Notifications
 export const notifications = pgTable('notifications', {

@@ -7,6 +7,7 @@ import {
   updatePortfolio,
   deletePortfolio,
   uploadPortfolioMedia,
+  updatePortfolioMedia,
   deletePortfolioMedia,
   getSensitiveContentTypes,
 } from '../controllers/portfolioController.js';
@@ -40,6 +41,7 @@ router.post('/', requireAuth, createPortfolio);
 router.put('/:id', requireAuth, updatePortfolio);
 router.delete('/:id', requireAuth, deletePortfolio);
 router.post('/:id/media', requireAuth, upload.single('file'), uploadPortfolioMedia);
+router.put('/media/:mediaId', requireAuth, updatePortfolioMedia);
 router.delete('/media/:mediaId', requireAuth, deletePortfolioMedia);
 
 export default router;

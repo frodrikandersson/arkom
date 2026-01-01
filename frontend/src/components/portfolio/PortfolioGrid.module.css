@@ -6,14 +6,14 @@
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 20px;
-  color: var(--text-primary);
+  color: var(--color-text);
 }
 
 .loading,
 .empty {
   text-align: center;
   padding: 60px 20px;
-  color: var(--text-muted);
+  color: var(--color-text-secondary);
 }
 
 .grid {
@@ -23,7 +23,8 @@
 }
 
 .card {
-  background: var(--bg-secondary);
+  background: var(--color-card);
+  border: 1px solid var(--color-card-border);
   border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
@@ -35,11 +36,15 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+.card:hover .youtubeOverlay {
+  opacity: 1;
+}
+
 .imageContainer {
   position: relative;
   width: 100%;
-  padding-top: 100%; /* 1:1 aspect ratio */
-  background: var(--bg-tertiary);
+  padding-top: 56.25%; /* 16:9 aspect ratio (9/16 * 100 = 56.25%) */
+  background: var(--color-foreground);
   overflow: hidden;
 }
 
@@ -61,7 +66,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-muted);
+  color: var(--color-text-secondary);
   font-size: 14px;
 }
 
@@ -97,7 +102,7 @@
   font-size: 16px;
   font-weight: 600;
   margin: 0 0 8px 0;
-  color: var(--text-primary);
+  color: var(--color-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -107,5 +112,32 @@
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--color-text-secondary);
+}
+
+.youtubeOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: all;
+}
+
+.youtubeOverlay span {
+  font-size: 48px;
+  color: white;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.playIcon {
+  font-size: 48px;
+  color: white;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
 }

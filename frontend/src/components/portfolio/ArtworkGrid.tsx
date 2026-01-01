@@ -1,5 +1,8 @@
+import { useState } from 'react';
 import { useArtworkGrid } from '../../hooks/usePortfolios';
 import { Portfolio } from '../../models/Portfolio';
+import { YouTubeEmbed } from '../common/YouTubeEmbed';
+import { PortfolioViewModal } from '../modals/PortfolioViewModal';
 import styles from './ArtworkGrid.module.css';
 
 interface ArtworkGridProps {
@@ -10,6 +13,15 @@ interface ArtworkGridProps {
 
 export const ArtworkGrid = ({ userId, isOwnProfile = false, onArtworkClick }: ArtworkGridProps) => {
   const { artworks, loading } = useArtworkGrid(userId, isOwnProfile);
+  const [selectedPortfolio, setSelectedPortfolio] = useState<Portfolio | null>(null);
+
+  const handleCardClick = (portfolio: Portfolio) => {
+    if (isOwnProfile && onArtworkClick) {
+      onArtworkClick(portfolio);
+    } else {
+      setSelectedPortfolio(portfolio);
+    }
+  };
 
   if (loading) {
     return (
@@ -35,18 +47,24 @@ export const ArtworkGrid = ({ userId, isOwnProfile = false, onArtworkClick }: Ar
     <div className={styles.container}>
       <div className={styles.grid}>
         {artworks.map((portfolio) => {
-          // Get the first media item for display
           const firstMedia = portfolio.media?.[0];
           const thumbnailUrl = firstMedia?.thumbnailUrl || firstMedia?.fileUrl;
+          const isYouTube = firstMedia?.mediaType === 'youtube' && firstMedia?.youtubeUrl;
 
           return (
             <div
               key={portfolio.id}
               className={styles.artworkCard}
-              onClick={() => onArtworkClick?.(portfolio)}
+              onClick={() => handleCardClick(portfolio)}
             >
               <div className={styles.imageContainer}>
-                {thumbnailUrl ? (
+                {isYouTube ? (
+                  <YouTubeEmbed
+                    url={firstMedia.youtubeUrl as string}
+                    alt={portfolio.title}
+                    className={styles.image}
+                  />
+                ) : thumbnailUrl ? (
                   <img
                     src={thumbnailUrl}
                     alt={portfolio.title}
@@ -87,6 +105,13 @@ export const ArtworkGrid = ({ userId, isOwnProfile = false, onArtworkClick }: Ar
           );
         })}
       </div>
+
+      {selectedPortfolio && (
+        <PortfolioViewModal
+          portfolio={selectedPortfolio}
+          onClose={() => setSelectedPortfolio(null)}
+        />
+      )}
     </div>
   );
 };

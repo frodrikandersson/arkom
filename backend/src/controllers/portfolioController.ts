@@ -4,6 +4,7 @@ import {
   portfolios, 
   portfolioMedia, 
   portfolioSensitiveContent,
+  portfolioMediaSensitiveContent,
   sensitiveContentTypes,
 } from '../config/schema.js';
 import { eq, and, desc } from 'drizzle-orm';
@@ -85,7 +86,29 @@ export const getPortfolio = asyncHandler(async (req: Request, res: Response) => 
     .where(eq(portfolioMedia.portfolioId, portfolioId))
     .orderBy(portfolioMedia.sortOrder);
 
-  // Get sensitive content types
+  // Get media-level sensitive content types for each media item
+  const mediaWithSensitiveContent = await Promise.all(
+    media.map(async (mediaItem) => {
+      const sensitiveContent = await db
+        .select({
+          type: sensitiveContentTypes.type,
+          displayName: sensitiveContentTypes.displayName,
+        })
+        .from(portfolioMediaSensitiveContent)
+        .innerJoin(
+          sensitiveContentTypes,
+          eq(portfolioMediaSensitiveContent.contentTypeId, sensitiveContentTypes.id)
+        )
+        .where(eq(portfolioMediaSensitiveContent.mediaId, mediaItem.id));
+
+      return {
+        ...mediaItem,
+        sensitiveContentTypes: sensitiveContent.map((sc) => sc.type),
+      };
+    })
+  );
+
+  // Get portfolio-level sensitive content types (legacy support)
   const sensitiveContent = await db
     .select({
       type: sensitiveContentTypes.type,
@@ -98,12 +121,16 @@ export const getPortfolio = asyncHandler(async (req: Request, res: Response) => 
     )
     .where(eq(portfolioSensitiveContent.portfolioId, portfolioId));
 
+  // Calculate if portfolio has sensitive content based on media
+  const hasAnySensitiveMedia = mediaWithSensitiveContent.some(m => m.hasSensitiveContent);
+
   res.json({
     success: true,
     portfolio: {
       ...portfolio,
-      media,
+      media: mediaWithSensitiveContent,
       sensitiveContentTypes: sensitiveContent.map((sc) => sc.type),
+      hasSensitiveContent: hasAnySensitiveMedia || portfolio.hasSensitiveContent, // NEW: combine both
     },
   });
 });
@@ -129,7 +156,7 @@ export const getUserPortfolios = asyncHandler(async (req: Request, res: Response
     .limit(parseInt(limit as string))
     .offset(parseInt(offset as string));
 
-  // Get media for each portfolio
+  // Get media for each portfolio with sensitive content info
   const portfoliosWithMedia = await Promise.all(
     userPortfolios.map(async (portfolio) => {
       const media = await db
@@ -138,9 +165,35 @@ export const getUserPortfolios = asyncHandler(async (req: Request, res: Response
         .where(eq(portfolioMedia.portfolioId, portfolio.id))
         .orderBy(portfolioMedia.sortOrder);
 
+      // Get media-level sensitive content types for each media item
+      const mediaWithSensitiveContent = await Promise.all(
+        media.map(async (mediaItem) => {
+          const sensitiveContent = await db
+            .select({
+              type: sensitiveContentTypes.type,
+              displayName: sensitiveContentTypes.displayName,
+            })
+            .from(portfolioMediaSensitiveContent)
+            .innerJoin(
+              sensitiveContentTypes,
+              eq(portfolioMediaSensitiveContent.contentTypeId, sensitiveContentTypes.id)
+            )
+            .where(eq(portfolioMediaSensitiveContent.mediaId, mediaItem.id));
+
+          return {
+            ...mediaItem,
+            sensitiveContentTypes: sensitiveContent.map((sc) => sc.type),
+          };
+        })
+      );
+
+      // Calculate if portfolio has sensitive content based on media
+      const hasAnySensitiveMedia = mediaWithSensitiveContent.some(m => m.hasSensitiveContent);
+
       return {
         ...portfolio,
-        media,
+        media: mediaWithSensitiveContent,
+        hasSensitiveContent: hasAnySensitiveMedia || portfolio.hasSensitiveContent, // NEW
       };
     })
   );
@@ -151,7 +204,6 @@ export const getUserPortfolios = asyncHandler(async (req: Request, res: Response
     total: portfoliosWithMedia.length,
   });
 });
-
 
 // Update portfolio
 export const updatePortfolio = asyncHandler(async (req: Request, res: Response) => {
@@ -281,7 +333,7 @@ export const uploadPortfolioMedia = asyncHandler(async (req: Request, res: Respo
   const { id } = req.params;
   const portfolioId = parseInt(id);
   const userId = req.user!.id;
-  const { youtubeUrl, sortOrder } = req.body;
+  const { youtubeUrl, sortOrder, hasSensitiveContent, sensitiveContentTypeIds } = req.body;
 
   // Check if portfolio exists and belongs to user
   const [portfolio] = await db
@@ -304,6 +356,9 @@ export const uploadPortfolioMedia = asyncHandler(async (req: Request, res: Respo
       throw new AppError(400, validation.error || 'Invalid YouTube URL');
     }
 
+    // Generate YouTube thumbnail URL
+    const thumbnailUrl = `https://img.youtube.com/vi/${validation.videoId}/maxresdefault.jpg`;
+
     const [media] = await db
       .insert(portfolioMedia)
       .values({
@@ -311,9 +366,21 @@ export const uploadPortfolioMedia = asyncHandler(async (req: Request, res: Respo
         mediaType: 'youtube',
         youtubeUrl,
         youtubeVideoId: validation.videoId,
+        thumbnailUrl,
         sortOrder: sortOrder || 0,
+        hasSensitiveContent: hasSensitiveContent || false, // NEW
       })
       .returning();
+
+    // Add sensitive content types if provided
+    if (hasSensitiveContent && sensitiveContentTypeIds && sensitiveContentTypeIds.length > 0) {
+      const sensitiveContentValues = sensitiveContentTypeIds.map((typeId: number) => ({
+        mediaId: media.id,
+        contentTypeId: typeId,
+      }));
+
+      await db.insert(portfolioMediaSensitiveContent).values(sensitiveContentValues);
+    }
 
     res.json({
       success: true,
@@ -340,14 +407,26 @@ export const uploadPortfolioMedia = asyncHandler(async (req: Request, res: Respo
       fileSize: file.size,
       mimeType: file.mimetype,
       sortOrder: sortOrder || 0,
+      hasSensitiveContent: hasSensitiveContent || false, // NEW
     })
     .returning();
+
+  // Add sensitive content types if provided
+  if (hasSensitiveContent && sensitiveContentTypeIds && sensitiveContentTypeIds.length > 0) {
+    const sensitiveContentValues = sensitiveContentTypeIds.map((typeId: number) => ({
+      mediaId: media.id,
+      contentTypeId: typeId,
+    }));
+
+    await db.insert(portfolioMediaSensitiveContent).values(sensitiveContentValues);
+  }
 
   res.json({
     success: true,
     media,
   });
 });
+
 
 // Delete media from portfolio
 export const deletePortfolioMedia = asyncHandler(async (req: Request, res: Response) => {
@@ -399,5 +478,43 @@ export const getSensitiveContentTypes = asyncHandler(async (req: Request, res: R
   res.json({
     success: true,
     types,
+  });
+});
+
+// Update media sort order
+export const updatePortfolioMedia = asyncHandler(async (req: Request, res: Response) => {
+  const { mediaId } = req.params;
+  const userId = req.user!.id;
+  const { sortOrder } = req.body;
+  const mediaIdInt = parseInt(mediaId);
+
+  // Get media with portfolio info
+  const [mediaItem] = await db
+    .select({
+      media: portfolioMedia,
+      portfolio: portfolios,
+    })
+    .from(portfolioMedia)
+    .innerJoin(portfolios, eq(portfolioMedia.portfolioId, portfolios.id))
+    .where(eq(portfolioMedia.id, mediaIdInt));
+
+  if (!mediaItem) {
+    throw new AppError(404, 'Media not found');
+  }
+
+  if (mediaItem.portfolio.userId !== userId) {
+    throw new AppError(403, 'Forbidden');
+  }
+
+  // Update sort order
+  const [updatedMedia] = await db
+    .update(portfolioMedia)
+    .set({ sortOrder })
+    .where(eq(portfolioMedia.id, mediaIdInt))
+    .returning();
+
+  res.json({
+    success: true,
+    media: updatedMedia,
   });
 });

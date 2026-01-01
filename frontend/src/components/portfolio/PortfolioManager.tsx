@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Portfolio } from '../../models/Portfolio';
-import { ArtworkUpload } from './ArtworkUpload.tsx';
+import { ArtworkUploadModal } from '../modals/ArtworkUploadModal.tsx';
 import { PortfolioGrid } from './PortfolioGrid.tsx';
-import { PortfolioEditModal } from './PortfolioEditModal.tsx';
 import styles from './PortfolioManager.module.css';
 
 export const PortfolioManager = () => {
   const { user } = useAuth();
   const [selectedPortfolio, setSelectedPortfolio] = useState<Portfolio | null>(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handlePortfolioClick = (portfolio: Portfolio) => {
@@ -17,20 +17,27 @@ export const PortfolioManager = () => {
 
   const handleCloseModal = () => {
     setSelectedPortfolio(null);
+    setShowUploadModal(false);
   };
 
   const handlePortfolioUpdated = () => {
-    setRefreshKey(prev => prev + 1); // Force refresh
-    setSelectedPortfolio(null);
+    setRefreshKey(prev => prev + 1);
+    handleCloseModal();
   };
 
   if (!user) return null;
 
   return (
     <div className={styles.container}>
-      <ArtworkUpload onUploadComplete={() => setRefreshKey(prev => prev + 1)} />
-      
-      <div className={styles.divider} />
+      <div className={styles.header}>
+        <h1 className={styles.title}>My Portfolio</h1>
+        <button 
+          onClick={() => setShowUploadModal(true)}
+          className={styles.uploadButton}
+        >
+          + Upload
+        </button>
+      </div>
       
       <PortfolioGrid
         userId={user.id}
@@ -38,11 +45,11 @@ export const PortfolioManager = () => {
         onPortfolioClick={handlePortfolioClick}
       />
 
-      {selectedPortfolio && (
-        <PortfolioEditModal
-          portfolio={selectedPortfolio}
+      {(showUploadModal || selectedPortfolio) && (
+        <ArtworkUploadModal
           onClose={handleCloseModal}
-          onDelete={handlePortfolioUpdated}
+          onUploadComplete={handlePortfolioUpdated}
+          existingPortfolio={selectedPortfolio}
         />
       )}
     </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Portfolio } from '../../models/Portfolio';
 import { getUserPortfolios } from '../../services/portfolioService';
 import styles from './PortfolioGrid.module.css';
+import { YouTubeEmbed } from '../common/YouTubeEmbed';
 
 interface PortfolioGridProps {
   userId: string;
@@ -49,6 +50,7 @@ export const PortfolioGrid = ({ userId, refreshKey, onPortfolioClick }: Portfoli
         {portfolios.map((portfolio) => {
           const firstMedia = portfolio.media?.[0];
           const thumbnailUrl = firstMedia?.thumbnailUrl || firstMedia?.fileUrl;
+          const isYouTube = firstMedia?.mediaType === 'youtube' && firstMedia?.youtubeUrl;
 
           return (
             <div
@@ -57,7 +59,15 @@ export const PortfolioGrid = ({ userId, refreshKey, onPortfolioClick }: Portfoli
               onClick={() => onPortfolioClick(portfolio)}
             >
               <div className={styles.imageContainer}>
-                {thumbnailUrl ? (
+                {isYouTube ? (
+                  <YouTubeEmbed
+                    url={firstMedia.youtubeUrl as string}
+                    alt={portfolio.title}
+                    className={styles.image}
+                    thumbnailClassName={styles.image}
+                    playIconClassName={styles.youtubeOverlay}
+                  />
+                ) : thumbnailUrl ? (
                   <img src={thumbnailUrl} alt={portfolio.title} className={styles.image} />
                 ) : (
                   <div className={styles.noImage}>No image</div>
