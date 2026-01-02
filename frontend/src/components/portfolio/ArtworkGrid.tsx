@@ -4,6 +4,7 @@ import { Portfolio } from '../../models/Portfolio';
 import { YouTubeEmbed } from '../common/YouTubeEmbed';
 import { PortfolioViewModal } from '../modals/PortfolioViewModal';
 import styles from './ArtworkGrid.module.css';
+import { SensitiveMediaOverlay } from '../common/SensitiveMediaOverlay';
 
 interface ArtworkGridProps {
   userId: string;
@@ -73,11 +74,18 @@ export const ArtworkGrid = ({ userId, isOwnProfile = false, onArtworkClick }: Ar
                 ) : (
                   <div className={styles.noImage}>No image</div>
                 )}
+                
+                {/* Show mosaic overlay if first media is sensitive */}
+                {firstMedia?.hasSensitiveContent && firstMedia?.sensitiveContentTypes && firstMedia.sensitiveContentTypes.length > 0 && (
+                  <SensitiveMediaOverlay 
+                    sensitiveContentTypes={firstMedia.sensitiveContentTypes} 
+                    showRevealButton={false} 
+                  />
+                )}
+
+                
                 {portfolio.status === 'draft' && isOwnProfile && (
                   <div className={styles.privateBadge}>Draft</div>
-                )}
-                {portfolio.hasSensitiveContent && (
-                  <div className={styles.sensitiveBadge}>Sensitive</div>
                 )}
               </div>
               <div className={styles.info}>

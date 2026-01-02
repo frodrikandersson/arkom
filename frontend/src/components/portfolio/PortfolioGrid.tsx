@@ -3,6 +3,7 @@ import { Portfolio } from '../../models/Portfolio';
 import { getUserPortfolios } from '../../services/portfolioService';
 import styles from './PortfolioGrid.module.css';
 import { YouTubeEmbed } from '../common/YouTubeEmbed';
+import { SensitiveMediaOverlay } from '../common/SensitiveMediaOverlay';
 
 interface PortfolioGridProps {
   userId: string;
@@ -72,11 +73,17 @@ export const PortfolioGrid = ({ userId, refreshKey, onPortfolioClick }: Portfoli
                 ) : (
                   <div className={styles.noImage}>No image</div>
                 )}
+                
+                {/* Show mosaic overlay if first media is sensitive */}
+                {firstMedia?.hasSensitiveContent && firstMedia?.sensitiveContentTypes && firstMedia.sensitiveContentTypes.length > 0 && (
+                  <SensitiveMediaOverlay 
+                    sensitiveContentTypes={firstMedia.sensitiveContentTypes} 
+                    showRevealButton={false} 
+                  />
+                )}
+                
                 {portfolio.status === 'draft' && (
                   <div className={styles.draftBadge}>Draft</div>
-                )}
-                {portfolio.hasSensitiveContent && (
-                  <div className={styles.sensitiveBadge}>Sensitive</div>
                 )}
               </div>
               <div className={styles.info}>

@@ -1,6 +1,8 @@
-import { useState } from 'react';
+// frontend/src/components/modals/PortfolioViewModal.tsx
 import { Portfolio } from '../../models/Portfolio';
 import { YouTubeEmbed } from '../common/YouTubeEmbed';
+import { SensitiveMediaOverlay } from '../common/SensitiveMediaOverlay';
+import { useMediaCarousel } from '../../hooks/useMediaCarousel';
 import styles from './PortfolioViewModal.module.css';
 
 interface PortfolioViewModalProps {
@@ -9,26 +11,18 @@ interface PortfolioViewModalProps {
 }
 
 export const PortfolioViewModal = ({ portfolio, onClose }: PortfolioViewModalProps) => {
-  const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const media = portfolio.media || [];
-  const currentMedia = media[selectedMediaIndex];
-
-  const goToPrevious = () => {
-    setSelectedMediaIndex((prev) => (prev > 0 ? prev - 1 : media.length - 1));
-  };
-
-  const goToNext = () => {
-    setSelectedMediaIndex((prev) => (prev < media.length - 1 ? prev + 1 : 0));
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowLeft') goToPrevious();
-    if (e.key === 'ArrowRight') goToNext();
-    if (e.key === 'Escape') onClose();
-  };
+  const {
+    selectedMediaIndex,
+    currentMedia,
+    goToPrevious,
+    goToNext,
+    selectMedia,
+    handleKeyDown,
+  } = useMediaCarousel(media);
 
   return (
-    <div className={styles.overlay} onClick={onClose} onKeyDown={handleKeyDown} tabIndex={0}>
+    <div className={styles.overlay} onClick={onClose} onKeyDown={(e) => handleKeyDown(e, onClose)} tabIndex={0}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <button className={styles.closeBtn} onClick={onClose}>
           ✕
@@ -44,17 +38,29 @@ export const PortfolioViewModal = ({ portfolio, onClose }: PortfolioViewModalPro
 
           <div className={styles.mainMedia}>
             {currentMedia?.mediaType === 'youtube' && currentMedia?.youtubeUrl ? (
-              <YouTubeEmbed
-                url={currentMedia.youtubeUrl}
-                alt={portfolio.title}
-                className={styles.mediaContent}
-              />
+              <>
+                <YouTubeEmbed
+                  url={currentMedia.youtubeUrl}
+                  alt={portfolio.title}
+                  className={styles.mediaContent}
+                />
+                {/* Show overlay if media is sensitive */}
+                {currentMedia.hasSensitiveContent && currentMedia.sensitiveContentTypes && currentMedia.sensitiveContentTypes.length > 0 && (
+                  <SensitiveMediaOverlay sensitiveContentTypes={currentMedia.sensitiveContentTypes} />
+                )}
+              </>
             ) : currentMedia?.fileUrl ? (
-              <img
-                src={currentMedia.fileUrl}
-                alt={portfolio.title}
-                className={styles.mediaContent}
-              />
+              <>
+                <img
+                  src={currentMedia.fileUrl}
+                  alt={portfolio.title}
+                  className={styles.mediaContent}
+                />
+                {/* Show overlay if media is sensitive */}
+                {currentMedia.hasSensitiveContent && currentMedia.sensitiveContentTypes && currentMedia.sensitiveContentTypes.length > 0 && (
+                  <SensitiveMediaOverlay sensitiveContentTypes={currentMedia.sensitiveContentTypes} />
+                )}
+              </>
             ) : (
               <div className={styles.noMedia}>No media available</div>
             )}
@@ -66,6 +72,13 @@ export const PortfolioViewModal = ({ portfolio, onClose }: PortfolioViewModalPro
             </button>
           )}
         </div>
+
+        {/* Media Counter */}
+        {media.length > 1 && (
+          <div className={styles.mediaCounter}>
+            {selectedMediaIndex + 1} / {media.length}
+          </div>
+        )}
 
         {/* Portfolio Info */}
         <div className={styles.info}>
@@ -102,15 +115,29 @@ export const PortfolioViewModal = ({ portfolio, onClose }: PortfolioViewModalPro
                   className={`${styles.thumbnail} ${
                     index === selectedMediaIndex ? styles.thumbnailActive : ''
                   }`}
-                  onClick={() => setSelectedMediaIndex(index)}
+                  onClick={() => selectMedia(index)}
                 >
-                  {item.mediaType === 'youtube' && item.thumbnailUrl ? (
-                    <img src={item.thumbnailUrl} alt={`Media ${index + 1}`} />
+                  {item.mediaType === 'youtube' ? (
+                    item.thumbnailUrl ? (
+                      <img src={item.thumbnailUrl} alt={`Media ${index + 1}`} />
+                    ) : (
+                      <div className={styles.noThumbnail}>▶</div>
+                    )
                   ) : item.fileUrl ? (
                     <img src={item.fileUrl} alt={`Media ${index + 1}`} />
                   ) : (
                     <div className={styles.noThumbnail}>?</div>
                   )}
+                  {/* Show mosaic overlay if thumbnail media is sensitive */}
+                  {item.hasSensitiveContent && item.sensitiveContentTypes && item.sensitiveContentTypes.length > 0 && (
+                    <SensitiveMediaOverlay 
+                        sensitiveContentTypes={item.sensitiveContentTypes} 
+                        showRevealButton={false} 
+                        compact={true}
+
+                    />
+                  )}
+                  
                   {item.mediaType === 'youtube' && (
                     <div className={styles.youtubeIndicator}>▶</div>
                   )}

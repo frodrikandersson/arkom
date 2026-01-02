@@ -45,7 +45,6 @@ export const AppRoutes: React.FC = () => {
           <Route path="/profile/:userId" element={<UserProfilePage />} />
           <Route path="/requests" element={<div style={{ padding: '2rem' }}>My Requests Page</div>} />
           <Route path="/orders" element={<div style={{ padding: '2rem' }}>My Orders Page</div>} />
-          <Route path="/characters" element={<div style={{ padding: '2rem' }}>Characters Page</div>} />
           <Route path="/saved" element={<div style={{ padding: '2rem' }}>Saved Page</div>} />
           <Route path="/shop-dashboard" element={<ShopDashboard />} />
           <Route path="/test-notifications" element={<TestNotifications />} />

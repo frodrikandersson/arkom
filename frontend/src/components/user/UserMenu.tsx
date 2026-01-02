@@ -114,9 +114,6 @@ export const UserMenu = () => {
               <Link to="/orders" className={styles.menuItem} onClick={() => setIsOpen(false)}>
                 My orders
               </Link>
-              <Link to="/characters" className={styles.menuItem} onClick={() => setIsOpen(false)}>
-                Characters
-              </Link>
               <Link to="/saved" className={styles.menuItem} onClick={() => setIsOpen(false)}>
                 Saved
               </Link>

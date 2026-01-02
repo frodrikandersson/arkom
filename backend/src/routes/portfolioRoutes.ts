@@ -5,6 +5,7 @@ import {
   getPortfolio,
   getUserPortfolios,
   updatePortfolio,
+  updatePortfolioMediaSensitiveContent,
   deletePortfolio,
   uploadPortfolioMedia,
   updatePortfolioMedia,
@@ -39,6 +40,7 @@ router.get('/user/:userId', optionalAuth, getUserPortfolios); // Public but filt
 // Protected routes
 router.post('/', requireAuth, createPortfolio);
 router.put('/:id', requireAuth, updatePortfolio);
+router.put('/media/:mediaId/sensitive-content', requireAuth, updatePortfolioMediaSensitiveContent);
 router.delete('/:id', requireAuth, deletePortfolio);
 router.post('/:id/media', requireAuth, upload.single('file'), uploadPortfolioMedia);
 router.put('/media/:mediaId', requireAuth, updatePortfolioMedia);

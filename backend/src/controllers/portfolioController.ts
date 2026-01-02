@@ -333,7 +333,25 @@ export const uploadPortfolioMedia = asyncHandler(async (req: Request, res: Respo
   const { id } = req.params;
   const portfolioId = parseInt(id);
   const userId = req.user!.id;
-  const { youtubeUrl, sortOrder, hasSensitiveContent, sensitiveContentTypeIds } = req.body;
+  
+  // Parse FormData values
+  const youtubeUrl = req.body.youtubeUrl;
+  const sortOrder = req.body.sortOrder ? parseInt(req.body.sortOrder) : 0;
+  
+  // Parse hasSensitiveContent (comes as string "true"/"false" from FormData)
+  const hasSensitiveContent = req.body.hasSensitiveContent === 'true' || req.body.hasSensitiveContent === true;
+  
+  // Parse sensitiveContentTypeIds (comes as JSON string from FormData)
+  let sensitiveContentTypeIds: number[] = [];
+  if (req.body.sensitiveContentTypeIds) {
+    try {
+      sensitiveContentTypeIds = typeof req.body.sensitiveContentTypeIds === 'string'
+        ? JSON.parse(req.body.sensitiveContentTypeIds)
+        : req.body.sensitiveContentTypeIds;
+    } catch (error) {
+      console.error('Failed to parse sensitiveContentTypeIds:', error);
+    }
+  }
 
   // Check if portfolio exists and belongs to user
   const [portfolio] = await db
@@ -357,7 +375,7 @@ export const uploadPortfolioMedia = asyncHandler(async (req: Request, res: Respo
     }
 
     // Generate YouTube thumbnail URL
-    const thumbnailUrl = `https://img.youtube.com/vi/${validation.videoId}/maxresdefault.jpg`;
+    const thumbnailUrl = `https://img.youtube.com/vi/${validation.videoId}/hqdefault.jpg`;
 
     const [media] = await db
       .insert(portfolioMedia)
@@ -367,8 +385,8 @@ export const uploadPortfolioMedia = asyncHandler(async (req: Request, res: Respo
         youtubeUrl,
         youtubeVideoId: validation.videoId,
         thumbnailUrl,
-        sortOrder: sortOrder || 0,
-        hasSensitiveContent: hasSensitiveContent || false, // NEW
+        sortOrder,
+        hasSensitiveContent,
       })
       .returning();
 
@@ -406,8 +424,8 @@ export const uploadPortfolioMedia = asyncHandler(async (req: Request, res: Respo
       fileUrl: url,
       fileSize: file.size,
       mimeType: file.mimetype,
-      sortOrder: sortOrder || 0,
-      hasSensitiveContent: hasSensitiveContent || false, // NEW
+      sortOrder,
+      hasSensitiveContent,
     })
     .returning();
 
@@ -426,6 +444,7 @@ export const uploadPortfolioMedia = asyncHandler(async (req: Request, res: Respo
     media,
   });
 });
+
 
 
 // Delete media from portfolio
@@ -518,3 +537,56 @@ export const updatePortfolioMedia = asyncHandler(async (req: Request, res: Respo
     media: updatedMedia,
   });
 });
+
+// Update media sensitive content
+export const updatePortfolioMediaSensitiveContent = asyncHandler(async (req: Request, res: Response) => {
+  const { mediaId } = req.params;
+  const userId = req.user!.id;
+  const { hasSensitiveContent, sensitiveContentTypeIds } = req.body;
+  const mediaIdInt = parseInt(mediaId);
+
+  // Get media with portfolio info
+  const [mediaItem] = await db
+    .select({
+      media: portfolioMedia,
+      portfolio: portfolios,
+    })
+    .from(portfolioMedia)
+    .innerJoin(portfolios, eq(portfolioMedia.portfolioId, portfolios.id))
+    .where(eq(portfolioMedia.id, mediaIdInt));
+
+  if (!mediaItem) {
+    throw new AppError(404, 'Media not found');
+  }
+
+  if (mediaItem.portfolio.userId !== userId) {
+    throw new AppError(403, 'Forbidden');
+  }
+
+  // Update hasSensitiveContent flag
+  await db
+    .update(portfolioMedia)
+    .set({ hasSensitiveContent: hasSensitiveContent || false })
+    .where(eq(portfolioMedia.id, mediaIdInt));
+
+  // Delete existing sensitive content associations
+  await db
+    .delete(portfolioMediaSensitiveContent)
+    .where(eq(portfolioMediaSensitiveContent.mediaId, mediaIdInt));
+
+  // Add new associations
+  if (hasSensitiveContent && sensitiveContentTypeIds && sensitiveContentTypeIds.length > 0) {
+    const sensitiveContentValues = sensitiveContentTypeIds.map((typeId: number) => ({
+      mediaId: mediaIdInt,
+      contentTypeId: typeId,
+    }));
+
+    await db.insert(portfolioMediaSensitiveContent).values(sensitiveContentValues);
+  }
+
+  res.json({
+    success: true,
+    message: 'Media sensitive content updated successfully',
+  });
+});
+

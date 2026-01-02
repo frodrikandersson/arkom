@@ -32,8 +32,13 @@ export interface PortfolioMedia {
   // Sorting
   sortOrder: number;
   
+  // Sensitive content (media-level) - ADD THESE LINES
+  hasSensitiveContent: boolean;
+  sensitiveContentTypes?: SensitiveContentType[];
+  
   createdAt: string;
 }
+
 
 // Portfolio piece
 export interface Portfolio {
@@ -105,6 +110,10 @@ export interface PortfolioMediaUpload {
   
   // Sorting
   sortOrder: number;
+  
+  // Sensitive content (media-level) - ADD THESE LINES
+  hasSensitiveContent?: boolean;
+  sensitiveContentTypes?: SensitiveContentType[];
 }
 
 // Commission Service (minimal for dropdown)
