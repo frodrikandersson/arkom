@@ -31,19 +31,16 @@
 }
 
 .dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: 0.5rem;
   min-width: 200px;
   background: var(--color-card);
   border: 1px solid var(--color-cardBorder);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   overflow: hidden;
-  z-index: 1000;
   animation: slideDown 0.2s ease;
+  z-index: 10000; 
 }
+
 
 @keyframes slideDown {
   from {

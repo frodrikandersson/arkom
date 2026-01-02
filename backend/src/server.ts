@@ -12,6 +12,9 @@ import testRoutes from './routes/testRoutes.js';
 import conversationActivityRoutes from './routes/conversationActivityRoutes.js';
 import provenanceRoutes from './routes/provenanceRoutes.js';
 import portfolioRoutes from './routes/portfolioRoutes.js';
+import serviceCategoryRoutes from './routes/serviceCategoryRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import searchCategoryRoutes from './routes/searchCategoryRoutes.js';
 import { errorHandler } from './middleware/errorMiddleware.js';
 
 dotenv.config();
@@ -41,6 +44,9 @@ app.use('/api/test', testRoutes);
 app.use('/api/conversation-activity', conversationActivityRoutes);
 app.use('/api/provenance', provenanceRoutes);
 app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/service', serviceCategoryRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/search-categories', searchCategoryRoutes);
 
 // Error handler MUST be last
 app.use(errorHandler);

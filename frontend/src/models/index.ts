@@ -7,3 +7,5 @@ export * from './Portfolio';
 export * from './Message';
 export * from './Notification';
 export * from './Chat';
+export * from './Service';
+export * from './Category';

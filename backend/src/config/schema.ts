@@ -42,6 +42,7 @@ export const userSettings = pgTable('user_settings', {
   socialLinks: json('social_links'),
   emailNotifications: boolean('email_notifications').default(false),
   pushNotifications: boolean('push_notifications').default(false),
+  isAdmin: boolean('is_admin').default(false).notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
@@ -220,6 +221,45 @@ export const portfolioMediaSensitiveContent = pgTable('portfolio_media_sensitive
   mediaIdIdx: index('portfolio_media_sensitive_content_media_id_idx').on(table.mediaId),
 }));
 
+// Service categories
+export const serviceCategories = pgTable('service_categories', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  name: text('name').notNull(),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('service_categories_user_id_idx').on(table.userId),
+}));
+
+// Services (individual services within categories)
+export const services = pgTable('services', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull(),
+  categoryId: integer('category_id').references(() => serviceCategories.id, { onDelete: 'cascade' }),
+  
+  // Service details
+  title: text('title').notNull(),
+  description: text('description'),
+  
+  // Pricing
+  basePrice: integer('base_price').notNull(), // In cents
+  currency: text('currency').notNull().default('USD'),
+  
+  // Status
+  isActive: boolean('is_active').default(true),
+  
+  // Stats
+  orderCount: integer('order_count').default(0),
+  
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('services_user_id_idx').on(table.userId),
+  categoryIdIdx: index('services_category_id_idx').on(table.categoryId),
+}));
 
 // Notifications
 export const notifications = pgTable('notifications', {
@@ -335,3 +375,74 @@ export const userUploadBehavior = pgTable('user_upload_behavior', {
   suspiciousPatterns: text('suspicious_patterns'), // JSON string
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+// Add to backend/src/config/schema.ts
+
+// Main catalogues (top level)
+export const catalogues = pgTable('catalogues', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull().unique(),
+  sortOrder: integer('sort_order').notNull().default(0),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Categories (under catalogues)
+export const categories = pgTable('categories', {
+  id: serial('id').primaryKey(),
+  catalogueId: integer('catalogue_id').notNull().references(() => catalogues.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  sortOrder: integer('sort_order').notNull().default(0),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  catalogueIdIdx: index('categories_catalogue_id_idx').on(table.catalogueId),
+}));
+
+// Sub-category filters (applies to all categories)
+export const subCategoryFilters = pgTable('sub_category_filters', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(), // e.g., "Subject", "Type"
+  sortOrder: integer('sort_order').notNull().default(0),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Sub-category filter options (the actual choices for each filter)
+export const subCategoryFilterOptions = pgTable('sub_category_filter_options', {
+  id: serial('id').primaryKey(),
+  filterId: integer('filter_id').notNull().references(() => subCategoryFilters.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(), // e.g., "Human", "Anthro / Furry"
+  sortOrder: integer('sort_order').notNull().default(0),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  filterIdIdx: index('sub_category_filter_options_filter_id_idx').on(table.filterId),
+}));
+
+// Service search categories (what users select for their services)
+export const serviceSearchCategories = pgTable('service_search_categories', {
+  id: serial('id').primaryKey(),
+  serviceId: integer('service_id').notNull().references(() => services.id, { onDelete: 'cascade' }),
+  catalogueId: integer('catalogue_id').notNull().references(() => catalogues.id),
+  categoryId: integer('category_id').notNull().references(() => categories.id),
+  isDiscoverable: boolean('is_discoverable').default(true),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  serviceIdIdx: index('service_search_categories_service_id_idx').on(table.serviceId),
+}));
+
+// Service sub-category selections (the filters users select)
+export const serviceSubCategorySelections = pgTable('service_sub_category_selections', {
+  id: serial('id').primaryKey(),
+  serviceSearchCategoryId: integer('service_search_category_id').notNull().references(() => serviceSearchCategories.id, { onDelete: 'cascade' }),
+  filterOptionId: integer('filter_option_id').notNull().references(() => subCategoryFilterOptions.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  serviceSearchCategoryIdIdx: index('service_sub_category_selections_service_search_category_id_idx').on(table.serviceSearchCategoryId),
+}));

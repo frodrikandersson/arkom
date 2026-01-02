@@ -4,6 +4,7 @@ import { StackHandler } from '@stackframe/react';
 import { stackClientApp } from '../config/stack';
 import { MainLayout } from '../layouts/MainLayout';
 import { ShopDashboard } from '../pages/ShopDashboard';
+import { AdminDashboard } from '../pages/AdminDashboard';
 
 // Lazy load pages
 const HomePage = lazy(() => import('../pages/HomePage').then(m => ({ default: m.HomePage })));
@@ -53,6 +54,7 @@ export const AppRoutes: React.FC = () => {
           <Route path="/about" element={<div style={{ padding: '2rem' }}>About Us Page</div>} />
           <Route path="/terms" element={<div style={{ padding: '2rem' }}>Terms of Service Page</div>} />
           <Route path="/privacy" element={<div style={{ padding: '2rem' }}>Privacy Policy Page</div>} />
+          <Route path="/admin" element={<AdminDashboard />} />
         </Route>
         
         <Route path="*" element={<Navigate to="/" replace />} />

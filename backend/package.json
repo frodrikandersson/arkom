@@ -10,6 +10,8 @@
     "seed": "tsx src/seed.ts",
     "migrate:social-links": "tsx src/scripts/run-migration.ts",
     "seed:sensitive-content": "tsx src/scripts/seedSensitiveContentTypes.ts",
+    "seed:categories": "tsx src/scripts/seedSearchCategories.ts",
+    "make-admin": "tsx src/scripts/makeAdmin.ts",
     "migrate:artworks": "tsx src/scripts/migrateArtworksToPortfolios.ts"
   },
   "dependencies": {

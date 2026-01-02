@@ -5,6 +5,7 @@ import { stackClientApp } from './config/stack';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AppRoutes } from './routes/AppRoutes';
+import { AdminProvider } from './contexts/AdminContext';
 
 function AppContent() {
   const { isLoading } = useTheme();
@@ -16,7 +17,9 @@ function AppContent() {
   
   return (
     <AuthProvider>
-      <AppRoutes />
+      <AdminProvider>
+        <AppRoutes />
+      </AdminProvider>
     </AuthProvider>
   );
 }

@@ -7,8 +7,10 @@ import { MessageButton } from '../messaging/MessageButton';
 import { AlertButton } from '../navigation/AlertButton';
 import { UserMenu } from '../user/UserMenu';
 import { useAuth } from '../../contexts/AuthContext';
+import { useAdmin } from '../../contexts/AdminContext';
 import { OnOpenChatFunction } from '../../models';
 import styles from './Header.module.css';
+import { Link } from 'react-router-dom';
 
 interface HeaderProps {
   basketCount?: number;
@@ -23,6 +25,8 @@ export const Header = ({
 }: HeaderProps) => {
   const { isLoggedIn } = useAuth();
   const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const { isAdmin } = useAdmin();
+
 
   // Close mobile search when resizing to desktop
   useEffect(() => {
@@ -43,6 +47,9 @@ export const Header = ({
         <div className={styles.left}>
           <Logo />
           <BrowseMenu />
+          {isAdmin && (
+            <Link to="/admin" className={styles.adminButton}>Admin</Link>
+          )}
           <div className={styles.desktopSearch}>
             <UserSearch />
           </div>

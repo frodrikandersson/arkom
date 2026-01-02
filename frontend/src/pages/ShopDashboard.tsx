@@ -1,7 +1,10 @@
-import { useState } from 'react';
+// frontend/src/pages/ShopDashboard.tsx
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ShopSidebar } from '../components/portfolio/ShopSidebar';
 import styles from './ShopDashboard.module.css';
 import { PortfolioManager } from '../components/portfolio/PortfolioManager';
+import { ServiceManager } from '../components/service/ServiceManager';
 
 type SidebarSection = 
   | 'portfolio'
@@ -16,8 +19,28 @@ type SidebarSection =
   | 'bundles';
 
 export const ShopDashboard = () => {
-  const [activeSection, setActiveSection] = useState<SidebarSection>('portfolio');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sectionFromUrl = searchParams.get('section') as SidebarSection | null;
+  
+  const [activeSection, setActiveSection] = useState<SidebarSection>(
+    sectionFromUrl && isValidSection(sectionFromUrl) ? sectionFromUrl : 'portfolio'
+  );
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Validate section is a valid type
+  function isValidSection(section: string): section is SidebarSection {
+    return ['portfolio', 'wallet', 'commissions', 'services', 'workflows', 'forms', 'policies', 'orders', 'products', 'bundles'].includes(section);
+  }
+
+  // Update URL when section changes
+  useEffect(() => {
+    setSearchParams({ section: activeSection }, { replace: true });
+  }, [activeSection, setSearchParams]);
+
+  const handleSectionChange = (section: SidebarSection) => {
+    setActiveSection(section);
+    setSidebarOpen(false);
+  };
 
   const renderContent = () => {
     switch (activeSection) {
@@ -28,7 +51,7 @@ export const ShopDashboard = () => {
       case 'commissions':
         return <div className={styles.placeholder}>Commissions Content</div>;
       case 'services':
-        return <div className={styles.placeholder}>Services Content</div>;
+        return <ServiceManager />;
       case 'workflows':
         return <div className={styles.placeholder}>Workflows Content</div>;
       case 'forms':
@@ -62,10 +85,7 @@ export const ShopDashboard = () => {
       {/* Sidebar */}
       <ShopSidebar
         activeSection={activeSection}
-        onSectionChange={(section) => {
-          setActiveSection(section);
-          setSidebarOpen(false); // Close sidebar on mobile after selection
-        }}
+        onSectionChange={handleSectionChange}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />

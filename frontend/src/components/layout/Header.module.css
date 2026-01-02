@@ -20,6 +20,27 @@
   gap: 2rem;
 }
 
+.adminButton {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 1rem;
+  background: var(--color-error);
+  color: var(--color-text);
+  text-decoration: none;
+  border: 1px solid var(--color-error);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.adminButton:hover {
+  background: var(--color-card);
+  color: var(--color-error);
+  transform: translateY(-1px);
+}
+
 .left {
   display: flex;
   align-items: center;
