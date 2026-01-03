@@ -141,6 +141,7 @@ export const CatalogueManager = () => {
             type="text"
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             placeholder="Enter catalogue name"
             className={styles.input}
             autoFocus
@@ -173,6 +174,7 @@ export const CatalogueManager = () => {
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSave(catalogue.id)}
                   className={styles.input}
                   autoFocus
                 />

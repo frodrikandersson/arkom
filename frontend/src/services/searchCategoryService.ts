@@ -75,3 +75,25 @@ export const updateSubCategoryFilterOption = async (id: number, data: { name?: s
 export const deleteSubCategoryFilterOption = async (id: number): Promise<void> => {
   await api.delete(`/api/search-categories/sub-category-filter-options/${id}`);
 };
+
+// Category-Filter assignments
+export const getCategoryFilters = async (categoryId: number) => {
+  const response = await api.get<{ success: boolean; filters: any[] }>(
+    `/api/search-categories/categories/${categoryId}/filters`
+  );
+  return response.filters;
+};
+
+export const assignFilterToCategory = async (categoryId: number, filterId: number) => {
+  const response = await api.post<{ success: boolean; assignment: any }>(
+    '/api/search-categories/categories/filters/assign',
+    { categoryId, filterId }
+  );
+  return response.assignment;
+};
+
+export const removeFilterFromCategory = async (categoryId: number, filterId: number) => {
+  await api.delete(
+    `/api/search-categories/categories/${categoryId}/filters/${filterId}`
+  );
+};

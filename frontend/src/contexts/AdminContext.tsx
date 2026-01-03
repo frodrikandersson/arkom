@@ -15,18 +15,37 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkAdmin = async () => {
       if (user) {
-        const adminStatus = await checkAdminStatus();
-        setIsAdmin(adminStatus);
+        try {
+          const adminStatus = await checkAdminStatus();
+          if (isMounted) {
+            setIsAdmin(adminStatus);
+          }
+        } catch (error) {
+          console.error('Failed to check admin status:', error);
+          if (isMounted) {
+            setIsAdmin(false);
+          }
+        }
       } else {
-        setIsAdmin(false);
+        if (isMounted) {
+          setIsAdmin(false);
+        }
       }
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     };
 
     checkAdmin();
-  }, [user]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id]); // Only re-run if user ID changes, not the entire user object
 
   return (
     <AdminContext.Provider value={{ isAdmin, loading }}>

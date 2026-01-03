@@ -11,6 +11,7 @@ export interface Theme {
     accent: string;
     accentHover: string;
     error: string;
+    errorHover: string;
     success: string;
   };
 }
@@ -40,6 +41,7 @@ export const defaultDarkTheme: Theme = {
     accent: '#00d9ff',
     accentHover: '#00b8e6',
     error: '#ff4444',
+    errorHover: '#ff6666',
     success: '#00ff88',
   },
 };
@@ -57,6 +59,7 @@ export const defaultLightTheme: Theme = {
     accent: '#0088aa',
     accentHover: '#006688',
     error: '#cc3333',
+    errorHover: '#dd5555',
     success: '#00cc66',
   },
 };

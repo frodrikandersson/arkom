@@ -196,3 +196,130 @@
   color: var(--color-textSecondary);
   font-size: 1rem;
 }
+
+/* Category Manager specific styles */
+.categoryContainer {
+  margin-bottom: 0.5rem;
+}
+
+.categoryRow {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.categoryNameWrapper {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.expandButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  opacity: 0.7;
+  padding: 0.25rem 0.5rem;
+  color: var(--color-textSecondary);
+  transition: opacity 0.2s ease;
+}
+
+.expandButton:hover {
+  opacity: 1;
+}
+
+.itemDraggable {
+  cursor: move;
+}
+
+.itemNoDrag {
+  cursor: default;
+}
+
+.filtersPanel {
+  margin-left: 2rem;
+  margin-top: 0.5rem;
+  padding: 1rem;
+  background: var(--color-card);
+  border-radius: 4px;
+}
+
+.filtersSectionTitle {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.filtersEmpty {
+  font-size: 0.875rem;
+  opacity: 0.6;
+  color: var(--color-textSecondary);
+}
+
+.assignedFiltersGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.availableFiltersGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.assignedFilterTag {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--color-success);
+  background: rgba(0, 255, 136, 0.15);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: var(--color-text);
+}
+
+.removeFilterButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-error);
+  font-size: 1rem;
+  padding: 0;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.removeFilterButton:hover {
+  transform: scale(1.2);
+}
+
+.availableFilterButton {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  background: rgba(0, 217, 255, 0.15);
+  border: 1px solid var(--color-accent);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--color-text);
+  transition: all 0.2s ease;
+}
+
+.availableFilterButton:hover {
+  background: rgba(0, 217, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.addCategoryRow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}

@@ -468,3 +468,4 @@ export const uploadBannerImage = asyncHandler(async (req: Request, res: Response
 
   res.json({ bannerImageUrl: url, settings });
 });
+

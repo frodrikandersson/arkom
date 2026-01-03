@@ -4,6 +4,7 @@ import { Navigate, useSearchParams } from 'react-router-dom';
 import { CatalogueManager } from '../components/admin/CatalogueManager';
 import { CategoryManager } from '../components/admin/CategoryManager';
 import { SubCategoryFilterManager } from '../components/admin/SubCategoryFilterManager';
+import { UserManager } from '../components/admin/UserManager';
 import styles from './AdminDashboard.module.css';
 
 type AdminTab = 'catalogues' | 'categories' | 'subcategories' | 'users' | 'reports';
@@ -75,7 +76,7 @@ export const AdminDashboard = () => {
         {activeTab === 'catalogues' && <CatalogueManager />}
         {activeTab === 'categories' && <CategoryManager />}
         {activeTab === 'subcategories' && <SubCategoryFilterManager />}
-        {activeTab === 'users' && <div className={styles.placeholder}>User management coming soon...</div>}
+        {activeTab === 'users' && <UserManager />}
         {activeTab === 'reports' && <div className={styles.placeholder}>Reports management coming soon...</div>}
       </div>
     </div>

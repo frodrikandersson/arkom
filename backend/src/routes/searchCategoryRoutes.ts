@@ -16,6 +16,9 @@ import {
     deleteSubCategoryFilter,
     updateSubCategoryFilterOption,
     deleteSubCategoryFilterOption,
+    getCategoryFilters,
+    assignFilterToCategory,
+    removeFilterFromCategory,
 } from '../controllers/searchCategoryController.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
 import { requireAdmin } from '../middleware/adminMiddleware.js';
@@ -44,5 +47,9 @@ router.delete('/sub-category-filters/:id', requireAuth, requireAdmin, deleteSubC
 
 router.put('/sub-category-filter-options/:id', requireAuth, requireAdmin, updateSubCategoryFilterOption);
 router.delete('/sub-category-filter-options/:id', requireAuth, requireAdmin, deleteSubCategoryFilterOption);
+
+router.get('/categories/:categoryId/filters', requireAuth, requireAdmin, getCategoryFilters);
+router.post('/categories/filters/assign', requireAuth, requireAdmin, assignFilterToCategory);
+router.delete('/categories/:categoryId/filters/:filterId', requireAuth, requireAdmin, removeFilterFromCategory);
 
 export default router;

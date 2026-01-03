@@ -80,20 +80,22 @@ export const ThemeEditorModal = ({ isOpen, theme, onClose, onSave, onPreview }: 
       id: editingTheme.id,
       name: editingTheme.name,
       colors: {
-        background: '#0A0A0A',
-        foreground: '#1F1F1F',
-        card: '#151515',
-        cardBorder: '#2A2A2A',
-        text: '#FFFFFF',
-        textSecondary: '#888888',
-        accent: '#00D9FF',
-        accentHover: '#00B8D9',
-        error: '#FF4444',
-        success: '#00FF88',
+        background: '#0a0a0a',
+        foreground: '#1a1a1a',
+        card: '#1f1f1f',
+        cardBorder: '#333333',
+        text: '#f0f0f0',
+        textSecondary: '#cccccc',
+        accent: '#00d9ff',
+        accentHover: '#00b8e6',
+        error: '#ff4444',
+        errorHover: '#ff6666',
+        success: '#00ff88',
       },
     };
     setEditingTheme(defaultDarkTheme);
   };
+
 
 
   const handleOverlayClick = (e: React.MouseEvent) => {
@@ -112,8 +114,10 @@ export const ThemeEditorModal = ({ isOpen, theme, onClose, onSave, onPreview }: 
     accent: 'Accent',
     accentHover: 'Accent Hover',
     error: 'Error',
+    errorHover: 'Error Hover',
     success: 'Success',
   };
+
 
   if (!isOpen) return null;
 

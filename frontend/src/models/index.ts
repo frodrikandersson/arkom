@@ -9,3 +9,4 @@ export * from './Notification';
 export * from './Chat';
 export * from './Service';
 export * from './Category';
+export * from './Admin';

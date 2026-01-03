@@ -424,6 +424,20 @@ export const subCategoryFilterOptions = pgTable('sub_category_filter_options', {
   filterIdIdx: index('sub_category_filter_options_filter_id_idx').on(table.filterId),
 }));
 
+// Category to sub-category filter assignments (many-to-many)
+export const categorySubCategoryFilters = pgTable('category_sub_category_filters', {
+  id: serial('id').primaryKey(),
+  categoryId: integer('category_id').notNull().references(() => categories.id, { onDelete: 'cascade' }),
+  filterId: integer('filter_id').notNull().references(() => subCategoryFilters.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  // Unique constraint: prevent duplicate filter assignments
+  uniqueCategoryFilter: unique().on(table.categoryId, table.filterId),
+  // Index for faster queries
+  categoryIdIdx: index('category_sub_category_filters_category_id_idx').on(table.categoryId),
+}));
+
+
 // Service search categories (what users select for their services)
 export const serviceSearchCategories = pgTable('service_search_categories', {
   id: serial('id').primaryKey(),

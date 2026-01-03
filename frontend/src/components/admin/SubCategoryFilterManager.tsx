@@ -260,6 +260,7 @@ export const SubCategoryFilterManager = () => {
             type="text"
             value={newFilterName}
             onChange={(e) => setNewFilterName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleCreateFilter()}
             placeholder="Enter filter name (e.g. Subject, Type)"
             className={styles.input}
             autoFocus
@@ -292,6 +293,7 @@ export const SubCategoryFilterManager = () => {
                   type="text"
                   value={editFilterName}
                   onChange={(e) => setEditFilterName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSaveFilter(filter.id)}
                   className={styles.input}
                   autoFocus
                   style={{ flex: 1 }}
@@ -330,6 +332,7 @@ export const SubCategoryFilterManager = () => {
                       type="text"
                       value={newOptionName}
                       onChange={(e) => setNewOptionName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleCreateOption(filter.id)}
                       placeholder="Enter option name"
                       className={styles.input}
                       autoFocus
@@ -362,6 +365,7 @@ export const SubCategoryFilterManager = () => {
                           type="text"
                           value={editOptionName}
                           onChange={(e) => setEditOptionName(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleSaveOption(option.id)}
                           className={styles.input}
                           autoFocus
                           style={{ flex: 1 }}

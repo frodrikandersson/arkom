@@ -67,7 +67,7 @@ class ApiClient {
         this.tokenCache = null;
     }
 
-    private async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+    private async request<T>(endpoint: string, options: RequestOptions = {}, retryCount = 0): Promise<T> {
         const { method = 'GET', body, headers = {}, queryParams } = options;
 
         // Build URL with query params
@@ -110,9 +110,11 @@ class ApiClient {
 
         // Handle errors
         if (!res.ok) {
-            // If 401, clear token cache and retry once
-            if (res.status === 401 && this.tokenCache) {
+            // If 401 and we haven't retried yet, clear token cache and retry once
+            if (res.status === 401 && retryCount === 0 && this.tokenCache) {
                 this.clearTokenCache();
+                // Retry the request with a fresh token
+                return this.request<T>(endpoint, options, retryCount + 1);
             }
             
             throw new ApiError(
@@ -124,6 +126,7 @@ class ApiClient {
 
         return data;
     }
+
 
     async get<T>(endpoint: string, queryParams?: Record<string, string>): Promise<T> {
         return this.request<T>(endpoint, { method: 'GET', queryParams });

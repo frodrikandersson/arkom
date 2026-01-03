@@ -1,7 +1,7 @@
 // backend/src/controllers/searchCategoryController.ts
 import { Request, Response } from 'express';
 import { db } from '../config/db.js';
-import { catalogues, categories, subCategoryFilters, subCategoryFilterOptions } from '../config/schema.js';
+import { catalogues, categories, subCategoryFilters, subCategoryFilterOptions, categorySubCategoryFilters } from '../config/schema.js';
 import { eq, asc } from 'drizzle-orm';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { AppError } from '../middleware/errorMiddleware.js';
@@ -300,3 +300,61 @@ export const deleteSubCategoryFilterOption = asyncHandler(async (req: Request, r
   });
 });
 
+// Get filters assigned to a category
+export const getCategoryFilters = asyncHandler(async (req: Request, res: Response) => {
+  const { categoryId } = req.params;
+  const categoryIdInt = parseInt(categoryId);
+
+  const result = await db
+    .select({
+      id: categorySubCategoryFilters.id,
+      filterId: subCategoryFilters.id,
+      filterName: subCategoryFilters.name,
+      sortOrder: subCategoryFilters.sortOrder,
+    })
+    .from(categorySubCategoryFilters)
+    .innerJoin(subCategoryFilters, eq(categorySubCategoryFilters.filterId, subCategoryFilters.id))
+    .where(eq(categorySubCategoryFilters.categoryId, categoryIdInt))
+    .orderBy(asc(subCategoryFilters.sortOrder));
+
+  res.json({
+    success: true,
+    filters: result,
+  });
+});
+
+// Assign a filter to a category
+export const assignFilterToCategory = asyncHandler(async (req: Request, res: Response) => {
+  const { categoryId, filterId } = req.body;
+
+  if (!categoryId || !filterId) {
+    throw new AppError(400, 'Category ID and Filter ID are required');
+  }
+
+  const [assignment] = await db
+    .insert(categorySubCategoryFilters)
+    .values({ categoryId, filterId })
+    .returning();
+
+  res.status(201).json({
+    success: true,
+    assignment,
+  });
+});
+
+// Remove a filter from a category
+export const removeFilterFromCategory = asyncHandler(async (req: Request, res: Response) => {
+  const { categoryId, filterId } = req.params;
+
+  await db
+    .delete(categorySubCategoryFilters)
+    .where(
+      eq(categorySubCategoryFilters.categoryId, parseInt(categoryId)) &&
+      eq(categorySubCategoryFilters.filterId, parseInt(filterId))
+    );
+
+  res.json({
+    success: true,
+    message: 'Filter removed from category successfully',
+  });
+});
