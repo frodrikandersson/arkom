@@ -19,7 +19,7 @@ export const useServiceManager = (userId: string) => {
     
     setLoading(true);
     try {
-      const fetchedCategories = await serviceCategoryApi.getCategories(userId);
+      const fetchedCategories = await serviceCategoryApi.getCategories();
       setCategories([
         { id: 'other', name: 'Other', sortOrder: 0 },
         ...fetchedCategories

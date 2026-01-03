@@ -4,7 +4,7 @@ import { CreateCategoryData, ServiceCategory, SortOrderUpdate, SubCategoryFilter
 
 
 
-export const getCategories = async (userId: string): Promise<ServiceCategory[]> => {
+export const getCategories = async (): Promise<ServiceCategory[]> => {
   const response = await api.get<{ success: boolean; categories: ServiceCategory[] }>('/api/service/categories');
   return response.categories;
 };
