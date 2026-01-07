@@ -28,6 +28,9 @@ export const ForgotPasswordPage: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      <Link to="/" className={styles.logo}>
+        <span className={styles.logoText}>Arkom</span>
+      </Link>
       <div className={styles.card}>
         <h1 className={styles.title}>Forgot Password</h1>
 

@@ -75,6 +75,9 @@ export const ResetPasswordPage: React.FC = () => {
   if (validatingToken) {
     return (
       <div className={styles.container}>
+        <Link to="/" className={styles.logo}>
+          <span className={styles.logoText}>Arkom</span>
+        </Link>
         <div className={styles.card}>
           <h1 className={styles.title}>Reset Password</h1>
           <p className={styles.description}>Validating your reset link...</p>
@@ -86,6 +89,9 @@ export const ResetPasswordPage: React.FC = () => {
   if (!tokenValid && !success) {
     return (
       <div className={styles.container}>
+        <Link to="/" className={styles.logo}>
+          <span className={styles.logoText}>Arkom</span>
+        </Link>
         <div className={styles.card}>
           <h1 className={styles.title}>Invalid Link</h1>
 
@@ -105,6 +111,9 @@ export const ResetPasswordPage: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      <Link to="/" className={styles.logo}>
+        <span className={styles.logoText}>Arkom</span>
+      </Link>
       <div className={styles.card}>
         <h1 className={styles.title}>Reset Password</h1>
 
