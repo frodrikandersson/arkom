@@ -1,4 +1,3 @@
-// File size limits in bytes
 export const FILE_SIZE_LIMITS = {
   // Chat/messaging attachments
   MESSAGE_ATTACHMENT: 10 * 1024 * 1024,        // 10MB

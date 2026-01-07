@@ -1,15 +1,16 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode, useRef } from 'react';
 import type { Theme } from '../models/Theme';
 import { defaultDarkTheme, defaultLightTheme } from '../models/Theme';
 import { getUserThemes, getUserActiveTheme, setActiveTheme, createTheme as createThemeAPI, updateTheme as updateThemeAPI } from '../services/themeService';
+import { useAuth } from './AuthContext';
 
 interface ThemeContextType {
   currentTheme: Theme;
   customTheme: Theme | null;
-  setTheme: (theme: Theme, userId?: string | null) => Promise<void>;
-  previewTheme: (theme: Theme) => void; // Live preview without saving
-  saveCustomTheme: (theme: Theme, userId: string) => Promise<void>;
-  loadUserThemes: (userId: string) => Promise<void>;
+  setTheme: (theme: Theme) => Promise<void>;
+  previewTheme: (theme: Theme) => void;
+  saveCustomTheme: (theme: Theme) => Promise<void>;
+  loadUserThemes: () => Promise<void>;
   resetToDefault: () => void;
   isLoading: boolean;
 }
@@ -18,21 +19,43 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 interface ThemeProviderProps {
   children: ReactNode;
-  userId?: string | null;
 }
 
-export const ThemeProvider = ({ children, userId }: ThemeProviderProps) => {
+export const ThemeProvider = ({ children }: ThemeProviderProps) => {
+  const { user } = useAuth(); // Get user from AuthContext instead of props
+  const userId = user?.id ?? null;
+
   const [currentTheme, setCurrentTheme] = useState<Theme>(defaultDarkTheme);
   const [customTheme, setCustomTheme] = useState<Theme | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Track previous userId to prevent re-loading on Stack Auth token refresh
+  const prevUserIdRef = useRef<string | null>(userId);
+  const isInitialMount = useRef(true);
+
   // Load user themes when userId changes
   useEffect(() => {
-    if (userId) {
-      loadUserThemes(userId);
-    } else {
-      // User logged out, reset to default
-      resetToDefault();
+    // On initial mount, load themes without comparison
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      prevUserIdRef.current = userId;
+
+      if (userId) {
+        loadUserThemes();
+      }
+      return;
+    }
+
+    // Only reload if userId actually changed (not just Stack Auth refresh)
+    if (userId !== prevUserIdRef.current) {
+      prevUserIdRef.current = userId;
+
+      if (userId) {
+        loadUserThemes();
+      } else {
+        // User logged out, reset to default
+        resetToDefault();
+      }
     }
   }, [userId]);
 
@@ -44,7 +67,7 @@ export const ThemeProvider = ({ children, userId }: ThemeProviderProps) => {
     });
   }, [currentTheme]);
 
-  const setTheme = async (theme: Theme, userId?: string | null) => {
+  const setTheme = async (theme: Theme) => {
     setCurrentTheme(theme);
     
     // Save active theme selection to database if user is logged in
@@ -58,7 +81,6 @@ export const ThemeProvider = ({ children, userId }: ThemeProviderProps) => {
   };
 
   const previewTheme = (theme: Theme) => {
-    // Just update the current theme visually, don't save to database
     setCurrentTheme(theme);
   };
 
@@ -67,32 +89,28 @@ export const ThemeProvider = ({ children, userId }: ThemeProviderProps) => {
     setCustomTheme(null);
   };
 
-  const loadUserThemes = async (userId: string) => {
+  const loadUserThemes = async () => {
+    if (!userId) return;
+    
     try {
       setIsLoading(true);
       
-      // Load custom themes
       const themes = await getUserThemes(userId);
       
-      // Get the user's custom theme (should only be one)
       if (themes && Array.isArray(themes) && themes.length > 0) {
         const userCustomTheme = themes.find((t: any) => t.themeData?.id?.startsWith('custom-'));
-      if (userCustomTheme) {
-        setCustomTheme(userCustomTheme.themeData);
-
-      }
+        if (userCustomTheme) {
+          setCustomTheme(userCustomTheme.themeData);
+        }
       }
       
-      // Load active theme ID
       const activeThemeId = await getUserActiveTheme(userId);
       if (activeThemeId) {
-        // Check if it's a default theme
         if (activeThemeId === 'dark') {
           setCurrentTheme(defaultDarkTheme);
         } else if (activeThemeId === 'light') {
           setCurrentTheme(defaultLightTheme);
         } else {
-          // It's the custom theme
           const customTheme = themes?.find((t: any) => t.themeData?.id === activeThemeId);
           if (customTheme) {
             setCurrentTheme(customTheme.themeData);
@@ -106,22 +124,18 @@ export const ThemeProvider = ({ children, userId }: ThemeProviderProps) => {
     }
   };
 
-  const saveCustomTheme = async (theme: Theme, userId: string) => {
+  const saveCustomTheme = async (theme: Theme) => {
+    if (!userId) return;
+    
     try {
-      // Check if custom theme already exists
       if (customTheme) {
-        // Update existing
         await updateThemeAPI(theme);
       } else {
-        // Create new
         await createThemeAPI(userId, theme, false);
       }
       
-      // Update local state
       setCustomTheme(theme);
-      
-      // Reload to ensure sync
-      await loadUserThemes(userId);
+      await loadUserThemes();
     } catch (err) {
       console.error('Failed to save custom theme:', err);
       throw err;

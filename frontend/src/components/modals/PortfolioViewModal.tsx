@@ -1,9 +1,12 @@
-// frontend/src/components/modals/PortfolioViewModal.tsx
 import { Portfolio } from '../../models/Portfolio';
 import { YouTubeEmbed } from '../common/YouTubeEmbed';
 import { SensitiveMediaOverlay } from '../common/SensitiveMediaOverlay';
 import { useMediaCarousel } from '../../hooks/useMediaCarousel';
 import styles from './PortfolioViewModal.module.css';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getServiceById } from '../../services/serviceService';
+import { Service } from '../../models';
 
 interface PortfolioViewModalProps {
   portfolio: Portfolio;
@@ -11,7 +14,10 @@ interface PortfolioViewModalProps {
 }
 
 export const PortfolioViewModal = ({ portfolio, onClose }: PortfolioViewModalProps) => {
+  const navigate = useNavigate();
   const media = portfolio.media || [];
+  const [linkedService, setLinkedService] = useState<Service | null>(null);
+
   const {
     selectedMediaIndex,
     currentMedia,
@@ -20,6 +26,30 @@ export const PortfolioViewModal = ({ portfolio, onClose }: PortfolioViewModalPro
     selectMedia,
     handleKeyDown,
   } = useMediaCarousel(media);
+
+  // Load linked service if exists
+  useEffect(() => {
+    const loadService = async () => {
+      if (portfolio.linkedToCommission && portfolio.commissionServiceId) {
+        try {
+          const { service } = await getServiceById(portfolio.commissionServiceId);
+          setLinkedService(service);
+        } catch (error) {
+          console.error('Failed to load linked service:', error);
+        }
+      }
+    };
+    loadService();
+  }, [portfolio.linkedToCommission, portfolio.commissionServiceId]);
+
+  const handleServiceClick = () => {
+    if (linkedService) {
+      // Close the portfolio modal first
+      onClose();
+      // Navigate to the user's profile with services tab and service ID
+      navigate(`/profile/${linkedService.userId}?tab=services&serviceId=${linkedService.id}`);
+    }
+  };
 
   return (
     <div className={styles.overlay} onClick={onClose} onKeyDown={(e) => handleKeyDown(e, onClose)} tabIndex={0}>
@@ -81,22 +111,41 @@ export const PortfolioViewModal = ({ portfolio, onClose }: PortfolioViewModalPro
         )}
 
         {/* Portfolio Info */}
-        <div className={styles.info}>
-          <h2 className={styles.title}>{portfolio.title}</h2>
-          {portfolio.description && (
-            <p className={styles.description}>{portfolio.description}</p>
-          )}
-          {portfolio.tags && portfolio.tags.length > 0 && (
-            <div className={styles.tags}>
-              {portfolio.tags.map((tag, index) => (
-                <span key={index} className={styles.tag}>
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+        <div className={styles.infoSection}>
+          <div className={styles.info}>
+            <h2 className={styles.title}>{portfolio.title}</h2>
+            {portfolio.description && (
+              <p className={styles.description}>{portfolio.description}</p>
+            )}
+            {portfolio.tags && portfolio.tags.length > 0 && (
+              <div className={styles.tags}>
+                {portfolio.tags.map((tag, index) => (
+                  <span key={index} className={styles.tag}>
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
 
+          </div>
+          {/* Service Link Button */}
+          <div className={styles.serviceButtonSection}>
+            {linkedService && (
+              <button className={styles.serviceButton} onClick={handleServiceClick}>
+                <svg className={styles.serviceIcon} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 6v6l4 2"/>
+                </svg>
+                <span className={styles.serviceButtonText}>
+                  Request this Service
+                </span>
+                <span className={styles.servicePrice}>
+                  From €{((linkedService.requestingProcess === 'custom_proposal' ? linkedService.basePrice : linkedService.fixedPrice) / 100).toFixed(2)}
+                </span>
+              </button>
+            )}
+          </div>
+        </div>
         {/* Thumbnail Strip */}
         {media.length > 1 && (
           <div className={styles.thumbnailSection}>
@@ -154,6 +203,8 @@ export const PortfolioViewModal = ({ portfolio, onClose }: PortfolioViewModalPro
             </button>
           </div>
         )}
+
+
       </div>
     </div>
   );

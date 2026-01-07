@@ -15,54 +15,49 @@ export const useNotifications = (userId: string | null) => {
   const errorCountRef = useRef(0); // Track consecutive errors
   const isFirstFetchRef = useRef(true);
 
-  const fetchNotifications = useCallback(async () => {
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
+const fetchNotifications = useCallback(async () => {
+  if (!userId) {
+    setLoading(false);
+    return;
+  }
 
-    try {
-      // Only set loading on first fetch to avoid layout shifts
-      if (isFirstFetchRef.current) {
-        setLoading(true);
-      }
-      
-      const data = await getUserNotifications(userId);
-      setNotifications(data.notifications);
-      setUnreadCount(data.unreadCount);
-      
-      // Reset error state on success
-      if (error) {
-        setError(null);
-      }
-      errorCountRef.current = 0;
-      
-      if (isFirstFetchRef.current) {
-        isFirstFetchRef.current = false;
-        setLoading(false);
-      }
-    } catch (err: any) {
-      errorCountRef.current++;
-      
-      // Only update error state after multiple consecutive failures
-      // This prevents single network blips from causing re-renders
-      if (errorCountRef.current >= 3) {
-        const errorMessage = err.message || 'Failed to fetch notifications';
-        // Only set error if it's different to avoid unnecessary re-renders
-        if (error !== errorMessage) {
-          setError(errorMessage);
-        }
-        console.error('Fetch notifications error (3+ failures):', err);
-      } else {
-        // Silent failure for first 2 errors - just log to console
-        console.warn(`Fetch notifications warning (${errorCountRef.current}/3):`, err);
-      }
-    } finally {
-      if (isFirstFetchRef.current) {
-        setLoading(false);
-      }
+  try {
+    // Only set loading on first fetch to avoid layout shifts
+    if (isFirstFetchRef.current) {
+      setLoading(true);
     }
-  }, [userId, error]); // Include error in deps to check if it changed
+    
+    const data = await getUserNotifications(userId);
+    setNotifications(data.notifications);
+    setUnreadCount(data.unreadCount);
+    
+    // Reset error state on success - use callback form to avoid dependency
+    setError(prevError => prevError ? null : null);
+    errorCountRef.current = 0;
+    
+    if (isFirstFetchRef.current) {
+      isFirstFetchRef.current = false;
+      setLoading(false);
+    }
+  } catch (err: any) {
+    errorCountRef.current++;
+    
+    // Only update error state after multiple consecutive failures
+    if (errorCountRef.current >= 3) {
+      const errorMessage = err.message || 'Failed to fetch notifications';
+      // Use callback form to avoid error dependency
+      setError(prevError => prevError === errorMessage ? prevError : errorMessage);
+      console.error('Fetch notifications error (3+ failures):', err);
+    } else {
+      console.warn(`Fetch notifications warning (${errorCountRef.current}/3):`, err);
+    }
+  } finally {
+    if (isFirstFetchRef.current) {
+      setLoading(false);
+    }
+  }
+}, [userId]); // REMOVED error from dependencies!
+
 
   const markAsRead = useCallback(async (notificationId: number) => {
     if (!userId) return;

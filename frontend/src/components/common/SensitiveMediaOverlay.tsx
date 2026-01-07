@@ -1,4 +1,3 @@
-// frontend/src/components/common/SensitiveMediaOverlay.tsx
 import { useState } from 'react';
 import { SensitiveContentType } from '../../models/Portfolio';
 import styles from './SensitiveMediaOverlay.module.css';

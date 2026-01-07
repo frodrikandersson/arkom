@@ -312,6 +312,9 @@ export const SubCategoryFilterManager = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, cursor: 'pointer' }} onClick={() => toggleFilter(filter.id)}>
                   <span className={styles.arrow}>{expandedFilterId === filter.id ? '▼' : '▶'}</span>
                   <span className={styles.filterName}>{filter.name}</span>
+                  {filter.categoryCount !== undefined && filter.categoryCount > 0 && (
+                    <span className={styles.categoryCount}>({filter.categoryCount})</span>
+                  )}
                 </div>
                 <div className={styles.actions}>
                   <button onClick={() => handleEditFilter(filter)} className={styles.editBtn}>
@@ -323,6 +326,7 @@ export const SubCategoryFilterManager = () => {
                 </div>
               </div>
             )}
+
             
             {expandedFilterId === filter.id && (
               <div className={styles.optionsList}>

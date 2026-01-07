@@ -1,5 +1,15 @@
 import { pgTable, serial, text, timestamp, integer, json, boolean, unique, index } from 'drizzle-orm/pg-core';
 
+// User credentials (stores email and hashed passwords for authentication)
+export const userCredentials = pgTable('user_credentials', {
+  id: serial('id').primaryKey(),
+  userId: text('user_id').notNull().unique(), // UUID format
+  email: text('email').notNull().unique(),
+  passwordHash: text('password_hash').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // User counter
 export const userCounters = pgTable('user_counters', {
   id: serial('id').primaryKey(),
@@ -131,7 +141,7 @@ export const portfolios = pgTable('portfolios', {
   
   // Commission link
   linkedToCommission: boolean('linked_to_commission').default(false),
-  commissionServiceId: integer('commission_service_id').references(() => commissionServices.id, { onDelete: 'set null' }),
+  commissionServiceId: integer('commission_service_id').references(() => services.id, { onDelete: 'set null' }),
   
   // Sensitive content
   hasSensitiveContent: boolean('has_sensitive_content').default(false),
@@ -238,27 +248,100 @@ export const services = pgTable('services', {
   id: serial('id').primaryKey(),
   userId: text('user_id').notNull(),
   categoryId: integer('category_id').references(() => serviceCategories.id, { onDelete: 'cascade' }),
-  
+
   // Service details
   title: text('title').notNull(),
   description: text('description'),
-  
+
+  // Setup tab fields
+  serviceType: text('service_type').notNull().default('custom'), // 'custom' | 'personalized'
+  communicationStyle: text('communication_style').notNull().default('open'), // 'open' | 'surprise'
+  requestingProcess: text('requesting_process').notNull().default('custom_proposal'), // 'custom_proposal' | 'instant_order'
+
   // Pricing
-  basePrice: integer('base_price').notNull(), // In cents
-  currency: text('currency').notNull().default('USD'),
-  
+  basePrice: integer('base_price').default(0), // In cents, for custom_proposal
+  fixedPrice: integer('fixed_price').default(0), // In cents, for instant_order
+  currency: text('currency').notNull().default('EUR'),
+
+  // Proposal template (for custom_proposal)
+  proposalScope: text('proposal_scope'),
+  estimatedStart: text('estimated_start').default('This month'),
+  guaranteedDelivery: text('guaranteed_delivery').default('7 days'),
+
+  // Search tags
+  searchTags: json('search_tags'), // Array of strings
+
+  // Slots data
+  slotsData: json('slots_data'), // SlotsData object
+
+  // Workflow, Request Form, Terms
+  workflowId: text('workflow_id'),
+  requestFormId: text('request_form_id'),
+  termsId: text('terms_id'),
+
+  // Dates
+  startDate: timestamp('start_date'),
+  endDate: timestamp('end_date'),
+
   // Status
+  status: text('status').notNull().default('DRAFT'), // 'OPEN' | 'WAITLIST' | 'CLOSED' | 'UNLISTED' | 'DRAFT'
   isActive: boolean('is_active').default(true),
-  
+  notifyFollowers: boolean('notify_followers').default(false),
+
   // Stats
   orderCount: integer('order_count').default(0),
-  
+
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
   userIdIdx: index('services_user_id_idx').on(table.userId),
   categoryIdIdx: index('services_category_id_idx').on(table.categoryId),
+}));
+
+// Service Media (multiple images/videos per service)
+export const serviceMedia = pgTable('service_media', {
+  id: serial('id').primaryKey(),
+  serviceId: integer('service_id').notNull().references(() => services.id, { onDelete: 'cascade' }),
+
+  // Media details
+  mediaType: text('media_type').notNull(), // 'image' or 'youtube'
+
+  // For images: fileUrl, thumbnailUrl, fileSize
+  fileUrl: text('file_url'), // S3/Storage URL for images
+  thumbnailUrl: text('thumbnail_url'), // Thumbnail for images
+  fileSize: integer('file_size'), // In bytes, max 8MB (8388608 bytes)
+  mimeType: text('mime_type'), // 'image/jpeg', 'image/png', 'image/gif', 'image/webp'
+
+  // For YouTube: youtubeUrl, youtubeVideoId
+  youtubeUrl: text('youtube_url'), // Full YouTube URL
+  youtubeVideoId: text('youtube_video_id'), // Extracted video ID
+
+  // Sorting order (0 = first to display)
+  sortOrder: integer('sort_order').notNull().default(0),
+
+  // Sensitive content (media-level)
+  hasSensitiveContent: boolean('has_sensitive_content').default(false).notNull(),
+
+  // Timestamps
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  // Index for faster queries
+  serviceIdIdx: index('service_media_service_id_idx').on(table.serviceId),
+  sortOrderIdx: index('service_media_sort_order_idx').on(table.serviceId, table.sortOrder),
+}));
+
+// Service Media Sensitive Content (junction table)
+export const serviceMediaSensitiveContent = pgTable('service_media_sensitive_content', {
+  id: serial('id').primaryKey(),
+  mediaId: integer('media_id').notNull().references(() => serviceMedia.id, { onDelete: 'cascade' }),
+  contentTypeId: integer('content_type_id').notNull().references(() => sensitiveContentTypes.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  // Unique constraint: prevent duplicate content type assignments
+  uniqueMediaContentType: unique().on(table.mediaId, table.contentTypeId),
+  // Index for faster queries
+  mediaIdIdx: index('service_media_sensitive_content_media_id_idx').on(table.mediaId),
 }));
 
 // Notifications
@@ -375,8 +458,6 @@ export const userUploadBehavior = pgTable('user_upload_behavior', {
   suspiciousPatterns: text('suspicious_patterns'), // JSON string
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
-
-// Add to backend/src/config/schema.ts
 
 // Main catalogues (top level)
 export const catalogues = pgTable('catalogues', {

@@ -12,6 +12,9 @@ export const useAlertButton = (onOpenChat?: OnOpenChatFunction) => {
   const [isMobile, setIsMobile] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
+  // Extract userId as stable primitive
+  const userId = user?.id ?? null;
+  
   const {
     notifications,
     unreadCount,
@@ -20,7 +23,7 @@ export const useAlertButton = (onOpenChat?: OnOpenChatFunction) => {
     markAsRead,
     markAllAsRead,
     deleteNotification,
-  } = useNotifications(user?.id || null);
+  } = useNotifications(userId);
 
   // Mobile detection
   useEffect(() => {
@@ -32,10 +35,10 @@ export const useAlertButton = (onOpenChat?: OnOpenChatFunction) => {
 
   // Refetch when dropdown opens
   useEffect(() => {
-    if (isOpen && user?.id) {
+    if (isOpen && userId) {
       refetch();
     }
-  }, [isOpen, user?.id, refetch]);
+  }, [isOpen, userId, refetch]); // Use stable userId instead of user?.id
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -93,7 +96,7 @@ export const useAlertButton = (onOpenChat?: OnOpenChatFunction) => {
         if (conversationId && notification.relatedUserId && user?.id) {
           // Fetch user conversations to get proper user details
           try {
-            const conversations = await getConversations(user.id);
+            const { conversations } = await getConversations(user.id);
             const conversation = conversations.find(c => c.conversationId === parseInt(conversationId));
             
             // Check if mobile view

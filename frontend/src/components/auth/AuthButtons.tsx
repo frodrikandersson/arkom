@@ -1,4 +1,4 @@
-import { stackClientApp } from '../../config/stack';
+import { Link } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import styles from './AuthButtons.module.css';
 
@@ -10,9 +10,10 @@ interface AuthButtonsProps {
 export const AuthButtons = ({ isLoggedIn, userName }: AuthButtonsProps) => {
   const { resetToDefault } = useTheme();
 
-  const handleSignOut = async () => {
+  const handleSignOut = () => {
     resetToDefault(); // Reset to default theme on logout
-    await stackClientApp.signOut();
+    localStorage.removeItem('auth_token');
+    window.location.href = '/';
   };
 
   if (isLoggedIn) {
@@ -29,9 +30,9 @@ export const AuthButtons = ({ isLoggedIn, userName }: AuthButtonsProps) => {
   return (
     <div className={styles.container}>
       <div className={styles.authLinks}>
-        <a href="/handler/sign-in" className={styles.authLink}>Sign In</a>
+        <Link to="/login" className={styles.authLink}>Sign In</Link>
         <span className={styles.separator}>|</span>
-        <a href="/handler/sign-up" className={styles.authLink}>Sign Up</a>
+        <Link to="/signup" className={styles.authLink}>Sign Up</Link>
       </div>
     </div>
   );

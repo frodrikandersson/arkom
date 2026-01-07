@@ -1,4 +1,3 @@
-// frontend/src/pages/ShopDashboard.tsx
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ShopSidebar } from '../components/portfolio/ShopSidebar';

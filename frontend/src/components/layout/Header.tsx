@@ -80,8 +80,8 @@ export const Header = ({
           
           {!isLoggedIn && (
             <div className={styles.authButtons}>
-              <a href="/handler/sign-in" className={styles.signInButton}>Sign In</a>
-              <a href="/handler/sign-up" className={styles.signUpButton}>Sign Up</a>
+              <Link to="/login" className={styles.signInButton}>Sign In</Link>
+              <Link to="/signup" className={styles.signUpButton}>Sign Up</Link>
             </div>
           )}
         </div>

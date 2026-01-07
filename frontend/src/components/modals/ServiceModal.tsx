@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SlotsModal, SlotsData } from './SlotsModal';
 import { SearchCategoryModal } from './SearchCategoryModal';
+import { ServiceDetailsTab, ServiceDetailsData } from './ServiceDetailsTab';
+import { useServiceMedia } from '../../hooks/useServiceMedia';
 import styles from './ServiceModal.module.css';
-import { SearchCategoryData } from '../../models';
+import { SearchCategoryData, Service } from '../../models';
+import { PortfolioMediaUpload } from '../../models/Portfolio';
 
 type ServiceStatus = 'OPEN' | 'WAITLIST' | 'CLOSED' | 'UNLISTED' | 'DRAFT';
 type ServiceTab = 'setup' | 'details' | 'workflow' | 'request-form' | 'terms';
@@ -15,43 +18,204 @@ interface ServiceModalProps {
   onSave: (serviceData: any) => void;
   defaultCategoryId?: string | number;
   categories: Array<{ id: string | number; name: string }>;
+  existingService?: Service | null;
 }
 
-export const ServiceModal = ({ 
-  onClose, 
-  onSave, 
+export const ServiceModal = ({
+  onClose,
+  onSave,
   defaultCategoryId,
-  categories 
+  categories,
+  existingService
 }: ServiceModalProps) => {
   const [activeTab, setActiveTab] = useState<ServiceTab>('setup');
-  const [categoryId, setCategoryId] = useState<string | number>(defaultCategoryId || 'other');
-  const [status, setStatus] = useState<ServiceStatus>('DRAFT');
-  const [notifyFollowers, setNotifyFollowers] = useState(false);
+  const [categoryId, setCategoryId] = useState<string | number>(
+    existingService?.categoryId ?? defaultCategoryId ?? 'other'
+  );
+  const [status, setStatus] = useState<ServiceStatus>(
+    (existingService?.status as ServiceStatus) || 'DRAFT'
+  );
+  const [notifyFollowers, setNotifyFollowers] = useState(existingService?.notifyFollowers ?? false);
   const [showSlotsModal, setShowSlotsModal] = useState(false);
-  const [slotsData, setSlotsData] = useState<SlotsData | null>(null);
+  const [slotsData, setSlotsData] = useState<SlotsData | null>(
+    existingService?.slotsData as SlotsData | null ?? null
+  );
   const [showSearchCategoryModal, setShowSearchCategoryModal] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorTimeoutId, setErrorTimeoutId] = useState<NodeJS.Timeout | null>(null);
 
   // Setup tab state
-  const [serviceType, setServiceType] = useState<ServiceType>('custom');
-  const [communicationStyle, setCommunicationStyle] = useState<CommunicationStyle>('open');
-  const [requestingProcess, setRequestingProcess] = useState<RequestingProcess>('custom_proposal');
-  const [searchCategoryData, setSearchCategoryData] = useState<SearchCategoryData | null>(null);
+  const [serviceType, setServiceType] = useState<ServiceType>(
+    (existingService?.serviceType as ServiceType) || 'custom'
+  );
+  const [communicationStyle, setCommunicationStyle] = useState<CommunicationStyle>(
+    (existingService?.communicationStyle as CommunicationStyle) || 'open'
+  );
+  const [requestingProcess, setRequestingProcess] = useState<RequestingProcess>(
+    (existingService?.requestingProcess as RequestingProcess) || 'custom_proposal'
+  );
+  // Initialize searchCategoryData from existing service if available
+  const [searchCategoryData, setSearchCategoryData] = useState<SearchCategoryData | null>(() => {
+    if (existingService?.searchCategoryData) {
+      const scd = existingService.searchCategoryData;
+      return {
+        isDiscoverable: scd.isDiscoverable ?? true,
+        catalogueId: scd.catalogueId,
+        categoryId: scd.categoryId,
+        subCategorySelections: scd.subCategorySelections || [],
+      };
+    }
+    return null;
+  });
 
+  // Start/End dates
+  const [startDate, setStartDate] = useState<string>(
+    existingService?.startDate ? new Date(existingService.startDate).toISOString().split('T')[0] : ''
+  );
+  const [endDate, setEndDate] = useState<string>(
+    existingService?.endDate ? new Date(existingService.endDate).toISOString().split('T')[0] : ''
+  );
 
-  // Check if required fields are filled to enable publish button
-  const canPublish = false; // TODO: Implement validation logic
+  // Details tab state
+  const [detailsData, setDetailsData] = useState<ServiceDetailsData>({
+    serviceName: existingService?.title || '',
+    currency: existingService?.currency || 'EUR',
+    basePrice: existingService?.basePrice ? (existingService.basePrice / 100).toString() : '0',
+    fixedPrice: existingService?.fixedPrice ? (existingService.fixedPrice / 100).toString() : '0',
+    proposalScope: existingService?.proposalScope || `Confirm what's going to be done if anything was unclear from the service description or additional add-ons were requested.\n\nIf everything is covered by the service description already, you can just send a "Thank you for your commission!"`,
+    estimatedStart: existingService?.estimatedStart || 'This month',
+    guaranteedDelivery: existingService?.guaranteedDelivery || '7 days',
+    description: existingService?.description || `Includes\n* [List of features]\n\n\nDetails\n* [File deliverables]\n* [Compatibility]\n\n\nAdd-ons\n* [List of options]\n\n\nImportant\n* [Important notes]\n`,
+    searchTags: (existingService?.searchTags as string[]) || [],
+    mediaItems: [],
+  });
+
+  // Media handlers from useServiceMedia hook
+  const {
+    mediaItems,
+    setMediaItems,
+    handleImageAdd,
+    handleYouTubeAdd,
+    handleRemoveMedia,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+    handleFileDrop,
+    handleDragOverDrop,
+    toggleMediaSensitiveContent,
+    toggleMediaSensitiveType,
+  } = useServiceMedia(12);
+
+  // Load existing media items when editing
+  useEffect(() => {
+    if (existingService?.media && existingService.media.length > 0) {
+      const convertedMedia: PortfolioMediaUpload[] = existingService.media.map((m) => ({
+        id: `existing-${m.id}`,
+        mediaType: m.mediaType as 'image' | 'youtube',
+        preview: m.fileUrl || undefined,
+        youtubeUrl: m.youtubeUrl || undefined,
+        sortOrder: m.sortOrder,
+        hasSensitiveContent: m.hasSensitiveContent,
+        sensitiveContentTypes: [],
+        // Keep reference to existing media for updates
+        existingMediaId: m.id,
+      }));
+      setMediaItems(convertedMedia);
+    }
+  }, [existingService, setMediaItems]);
+
+  // Sync mediaItems with detailsData
+  const handleDetailsDataChange = (data: Partial<ServiceDetailsData>) => {
+    setDetailsData(prev => ({ ...prev, ...data }));
+  };
+
+  // Workflow, Request Form, Terms state
+  const [workflowId, setWorkflowId] = useState<string>(existingService?.workflowId || '');
+  const [requestFormId, setRequestFormId] = useState<string>(existingService?.requestFormId || '');
+  const [termsId, setTermsId] = useState<string>(existingService?.termsId || '');
+
+  // Get validation errors
+  const getValidationErrors = (): string[] => {
+    const errors: string[] = [];
+
+    if (!detailsData.serviceName.trim()) {
+      errors.push('Service name is required');
+    }
+
+    if (!searchCategoryData) {
+      errors.push('Search category must be selected');
+    }
+
+    if (mediaItems.length === 0) {
+      errors.push('At least one media item is required');
+    }
+
+    if (requestingProcess === 'custom_proposal' && parseFloat(detailsData.basePrice) <= 0) {
+      errors.push('Base price must be greater than 0 for custom proposals');
+    }
+
+    if (requestingProcess === 'instant_order' && parseFloat(detailsData.fixedPrice) <= 0) {
+      errors.push('Fixed price must be greater than 0 for instant orders');
+    }
+
+    if (!detailsData.description.trim()) {
+      errors.push('Description is required');
+    }
+
+    return errors;
+  };
+
+  const validationErrors = getValidationErrors();
+  const canPublish = validationErrors.length === 0;
 
   const handlePublish = () => {
-    // TODO: Validate and save service data
+    if (!canPublish) {
+      // Clear any existing timeout
+      if (errorTimeoutId) {
+        clearTimeout(errorTimeoutId);
+      }
+
+      // Show the first error
+      setShowError(true);
+
+      // Set timeout to fade out after 10 seconds
+      const timeoutId = setTimeout(() => {
+        setShowError(false);
+      }, 10000);
+
+      setErrorTimeoutId(timeoutId);
+
+      return;
+    }
+
     const serviceData = {
+      // Sidebar data
       categoryId,
       status,
       notifyFollowers,
+      slotsData,
+      startDate,
+      endDate,
+      // Setup tab
+      searchCategoryData,
       serviceType,
       communicationStyle,
       requestingProcess,
-      slotsData,
-      // Add more fields as we build them
+      // Details tab
+      serviceName: detailsData.serviceName,
+      currency: detailsData.currency,
+      basePrice: detailsData.basePrice,
+      fixedPrice: detailsData.fixedPrice,
+      proposalScope: detailsData.proposalScope,
+      estimatedStart: detailsData.estimatedStart,
+      guaranteedDelivery: detailsData.guaranteedDelivery,
+      description: detailsData.description,
+      searchTags: detailsData.searchTags,
+      mediaItems,
+      // Other tabs
+      workflowId,
+      requestFormId,
+      termsId,
     };
     onSave(serviceData);
   };
@@ -152,13 +316,90 @@ export const ServiceModal = ({
           </div>
         );
       case 'details':
-        return <div className={styles.tabContent}>Details content goes here</div>;
+        return (
+          <ServiceDetailsTab
+            requestingProcess={requestingProcess}
+            onRequestingProcessChange={setRequestingProcess}
+            onNext={handleNextTab}
+            data={{ ...detailsData, mediaItems }}
+            onDataChange={handleDetailsDataChange}
+            mediaHandlers={{
+              handleImageAdd,
+              handleYouTubeAdd,
+              handleRemoveMedia,
+              toggleMediaSensitiveContent,
+              toggleMediaSensitiveType,
+              handleDragStart,
+              handleDragOver,
+              handleDragEnd,
+              handleFileDrop,
+              handleDragOverDrop,
+            }}
+          />
+        );
       case 'workflow':
-        return <div className={styles.tabContent}>Workflow content goes here</div>;
+        return (
+          <div className={styles.tabContent}>
+            <div className={styles.choiceRow}>
+              <select
+                className={styles.choiceSelect}
+                value={workflowId}
+                onChange={(e) => setWorkflowId(e.target.value)}
+              >
+                <option value="">Choose existing workflow</option>
+              </select>
+              <button type="button" className={styles.createNewButton}>
+                Create new
+              </button>
+            </div>
+
+            <div className={styles.field}>
+              <button className={styles.nextButton} onClick={handleNextTab}>
+                Next
+              </button>
+            </div>
+          </div>
+        );
       case 'request-form':
-        return <div className={styles.tabContent}>Request Form content goes here</div>;
+        return (
+          <div className={styles.tabContent}>
+            <div className={styles.choiceRow}>
+              <select
+                className={styles.choiceSelect}
+                value={requestFormId}
+                onChange={(e) => setRequestFormId(e.target.value)}
+              >
+                <option value="">Choose existing request form</option>
+              </select>
+              <button type="button" className={styles.createNewButton}>
+                Create new
+              </button>
+            </div>
+
+            <div className={styles.field}>
+              <button className={styles.nextButton} onClick={handleNextTab}>
+                Next
+              </button>
+            </div>
+          </div>
+        );
       case 'terms':
-        return <div className={styles.tabContent}>Terms of Service content goes here</div>;
+        return (
+          <div className={styles.tabContent}>
+            <div className={styles.choiceRow}>
+              <select
+                className={styles.choiceSelect}
+                value={termsId}
+                onChange={(e) => setTermsId(e.target.value)}
+              >
+                <option value="">Choose existing terms of service</option>
+              </select>
+              <button type="button" className={styles.createNewButton}>
+                Create new
+              </button>
+            </div>
+          </div>
+        );
       default:
         return null;
     }
@@ -172,13 +413,19 @@ export const ServiceModal = ({
           <button className={styles.closeBtn} onClick={onClose}>
             ✕
           </button>
-          <button 
-            className={styles.publishBtn}
-            onClick={handlePublish}
-            disabled={!canPublish}
-          >
-            Publish
-          </button>
+          <div className={styles.publishContainer}>
+            {validationErrors.length > 0 && showError && (
+              <div className={`${styles.validationErrors} ${showError ? styles.fadeIn : styles.fadeOut}`}>
+                {validationErrors[0]}
+              </div>
+            )}
+            <button
+              className={styles.publishBtn}
+              onClick={handlePublish}
+            >
+              {existingService ? 'Save' : 'Publish'}
+            </button>
+          </div>
         </div>
 
         {/* Main content area */}
@@ -230,16 +477,20 @@ export const ServiceModal = ({
             {/* Start/End date */}
             <div className={styles.sidebarSection}>
               <label className={styles.label}>Start Date</label>
-              <input 
-                type="date" 
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
                 className={styles.input}
               />
             </div>
 
             <div className={styles.sidebarSection}>
               <label className={styles.label}>End Date</label>
-              <input 
-                type="date" 
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
                 className={styles.input}
               />
             </div>

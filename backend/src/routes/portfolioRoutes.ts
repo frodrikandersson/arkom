@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import multer from 'multer';
 import {
   createPortfolio,
   getPortfolio,
@@ -13,24 +12,9 @@ import {
   getSensitiveContentTypes,
 } from '../controllers/portfolioController.js';
 import { requireAuth, optionalAuth } from '../middleware/authMiddleware.js';
+import { artworkUpload } from '../config/upload.js';
 
 const router = Router();
-
-// Configure multer for file uploads
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 8 * 1024 * 1024, // 8MB
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (allowedMimeTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Only JPG, PNG, GIF, and WEBP are allowed.'));
-    }
-  },
-});
 
 // Public routes
 router.get('/sensitive-content-types', getSensitiveContentTypes);
@@ -42,7 +26,7 @@ router.post('/', requireAuth, createPortfolio);
 router.put('/:id', requireAuth, updatePortfolio);
 router.put('/media/:mediaId/sensitive-content', requireAuth, updatePortfolioMediaSensitiveContent);
 router.delete('/:id', requireAuth, deletePortfolio);
-router.post('/:id/media', requireAuth, upload.single('file'), uploadPortfolioMedia);
+router.post('/:id/media', requireAuth, artworkUpload.single('file'), uploadPortfolioMedia);
 router.put('/media/:mediaId', requireAuth, updatePortfolioMedia);
 router.delete('/media/:mediaId', requireAuth, deletePortfolioMedia);
 

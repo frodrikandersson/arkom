@@ -11,6 +11,10 @@ const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 export const AdminProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
+  
+  // Extract ID as a stable primitive
+  const userId = user?.id ?? null;
+  
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -18,7 +22,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     let isMounted = true;
 
     const checkAdmin = async () => {
-      if (user) {
+      if (userId) {
         try {
           const adminStatus = await checkAdminStatus();
           if (isMounted) {
@@ -45,7 +49,7 @@ export const AdminProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       isMounted = false;
     };
-  }, [user?.id]); // Only re-run if user ID changes, not the entire user object
+  }, [userId]); // Depend on the extracted primitive, not user?.id
 
   return (
     <AdminContext.Provider value={{ isAdmin, loading }}>

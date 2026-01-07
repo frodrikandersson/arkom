@@ -1,4 +1,3 @@
-// backend/src/controllers/searchCategoryController.ts
 import { Request, Response } from 'express';
 import { db } from '../config/db.js';
 import { catalogues, categories, subCategoryFilters, subCategoryFilterOptions, categorySubCategoryFilters } from '../config/schema.js';
@@ -53,9 +52,16 @@ export const getSubCategoryFilters = asyncHandler(async (req: Request, res: Resp
         .where(eq(subCategoryFilterOptions.filterId, filter.id))
         .orderBy(asc(subCategoryFilterOptions.sortOrder));
 
+      // Count how many categories this filter is assigned to
+      const categoryCount = await db
+        .select()
+        .from(categorySubCategoryFilters)
+        .where(eq(categorySubCategoryFilters.filterId, filter.id));
+
       return {
         ...filter,
         options,
+        categoryCount: categoryCount.length,
       };
     })
   );
@@ -65,6 +71,7 @@ export const getSubCategoryFilters = asyncHandler(async (req: Request, res: Resp
     filters: filtersWithOptions,
   });
 });
+
 
 // Admin-only endpoints below
 // Create catalogue
@@ -307,19 +314,35 @@ export const getCategoryFilters = asyncHandler(async (req: Request, res: Respons
 
   const result = await db
     .select({
-      id: categorySubCategoryFilters.id,
-      filterId: subCategoryFilters.id,
-      filterName: subCategoryFilters.name,
+      id: subCategoryFilters.id,
+      name: subCategoryFilters.name,
       sortOrder: subCategoryFilters.sortOrder,
+      isActive: subCategoryFilters.isActive,
     })
     .from(categorySubCategoryFilters)
     .innerJoin(subCategoryFilters, eq(categorySubCategoryFilters.filterId, subCategoryFilters.id))
     .where(eq(categorySubCategoryFilters.categoryId, categoryIdInt))
     .orderBy(asc(subCategoryFilters.sortOrder));
 
+  // Fetch options for each filter
+  const filtersWithOptions = await Promise.all(
+    result.map(async (filter) => {
+      const options = await db
+        .select()
+        .from(subCategoryFilterOptions)
+        .where(eq(subCategoryFilterOptions.filterId, filter.id))
+        .orderBy(asc(subCategoryFilterOptions.sortOrder));
+
+      return {
+        ...filter,
+        options,
+      };
+    })
+  );
+
   res.json({
     success: true,
-    filters: result,
+    filters: filtersWithOptions,
   });
 });
 

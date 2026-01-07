@@ -1,4 +1,3 @@
-// frontend/src/components/navigation/BrowseMenu.tsx
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
@@ -8,11 +7,17 @@ export const BrowseMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      // Check if click is outside both the menu button and the dropdown
+      const isOutsideMenu = menuRef.current && !menuRef.current.contains(target);
+      const isOutsideDropdown = !dropdownRef.current || !dropdownRef.current.contains(target);
+
+      if (isOutsideMenu && isOutsideDropdown) {
         setIsOpen(false);
       }
     };
@@ -45,7 +50,7 @@ export const BrowseMenu = () => {
       </button>
       
       {isOpen && createPortal(
-        <div className={styles.dropdown} style={dropdownStyle}>
+        <div ref={dropdownRef} className={styles.dropdown} style={dropdownStyle}>
           <Link to="/commissions" className={styles.dropdownItem} onClick={() => setIsOpen(false)}>
             Commissions
           </Link>

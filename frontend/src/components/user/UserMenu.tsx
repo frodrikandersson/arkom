@@ -1,10 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useUserProfile } from '../../hooks/useUserProfile';
 import { defaultDarkTheme, defaultLightTheme, createDefaultCustomTheme } from '../../models/Theme';
-import { stackClientApp } from '../../config/stack';
 import { SocialFooter } from '../layout/SocialFooter';
 import { ThemeEditorModal } from '../modals/ThemeEditorModal';
 import styles from './UserMenu.module.css';
@@ -16,7 +15,6 @@ export const UserMenu = () => {
   const [showThemeEditor, setShowThemeEditor] = useState(false);
   const [showConfigure, setShowConfigure] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
 
   // Fetch user profile for custom profile image
   const { profile } = useUserProfile(user?.id || '');
@@ -33,28 +31,28 @@ export const UserMenu = () => {
   }, []);
 
 
-  const handleLogout = async () => {
-    await stackClientApp.signOut();
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
     setIsOpen(false);
-    navigate('/');
+    window.location.href = '/';
   };
 
   const handleThemeChange = async (themeId: 'dark' | 'light' | 'custom') => {
     if (themeId === 'dark') {
-      await setTheme(defaultDarkTheme, user?.id);
+      await setTheme(defaultDarkTheme);
       setShowConfigure(false);
     } else if (themeId === 'light') {
-      await setTheme(defaultLightTheme, user?.id);
+      await setTheme(defaultLightTheme);
       setShowConfigure(false);
     } else {
       // Custom theme selected - show configure button
       setShowConfigure(true);
       if (customTheme) {
-        await setTheme(customTheme, user?.id);
+        await setTheme(customTheme);
       } else if (user) {
         // Create default custom theme
         const newCustomTheme = createDefaultCustomTheme(user.id);
-        await setTheme(newCustomTheme, user.id);
+        await setTheme(newCustomTheme);
       }
     }
   };
@@ -66,8 +64,8 @@ export const UserMenu = () => {
 
   const handleSaveTheme = async (theme: typeof currentTheme) => {
     if (!user) return;
-    await saveCustomTheme(theme, user.id);
-    await setTheme(theme, user.id);
+    await saveCustomTheme(theme);
+    await setTheme(theme);
   };
 
   const getActiveThemeType = () => {
@@ -76,7 +74,7 @@ export const UserMenu = () => {
     return 'custom';
   };
 
-  const profileImage = profile?.profileImageUrl || user?.profileImageUrl || null;
+  const profileImage = profile?.profileImageUrl || null;
   const themeToEdit = customTheme || (user ? createDefaultCustomTheme(user.id) : defaultDarkTheme);
 
   return (
@@ -91,7 +89,7 @@ export const UserMenu = () => {
               <img src={profileImage} alt="Profile" className={styles.avatarImage} />
             ) : (
               <div className={styles.avatarPlaceholder}>
-                {user?.displayName?.[0]?.toUpperCase() || user?.primaryEmail?.[0]?.toUpperCase() || 'U'}
+                {user?.displayName?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
               </div>
             )}
           </div>

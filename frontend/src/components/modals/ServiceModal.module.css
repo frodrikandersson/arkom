@@ -4,13 +4,11 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: var(--color-background);
-  opacity: 0.98;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: fadeIn 0.2s;
 }
 
 @keyframes fadeIn {
@@ -18,7 +16,7 @@
     opacity: 0;
   }
   to {
-    opacity: 0.98;
+    opacity: 1;
   }
 }
 
@@ -72,6 +70,54 @@
   color: var(--color-text);
 }
 
+.publishContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+}
+
+.validationErrors {
+  background: var(--color-error);
+  color: var(--color-background);
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 13px;
+  max-width: 350px;
+  white-space: nowrap;
+}
+
+.fadeIn {
+  animation: fadeInError 0.3s ease-in-out;
+}
+
+.fadeOut {
+  animation: fadeOutError 0.3s ease-in-out;
+  opacity: 0;
+}
+
+@keyframes fadeInError {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeOutError {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+}
+
 .publishBtn {
   background: var(--color-accent);
   color: var(--color-background);
@@ -84,13 +130,8 @@
   transition: all 0.2s;
 }
 
-.publishBtn:hover:not(:disabled) {
+.publishBtn:hover {
   background: var(--color-accentHover);
-}
-
-.publishBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* Content area */
@@ -229,8 +270,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: var(--color-background);
-  opacity: 0.95;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -354,8 +394,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: var(--color-background);
-  opacity: 0.95;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -369,4 +408,382 @@
   padding: 2rem;
   max-width: 600px;
   width: 90%;
+}
+
+/* Details tab specific styles */
+.fieldRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.infoButton {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--color-accent);
+  background: transparent;
+  color: var(--color-accent);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.infoButton:hover {
+  background: var(--color-accent);
+  color: var(--color-background);
+}
+
+.infoBubble {
+  background: var(--color-foreground);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 0.75rem;
+}
+
+.infoBubbleSection {
+  margin-bottom: 1rem;
+}
+
+.infoBubbleSection:last-child {
+  margin-bottom: 0;
+}
+
+.infoBubbleSection strong {
+  display: block;
+  color: var(--color-text);
+  margin-bottom: 0.5rem;
+  font-size: 14px;
+}
+
+.infoBubbleSection p {
+  margin: 0;
+  color: var(--color-textSecondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.priceRow {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.currencySelect {
+  width: 120px;
+  padding: 0.75rem;
+  background: var(--color-foreground);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 6px;
+  color: var(--color-text);
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.currencySelect:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.priceInput {
+  flex: 1;
+  padding: 0.75rem;
+  background: var(--color-foreground);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 6px;
+  color: var(--color-text);
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.priceInput:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.addButton {
+  padding: 0.75rem 1.25rem;
+  background: var(--color-card);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 6px;
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.addButton:hover {
+  border-color: var(--color-accent);
+  background: var(--color-foreground);
+}
+
+.addonsInfo {
+  margin-top: 1rem;
+}
+
+.addonsInfo strong {
+  display: block;
+  color: var(--color-text);
+  font-size: 14px;
+  margin-bottom: 0.5rem;
+}
+
+.dropdownHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--color-foreground);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.dropdownHeader:hover {
+  border-color: var(--color-accent);
+}
+
+.dropdownHeader span {
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.dropdownArrow {
+  color: var(--color-textSecondary);
+}
+
+.proposalTemplate {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background: var(--color-foreground);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 6px;
+}
+
+.templateSection {
+  margin-bottom: 1.5rem;
+}
+
+.templateSection:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 1rem 0;
+}
+
+.textarea {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--color-card);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 6px;
+  color: var(--color-text);
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  transition: all 0.2s;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.largeTextarea {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--color-card);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 6px;
+  color: var(--color-text);
+  font-size: 14px;
+  font-family: 'Courier New', monospace;
+  resize: vertical;
+  transition: all 0.2s;
+}
+
+.largeTextarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.infoBox {
+  padding: 1rem;
+  background: var(--color-foreground);
+  border: 1px solid var(--color-accent);
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+}
+
+.infoBox p {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mediaPlaceholder {
+  padding: 3rem;
+  background: var(--color-foreground);
+  border: 2px dashed var(--color-cardBorder);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.mediaPlaceholder p {
+  margin: 0;
+  color: var(--color-textSecondary);
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.secondaryButton {
+  padding: 0.75rem 1.25rem;
+  background: var(--color-foreground);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 6px;
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.secondaryButton:hover {
+  border-color: var(--color-accent);
+  background: var(--color-card);
+}
+
+.tagCount {
+  color: var(--color-textSecondary);
+  font-size: 13px;
+}
+
+.tagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-accent);
+  color: var(--color-background);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tagRemove {
+  background: transparent;
+  border: none;
+  color: var(--color-background);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.tagRemove:hover {
+  transform: scale(1.2);
+}
+
+.requestingProcessButtons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.processButton {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-card);
+  border: 2px solid var(--color-cardBorder);
+  border-radius: 6px;
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.processButton:hover {
+  border-color: var(--color-accent);
+  background: var(--color-foreground);
+}
+
+.processButtonActive {
+  background: var(--color-accent);
+  color: var(--color-background);
+  border-color: var(--color-accent);
+}
+
+.processButtonActive:hover {
+  background: var(--color-accentHover);
+  border-color: var(--color-accentHover);
+}
+
+.choiceRow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.choiceSelect {
+  flex: 1;
+  padding: 0.75rem;
+  background: var(--color-card);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 6px;
+  color: var(--color-text);
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.choiceSelect:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.createNewButton {
+  padding: 0.75rem 1.5rem;
+  background: var(--color-accent);
+  color: var(--color-background);
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.createNewButton:hover {
+  background: var(--color-accentHover);
 }

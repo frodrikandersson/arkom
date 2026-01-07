@@ -323,3 +323,11 @@
   margin-top: 1rem;
   margin-bottom: 0.5rem;
 }
+
+.categoryCount {
+  font-size: 0.875rem;
+  color: var(--color-textSecondary);
+  font-weight: normal;
+  opacity: 0.8;
+}
+

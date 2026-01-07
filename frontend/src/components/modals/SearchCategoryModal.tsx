@@ -33,19 +33,30 @@ export const SearchCategoryModal = ({ onClose, onSave, initialData }: SearchCate
     }
   }, [catalogueId]);
 
+  useEffect(() => {
+    if (categoryId) {
+      loadSubCategoryFilters(categoryId);
+    } else {
+      setFilters([]);
+      setSubCategorySelections([]);
+    }
+  }, [categoryId]);
+
   const loadData = async () => {
     try {
-      const [cataloguesData, filtersData] = await Promise.all([
-        searchCategoryApi.getCatalogues(),
-        searchCategoryApi.getSubCategoryFilters(),
-      ]);
+      const cataloguesData = await searchCategoryApi.getCatalogues();
       setCatalogues(cataloguesData);
-      setFilters(filtersData);
 
       // If initial data has catalogueId, load its categories
       if (initialData?.catalogueId) {
         const categoriesData = await searchCategoryApi.getCategoriesByCatalogue(initialData.catalogueId);
         setCategories(categoriesData);
+      }
+
+      // If initial data has categoryId, load its filters
+      if (initialData?.categoryId) {
+        const filtersData = await searchCategoryApi.getCategoryFilters(initialData.categoryId);
+        setFilters(filtersData);
       }
     } catch (error) {
       console.error('Failed to load search category data:', error);
@@ -61,6 +72,15 @@ export const SearchCategoryModal = ({ onClose, onSave, initialData }: SearchCate
       setCategories(categoriesData);
     } catch (error) {
       console.error('Failed to load categories:', error);
+    }
+  };
+
+  const loadSubCategoryFilters = async (categoryId: number) => {
+    try {
+      const filtersData = await searchCategoryApi.getCategoryFilters(categoryId);
+      setFilters(filtersData);
+    } catch (error) {
+      console.error('Failed to load subcategory filters:', error);
     }
   };
 

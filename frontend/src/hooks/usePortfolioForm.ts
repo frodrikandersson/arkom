@@ -17,6 +17,7 @@ export const usePortfolioForm = (existingPortfolio?: Portfolio | null) => {
   const [formData, setFormData] = useState<PortfolioFormData>({
     status: 'draft',
     linkedToCommission: false,
+    commissionServiceId: undefined,
     hasSensitiveContent: false,
     sensitiveContentTypes: [],
     title: '',
@@ -31,6 +32,7 @@ export const usePortfolioForm = (existingPortfolio?: Portfolio | null) => {
       setFormData({
         status: existingPortfolio.status,
         linkedToCommission: existingPortfolio.linkedToCommission,
+        commissionServiceId: existingPortfolio.commissionServiceId,
         hasSensitiveContent: existingPortfolio.hasSensitiveContent,
         sensitiveContentTypes: existingPortfolio.sensitiveContentTypes || [],
         title: existingPortfolio.title,
@@ -206,6 +208,7 @@ export const usePortfolioForm = (existingPortfolio?: Portfolio | null) => {
           tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
           status: formData.status,
           linkedToCommission: formData.linkedToCommission,
+          commissionServiceId: formData.commissionServiceId,
           hasSensitiveContent: hasAnySensitiveMedia,
           sensitiveContentTypeIds: [],
         });
@@ -218,6 +221,7 @@ export const usePortfolioForm = (existingPortfolio?: Portfolio | null) => {
           tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
           status: formData.status,
           linkedToCommission: formData.linkedToCommission,
+          commissionServiceId: formData.commissionServiceId,
           hasSensitiveContent: hasAnySensitiveMedia,
           sensitiveContentTypeIds: [],
         });

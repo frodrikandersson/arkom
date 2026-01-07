@@ -58,7 +58,7 @@ export const useChatWindow = (
 
   const loadMessages = async () => {
     try {
-      const msgs = await getMessages(conversationId);
+      const { messages: msgs } = await getMessages(conversationId);
       setMessages(msgs);
       
       if (userId) {
@@ -102,11 +102,11 @@ export const useChatWindow = (
 
     // Send in background
     try {
-      const sentMessage = await sendMessage(userId, otherUserId, messageContent, messageFile || undefined);
-      
+      const { message: sentMessage } = await sendMessage(userId, otherUserId, messageContent, messageFile || undefined);
+
       // Replace optimistic message with real one
-      setMessages(prev => prev.map(msg => 
-        msg.tempId === tempId 
+      setMessages(prev => prev.map(msg =>
+        msg.tempId === tempId
           ? { ...sentMessage, status: 'sent' as const }
           : msg
       ));
@@ -134,15 +134,15 @@ const retryMessage = async (tempId: string) => {
   ));
 
   try {
-    const sentMessage = await sendMessage(
-      userId, 
-      otherUserId, 
-      failedMsg.content || '', 
+    const { message: sentMessage } = await sendMessage(
+      userId,
+      otherUserId,
+      failedMsg.content || '',
       undefined // Can't retry file uploads easily
     );
-    
-    setMessages(prev => prev.map(msg => 
-      msg.tempId === tempId 
+
+    setMessages(prev => prev.map(msg =>
+      msg.tempId === tempId
         ? { ...sentMessage, status: 'sent' as const }
         : msg
     ));

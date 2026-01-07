@@ -1,4 +1,3 @@
-// src/models/Counter.ts
 export interface LeaderboardEntry {
   user_id: string;
   count: number;

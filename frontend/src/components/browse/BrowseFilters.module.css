@@ -1,0 +1,507 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 40px;
+  position: relative;
+}
+
+/* ==================== CATALOGUE CARDS ==================== */
+.catalogueGrid {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.catalogueCard {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, var(--color-card) 0%, var(--color-foreground) 100%);
+  border: 2px solid var(--color-cardBorder);
+  border-radius: 12px;
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.catalogueCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--color-accent) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.catalogueCard:hover {
+  border-color: var(--color-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.catalogueCard:hover::before {
+  opacity: 0.1;
+}
+
+.catalogueCard.active {
+  border-color: var(--color-accent);
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accentHover) 100%);
+  color: white;
+  box-shadow: 0 4px 20px rgba(0, 217, 255, 0.3);
+}
+
+.catalogueCard.active::before {
+  opacity: 0;
+}
+
+.catalogueName {
+  position: relative;
+  z-index: 1;
+}
+
+.catalogueArrow {
+  position: relative;
+  z-index: 1;
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+}
+
+.catalogueArrow.rotated {
+  transform: rotate(180deg);
+}
+
+/* ==================== DROPDOWN ==================== */
+.dropdown {
+  --arrow-left: 50%;
+  margin-top: 16px;
+  background: var(--color-card);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 16px;
+  overflow: hidden;
+  animation: slideDown 0.3s ease;
+  position: relative;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdownArrow {
+  position: absolute;
+  top: -8px;
+  left: var(--arrow-left);
+  transform: translateX(-50%);
+  width: 16px;
+  height: 16px;
+  background: var(--color-card);
+  border-left: 1px solid var(--color-cardBorder);
+  border-top: 1px solid var(--color-cardBorder);
+  transform: translateX(-50%) rotate(45deg);
+  z-index: 1;
+}
+
+.dropdownHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-cardBorder);
+  background: var(--color-foreground);
+}
+
+.dropdownTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.breadcrumb {
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.clearButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 8px;
+  color: var(--color-textSecondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clearButton:hover {
+  border-color: var(--color-error);
+  color: var(--color-error);
+  background: rgba(255, 77, 77, 0.1);
+}
+
+.clearButton svg {
+  flex-shrink: 0;
+}
+
+/* ==================== CATEGORY SECTION ==================== */
+.categorySection {
+  padding: 20px;
+}
+
+.categoryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.categoryCard {
+  padding: 14px 16px;
+  background: var(--color-background);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 10px;
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.categoryCard:hover {
+  border-color: var(--color-accent);
+  background: var(--color-foreground);
+}
+
+.categoryCard.active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: white;
+  box-shadow: 0 2px 12px rgba(0, 217, 255, 0.25);
+}
+
+.categoryName {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==================== SUB-CATEGORY SECTION ==================== */
+.subCategorySection {
+  padding: 20px;
+  border-top: 1px solid var(--color-cardBorder);
+  background: var(--color-background);
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.subCategoryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.filterBlock {
+  background: var(--color-card);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.filterTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-textSecondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-cardBorder);
+}
+
+.optionGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.optionButton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--color-background);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.optionButton:hover {
+  background: var(--color-foreground);
+  border-color: var(--color-cardBorder);
+}
+
+.optionButton.selected {
+  background: rgba(0, 217, 255, 0.1);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.optionCheckbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-cardBorder);
+  border-radius: 4px;
+  background: var(--color-card);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.optionButton.selected .optionCheckbox {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.optionButton.selected .optionCheckbox svg {
+  color: white;
+}
+
+/* ==================== LOADING & EMPTY STATES ==================== */
+.loadingText,
+.emptyText {
+  font-size: 14px;
+  color: var(--color-textSecondary);
+  padding: 20px;
+  text-align: center;
+}
+
+/* ==================== HIDE BUTTON ==================== */
+.hideButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  background: var(--color-foreground);
+  border: none;
+  border-top: 1px solid var(--color-cardBorder);
+  color: var(--color-textSecondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hideButton:hover {
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+.hideButton svg {
+  transition: transform 0.2s ease;
+}
+
+.hideButton:hover svg {
+  transform: translateY(-2px);
+}
+
+/* ==================== DIVIDER ==================== */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-cardBorder) 20%,
+    var(--color-cardBorder) 80%,
+    transparent 100%
+  );
+}
+
+.dividerText {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-textSecondary);
+  white-space: nowrap;
+  padding: 6px 12px;
+  background: var(--color-card);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 20px;
+}
+
+/* ==================== MOBILE RESPONSIVENESS ==================== */
+@media (max-width: 768px) {
+  .container {
+    margin-bottom: 24px;
+  }
+
+  .catalogueGrid {
+    gap: 8px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 8px;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .catalogueGrid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .catalogueCard {
+    padding: 12px 18px;
+    font-size: 14px;
+    flex-shrink: 0;
+    border-radius: 10px;
+  }
+
+  .dropdown {
+    margin-top: 12px;
+    border-radius: 12px;
+    margin-left: -16px;
+    margin-right: -16px;
+    width: calc(100% + 32px);
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .dropdownArrow {
+    display: none;
+  }
+
+  .dropdownHeader {
+    padding: 14px 16px;
+  }
+
+  .dropdownTitle {
+    font-size: 15px;
+  }
+
+  .clearButton {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .categorySection {
+    padding: 16px;
+  }
+
+  .categoryGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .categoryCard {
+    padding: 12px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+
+  .subCategorySection {
+    padding: 16px;
+  }
+
+  .subCategoryGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .filterBlock {
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  .filterTitle {
+    font-size: 12px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+  }
+
+  .optionButton {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .optionCheckbox {
+    width: 16px;
+    height: 16px;
+  }
+
+  .hideButton {
+    padding: 12px;
+    font-size: 12px;
+  }
+
+  .divider {
+    margin-top: 16px;
+    gap: 12px;
+  }
+
+  .dividerText {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .catalogueCard {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .catalogueArrow {
+    width: 14px;
+    height: 14px;
+  }
+
+  .categoryGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .categoryCard {
+    padding: 10px;
+    font-size: 12px;
+  }
+}

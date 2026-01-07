@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { db } from '../config/db.js';
-import { provenanceAnalysis, artistVerification } from '../config/schema.js';
+import { provenanceAnalysis } from '../config/schema.js';
 import { eq } from 'drizzle-orm';
 import {
   extractMetadata,

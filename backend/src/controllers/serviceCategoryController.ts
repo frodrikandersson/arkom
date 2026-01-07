@@ -1,4 +1,3 @@
-// backend/src/controllers/serviceCategoryController.ts
 import { Request, Response } from 'express';
 import { db } from '../config/db.js';
 import { serviceCategories } from '../config/schema.js';

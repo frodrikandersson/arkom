@@ -1,7 +1,4 @@
-// frontend/src/utils/apiClient.ts
-
 import { config } from '../config/env';
-import { stackClientApp } from '../config/stack';
 
 export class ApiError extends Error {
     constructor(
@@ -23,48 +20,19 @@ interface RequestOptions {
 
 class ApiClient {
     private baseUrl: string;
-    private tokenCache: { token: string | null; timestamp: number } | null = null;
-    private readonly TOKEN_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
     constructor(baseUrl: string) {
         this.baseUrl = baseUrl;
     }
 
-    private async getAccessToken(): Promise<string | undefined> {
-        // Check if we have a valid cached token
-        const now = Date.now();
-        if (this.tokenCache && (now - this.tokenCache.timestamp) < this.TOKEN_CACHE_DURATION) {
-            return this.tokenCache.token ?? undefined;
-        }
-
-        // Fetch fresh token
-        try {
-            const user = await stackClientApp.getUser();
-            if (user) {
-                const authJson = await user.getAuthJson();
-                const token = authJson.accessToken ?? null;
-                
-                // Cache the token
-                this.tokenCache = {
-                    token,
-                    timestamp: now
-                };
-                
-                return token ?? undefined;
-            }
-            
-            // No user logged in
-            this.tokenCache = { token: null, timestamp: now };
-            return undefined;
-        } catch (error) {
-            console.warn('Failed to get access token:', error);
-            return undefined;
-        }
+    private getAccessToken(): string | null {
+        // Get token from localStorage
+        return localStorage.getItem('auth_token');
     }
 
     // Method to clear token cache (call this on logout)
     public clearTokenCache(): void {
-        this.tokenCache = null;
+        localStorage.removeItem('auth_token');
     }
 
     private async request<T>(endpoint: string, options: RequestOptions = {}, retryCount = 0): Promise<T> {
@@ -77,8 +45,8 @@ class ApiClient {
             url += `?${params}`;
         }
 
-        // Get access token (from cache if available)
-        const accessToken = await this.getAccessToken();
+        // Get access token from localStorage
+        const accessToken = this.getAccessToken();
 
         // Build fetch options
         const fetchOptions: RequestInit = {
@@ -106,13 +74,29 @@ class ApiClient {
 
         // Make request
         const res = await fetch(url, fetchOptions);
-        const data = await res.json();
+
+        // Check content type before parsing
+        const contentType = res.headers.get('content-type');
+        let data;
+
+        if (contentType && contentType.includes('application/json')) {
+            data = await res.json();
+        } else {
+            // Not JSON - likely an HTML error page
+            const text = await res.text();
+            throw new ApiError(
+                `Server returned non-JSON response: ${text.substring(0, 100)}...`,
+                res.status
+            );
+        }
 
         // Handle errors
         if (!res.ok) {
             // If 401 and we haven't retried yet, clear token cache and retry once
-            if (res.status === 401 && retryCount === 0 && this.tokenCache) {
+            if (res.status === 401 && retryCount === 0) {
                 this.clearTokenCache();
+                // Wait 500ms for Stack Auth to finish refreshing before retry
+                await new Promise(resolve => setTimeout(resolve, 500));
                 // Retry the request with a fresh token
                 return this.request<T>(endpoint, options, retryCount + 1);
             }

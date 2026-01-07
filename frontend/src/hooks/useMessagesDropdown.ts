@@ -106,10 +106,10 @@ export const useMessagesDropdown = ({ userId, isOpen, onClose, autoOpenData }: U
 
   const loadConversations = async () => {
     if (!userId) return;
-    
+
     try {
       setLoading(true);
-      const conversations = await messageService.getConversations(userId);
+      const { conversations } = await messageService.getConversations(userId);
       setConversations(conversations);
     } catch (err) {
       console.error('Failed to load conversations:', err);

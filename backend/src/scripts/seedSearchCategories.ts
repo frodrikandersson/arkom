@@ -1,4 +1,3 @@
-// backend/src/scripts/seedSearchCategories.ts
 import { db } from '../config/db.js';
 import { catalogues, categories, subCategoryFilters, subCategoryFilterOptions } from '../config/schema.js';
 

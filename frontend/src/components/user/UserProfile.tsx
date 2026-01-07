@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { ArtworkGrid } from '../portfolio/ArtworkGrid';
 import { useUserProfile } from '../../hooks/useUserProfile';
@@ -7,17 +7,30 @@ import { getOrCreateConversation } from '../../services/userService';
 import { OnOpenChatFunction } from '../../models';
 import styles from './UserProfile.module.css';
 import { constructSocialUrl } from '../../utils/socialLinks';
+import { UserServicesGrid } from './UserServicesGrid';
 
 interface UserProfileProps {
   userId: string;
   onOpenChat: OnOpenChatFunction;
 }
 
+type ViewTab = 'portfolio' | 'services';
+
 export const UserProfile = ({ userId, onOpenChat }: UserProfileProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { profile, isLoading, error } = useUserProfile(userId);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Get tab and serviceId from URL params
+  const tabParam = searchParams.get('tab') as ViewTab | null;
+  const serviceIdParam = searchParams.get('serviceId');
+
+  const [activeTab, setActiveTab] = useState<ViewTab>(tabParam === 'services' ? 'services' : 'portfolio');
+  const [selectedServiceId, setSelectedServiceId] = useState<number | null>(
+    serviceIdParam ? parseInt(serviceIdParam) : null
+  );
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
@@ -25,6 +38,33 @@ export const UserProfile = ({ userId, onOpenChat }: UserProfileProps) => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Sync URL params with state when they change
+  useEffect(() => {
+    if (tabParam === 'services') {
+      setActiveTab('services');
+    }
+    if (serviceIdParam) {
+      setSelectedServiceId(parseInt(serviceIdParam));
+    }
+  }, [tabParam, serviceIdParam]);
+
+  const handleTabChange = (tab: ViewTab) => {
+    setActiveTab(tab);
+    setSelectedServiceId(null);
+    // Update URL without the serviceId param
+    if (tab === 'services') {
+      setSearchParams({ tab: 'services' });
+    } else {
+      setSearchParams({});
+    }
+  };
+
+  const handleServiceModalClose = () => {
+    setSelectedServiceId(null);
+    // Remove serviceId from URL but keep tab
+    setSearchParams({ tab: 'services' });
+  };
 
   const handleStartConversation = async () => {
     if (!user || !userId || !profile) return;
@@ -153,9 +193,41 @@ export const UserProfile = ({ userId, onOpenChat }: UserProfileProps) => {
         </div>
       )}
 
-      <div className={styles.portfolio}>
-        <h2>Portfolio</h2>
-        <ArtworkGrid userId={userId} isOwnProfile={isOwnProfile} />
+      {/* Tab Navigation */}
+      <div className={styles.tabNavigation}>
+        <button
+          className={`${styles.tab} ${activeTab === 'portfolio' ? styles.activeTab : ''}`}
+          onClick={() => handleTabChange('portfolio')}
+        >
+          Portfolio
+        </button>
+        <button
+          className={`${styles.tab} ${activeTab === 'services' ? styles.activeTab : ''}`}
+          onClick={() => handleTabChange('services')}
+        >
+          Services
+        </button>
+      </div>
+
+      {/* Content Area */}
+      <div className={styles.content}>
+        {activeTab === 'portfolio' && (
+          <ArtworkGrid userId={userId} isOwnProfile={isOwnProfile} />
+        )}
+        {activeTab === 'services' && (
+          <UserServicesGrid
+            userId={userId}
+            isOwnProfile={isOwnProfile}
+            shopOwner={{
+              id: userId,
+              displayName: profile.displayName,
+              username: profile.username || userId.slice(0, 8),
+              profileImageUrl: profile.profileImageUrl,
+            }}
+            selectedServiceId={selectedServiceId}
+            onServiceModalClose={handleServiceModalClose}
+          />
+        )}
       </div>
 
     </div>

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { db } from '../config/db.js';
 import { userSettings } from '../config/schema.js';
-import { eq, asc, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { AppError } from '../middleware/errorMiddleware.js';
 
@@ -24,7 +24,7 @@ export const checkAdminStatus = asyncHandler(async (req: Request, res: Response)
 export const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
   const { search } = req.query;
 
-  // Join user_settings with neon_auth.users_sync to get email
+  // Join user_settings with user_credentials to get email
   const result = await db.execute(sql`
     SELECT
       us.id,
@@ -36,9 +36,9 @@ export const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
       us.profile_image_url,
       us.is_admin,
       us.updated_at,
-      u.email
+      uc.email
     FROM user_settings us
-    LEFT JOIN neon_auth.users_sync u ON us.user_id = u.id
+    LEFT JOIN user_credentials uc ON us.user_id = uc.user_id
     ORDER BY us.username ASC NULLS LAST
   `);
 

@@ -27,7 +27,9 @@ export interface SubCategoryFilter {
   sortOrder: number;
   isActive: boolean;
   options: SubCategoryFilterOption[];
+  categoryCount?: number;
 }
+
 
 export interface SearchCategoryData {
   isDiscoverable: boolean;

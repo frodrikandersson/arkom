@@ -117,7 +117,15 @@
   right: 16px;
 }
 
+.infoSection {
+  display: flex;
+  flex-direction: row;
+  border-top: 1px solid var(--color-card-border);
+  background: var(--color-foreground);
+}
+
 .info {
+  flex: 1;
   padding: 24px;
   border-bottom: 1px solid var(--color-card-border);
 }
@@ -143,12 +151,19 @@
 }
 
 .tag {
-  background: var(--color-foreground);
-  color: var(--color-text);
-  padding: 4px 12px;
-  border-radius: 16px;
+  background: var(--color-accent);
+  color: var(--color-background);
+  padding: 6px 14px;
+  border-radius: 20px;
   font-size: 12px;
-  border: 1px solid var(--color-card-border);
+  font-weight: 500;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
 }
 
 .thumbnailSection {
@@ -288,4 +303,99 @@
   font-size: 16px;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
   z-index: 10;
+}
+
+/* Service Button Container */
+.serviceButtonContainer {
+  padding: 16px 24px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  border-top: 1px solid var(--color-cardBorder);
+  background: var(--color-foreground);
+}
+
+.serviceButtonSection {
+  display: flex;
+  align-items: flex-end;
+  padding: 24px;
+}
+
+.serviceButton {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  gap: 10px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accentHover) 100%);
+  color: var(--color-background);
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.serviceButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.serviceButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.serviceButton:hover::before {
+  opacity: 1;
+}
+
+.serviceButton:active {
+  transform: translateY(0px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.serviceIcon {
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+.serviceButtonText {
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.servicePrice {
+  padding-left: 12px;
+  margin-left: 12px;
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+@media (max-width: 768px) {
+  .serviceButtonContainer {
+    padding: 12px 16px;
+  }
+
+  .serviceButton {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 18px;
+  }
+
+  .servicePrice {
+    margin-left: auto;
+  }
 }

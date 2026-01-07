@@ -1,4 +1,3 @@
-// frontend/src/services/serviceCategoryService.ts
 import { api } from '../utils/apiClient';
 import { CreateCategoryData, ServiceCategory, SortOrderUpdate, SubCategoryFilter, SubCategoryFilterOption, UpdateCategoryData } from '../models';
 

@@ -1,6 +1,6 @@
 import { db } from '../config/db.js';
 import { userUploadBehavior, artistVerification } from '../config/schema.js';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 export interface BehavioralAnalysisResult {
   score: number; // 0-100 (higher = more trustworthy)
@@ -23,8 +23,8 @@ export interface BehavioralAnalysisResult {
  */
 export async function analyzeBehavior(
     userId: number,
-    currentUploadMethod: 'file' | 'paste',
-    currentFileSize: number
+    _currentUploadMethod: 'file' | 'paste',
+    _currentFileSize: number
 ): Promise<BehavioralAnalysisResult> {
     // Get user's aggregate upload stats
     const behaviorData = await db

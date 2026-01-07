@@ -85,24 +85,18 @@ export const searchUsers = asyncHandler(async (req: Request, res: Response) => {
     blockedUserIds = blocked.map(b => b.blockedUserId);
   }
 
-  // Search users from neon_auth.users_sync with LEFT JOIN to user_settings
+  // Search users from user_settings
   const result = await db.execute(sql`
-    SELECT 
-      u.raw_json->>'id' as id,
-      u.raw_json->>'display_name' as stack_display_name,
-      u.raw_json->>'profile_image_url' as stack_profile_image,
-      u.raw_json->>'primary_email' as primary_email,
-      s.username as custom_username,
-      s.display_name as custom_display_name,
-      s.profile_image_url as custom_profile_image
-    FROM neon_auth.users_sync u
-    LEFT JOIN user_settings s ON u.raw_json->>'id' = s.user_id
-    WHERE 
-      LOWER(u.raw_json->>'display_name') LIKE LOWER(${'%' + query + '%'})
-      OR LOWER(u.raw_json->>'primary_email') LIKE LOWER(${'%' + query + '%'})
-      OR LOWER(u.raw_json->>'id') LIKE LOWER(${'%' + query + '%'})
-      OR LOWER(s.username) LIKE LOWER(${'%' + query + '%'})
-      OR LOWER(s.display_name) LIKE LOWER(${'%' + query + '%'})
+    SELECT
+      user_id as id,
+      username,
+      display_name,
+      profile_image_url
+    FROM user_settings
+    WHERE
+      LOWER(username) LIKE LOWER(${'%' + query + '%'})
+      OR LOWER(display_name) LIKE LOWER(${'%' + query + '%'})
+      OR LOWER(user_id) LIKE LOWER(${'%' + query + '%'})
     LIMIT 20
   `);
 
@@ -112,9 +106,9 @@ export const searchUsers = asyncHandler(async (req: Request, res: Response) => {
     .slice(0, 10)
     .map((row: any) => ({
       id: row.id,
-      username: row.custom_username,
-      displayName: row.custom_display_name || row.stack_display_name || row.primary_email,
-      profileImageUrl: row.custom_profile_image || row.stack_profile_image,
+      username: row.username,
+      displayName: row.display_name || row.username || 'User',
+      profileImageUrl: row.profile_image_url,
     }));
 
   res.json({ users });
@@ -122,30 +116,16 @@ export const searchUsers = asyncHandler(async (req: Request, res: Response) => {
 
 export const getUserProfile = asyncHandler(async (req: Request, res: Response) => {
   const { userId } = req.params;
-  
-  // Fetch user from neon_auth.users_sync table
-  const result = await db.execute(sql`
-    SELECT 
-      raw_json->>'id' as id,
-      raw_json->>'display_name' as display_name,
-      raw_json->>'profile_image_url' as profile_image_url,
-      raw_json->>'primary_email' as primary_email
-    FROM neon_auth.users_sync
-    WHERE raw_json->>'id' = ${userId}
-    LIMIT 1
-  `);
 
-  if (result.rows.length === 0) {
-    throw new AppError(404, 'User not found');
-  }
-
-  const user = result.rows[0] as any;
-  
-  // Get user settings (custom profile data)
+  // Get user settings (primary source for custom auth users)
   const [settings] = await db
     .select()
     .from(userSettings)
     .where(eq(userSettings.userId, userId));
+
+  if (!settings) {
+    throw new AppError(404, 'User not found');
+  }
 
   // Get portfolio count (published only)
   const portfolioCount = await db.execute(sql`
@@ -155,16 +135,16 @@ export const getUserProfile = asyncHandler(async (req: Request, res: Response) =
   `);
 
   const profile = {
-    id: user.id,
-    username: settings?.username || null,
-    displayName: settings?.displayName || user.display_name || user.primary_email,
-    profileImageUrl: settings?.profileImageUrl || user.profile_image_url,
-    bannerImageUrl: settings?.bannerImageUrl || null,
-    bio: settings?.bio || null,
-    location: settings?.location || null,
-    socialLinks: settings?.socialLinks || null,
+    id: userId,
+    username: settings.username || null,
+    displayName: settings.displayName || null,
+    profileImageUrl: settings.profileImageUrl || null,
+    bannerImageUrl: settings.bannerImageUrl || null,
+    bio: settings.bio || null,
+    location: settings.location || null,
+    socialLinks: settings.socialLinks || null,
     portfolioCount: parseInt(portfolioCount.rows[0]?.count as string || '0'),
-    memberSince: settings?.updatedAt || new Date(),
+    memberSince: settings.updatedAt || new Date(),
   };
 
   res.json({ profile });

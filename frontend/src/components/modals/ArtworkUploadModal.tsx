@@ -1,11 +1,11 @@
-import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Portfolio } from '../../models/Portfolio';
-import { FILE_RULES } from '../../../../backend/src/config/fileConstraints';
-import { YouTubeModal } from './YouTubeModal';
-import { YouTubeEmbed } from '../common/YouTubeEmbed';
+import { MediaSelector } from '../common/MediaSelector';
 import { usePortfolioForm } from '../../hooks/usePortfolioForm';
 import styles from './ArtworkUploadModal.module.css';
+import { useEffect, useState } from 'react';
+import { getUserServices } from '../../services/serviceService';
+import { Service } from '../../models';
 
 interface ArtworkUploadModalProps {
   onClose: () => void;
@@ -15,8 +15,8 @@ interface ArtworkUploadModalProps {
 
 export const ArtworkUploadModal = ({ onClose, onUploadComplete, existingPortfolio }: ArtworkUploadModalProps) => {
   const { user } = useAuth();
-  const [showYouTubeModal, setShowYouTubeModal] = useState(false);
-  
+  const [services, setServices] = useState<Service[]>([]);
+
   const {
     formData,
     mediaItems,
@@ -34,6 +34,20 @@ export const ArtworkUploadModal = ({ onClose, onUploadComplete, existingPortfoli
     handleInputChange,
     submitPortfolio,
   } = usePortfolioForm(existingPortfolio);
+
+  // Load user's services
+  useEffect(() => {
+    const loadServices = async () => {
+      try {
+        const { services: fetchedServices } = await getUserServices();
+        // Show all services (not just OPEN ones) for portfolio linking
+        setServices(fetchedServices);
+      } catch (error) {
+        console.error('Failed to load services:', error);
+      }
+    };
+    loadServices();
+  }, []);
 
   const handleUpload = async () => {
     if (!user?.id) return;
@@ -68,129 +82,21 @@ export const ArtworkUploadModal = ({ onClose, onUploadComplete, existingPortfoli
         {/* Media Section */}
         <div className={styles.section}>
           <label className={styles.sectionTitle}>Media</label>
-          <p className={styles.sectionDescription}>
-            {FILE_RULES.PORTFOLIO_MEDIA.description}, or YouTube links (public or unlisted)
-          </p>
-
-          <div 
-            className={styles.mediaBox}
-            onDrop={handleFileDrop}
-            onDragOver={handleDragOverDrop}
-          >
-            {mediaItems.length === 0 ? (
-              <div className={styles.emptyState}>
-                <p className={styles.emptyText}>Drag & drop media here or click the buttons below</p>
-              </div>
-            ) : (
-              <div className={styles.mediaGrid}>
-                {mediaItems.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className={styles.mediaItem}
-                    draggable
-                    onDragStart={() => handleDragStart(index)}
-                    onDragOver={(e) => handleDragOver(e, index)}
-                    onDragEnd={handleDragEnd}
-                  >
-                    {/* Media Preview */}
-                    <div className={styles.mediaPreviewContainer}>
-                      {item.mediaType === 'image' && item.preview && (
-                        <img src={item.preview} alt="Preview" className={styles.mediaPreview} />
-                      )}
-                      {item.mediaType === 'youtube' && (
-                        <div className={styles.youtubePreview}>
-                          {item.youtubeUrl ? (
-                            <YouTubeEmbed
-                              url={item.youtubeUrl}
-                              alt="YouTube preview"
-                              className={styles.mediaPreview}
-                            />
-                          ) : (
-                            <>
-                              <span>▶</span>
-                              <p>YouTube</p>
-                            </>
-                          )}
-                        </div>
-                      )}
-                      <button
-                        onClick={() => handleRemoveMedia(item.id!)}
-                        className={styles.deleteMediaBtn}
-                      >
-                        ×
-                      </button>
-                    </div>
-
-                    {/* Sensitive Content Controls */}
-                    <div className={styles.mediaSensitiveControls}>
-                      <label className={styles.mediaCheckboxLabel}>
-                        <input
-                          type="checkbox"
-                          checked={item.hasSensitiveContent || false}
-                          onChange={() => toggleMediaSensitiveContent(item.id!)}
-                          className={styles.checkbox}
-                        />
-                        Sensitive
-                      </label>
-
-                      {item.hasSensitiveContent && (
-                        <div className={styles.mediaCheckboxGroup}>
-                          <label className={styles.smallCheckboxLabel}>
-                            <input
-                              type="checkbox"
-                              checked={item.sensitiveContentTypes?.includes('gore') || false}
-                              onChange={() => toggleMediaSensitiveType(item.id!, 'gore')}
-                              className={styles.smallCheckbox}
-                            />
-                            Gore
-                          </label>
-                          <label className={styles.smallCheckboxLabel}>
-                            <input
-                              type="checkbox"
-                              checked={item.sensitiveContentTypes?.includes('sexual_nudity_18+') || false}
-                              onChange={() => toggleMediaSensitiveType(item.id!, 'sexual_nudity_18+')}
-                              className={styles.smallCheckbox}
-                            />
-                            18+
-                          </label>
-                          <label className={styles.smallCheckboxLabel}>
-                            <input
-                              type="checkbox"
-                              checked={item.sensitiveContentTypes?.includes('other') || false}
-                              onChange={() => toggleMediaSensitiveType(item.id!, 'other')}
-                              className={styles.smallCheckbox}
-                            />
-                            Other
-                          </label>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className={styles.mediaActions}>
-              <label className={styles.addButton}>
-                <input
-                  type="file"
-                  accept={FILE_RULES.PORTFOLIO_MEDIA.accept}
-                  multiple
-                  onChange={handleImageAdd}
-                  className={styles.hiddenInput}
-                />
-                <span className={styles.cameraIcon}>📷</span>
-              </label>
-              
-              <button
-                type="button"
-                onClick={() => setShowYouTubeModal(true)}
-                className={styles.addButton}
-              >
-                <span className={styles.youtubeIcon}>▶</span>
-              </button>
-            </div>
-          </div>
+          <MediaSelector
+            mediaItems={mediaItems}
+            onMediaAdd={handleImageAdd}
+            onYouTubeAdd={handleYouTubeAdd}
+            onMediaRemove={handleRemoveMedia}
+            onToggleSensitiveContent={toggleMediaSensitiveContent}
+            onToggleSensitiveType={toggleMediaSensitiveType}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+            onFileDrop={handleFileDrop}
+            onDragOverDrop={handleDragOverDrop}
+            showSensitiveControls={true}
+            description="Max 8MB each, JPG, PNG, GIF, WEBP, or YouTube links (public or unlisted)"
+          />
         </div>
 
         <div className={styles.formGroup}>
@@ -240,6 +146,32 @@ export const ArtworkUploadModal = ({ onClose, onUploadComplete, existingPortfoli
           </select>
         </div>
 
+        {/* Service Connection */}
+        <div className={styles.formGroup}>
+          <label className={styles.checkbox}>
+            <input
+              type="checkbox"
+              checked={formData.linkedToCommission}
+              onChange={(e) => handleInputChange('linkedToCommission', e.target.checked)}
+            />
+            <span>Link to a service</span>
+          </label>
+          {formData.linkedToCommission && (
+            <select
+              value={formData.commissionServiceId || ''}
+              onChange={(e) => handleInputChange('commissionServiceId', e.target.value ? Number(e.target.value) : undefined)}
+              className={styles.select}
+            >
+              <option value="">Select a service...</option>
+              {services.map((service) => (
+                <option key={service.id} value={service.id}>
+                  {service.title}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
         <button
           onClick={handleUpload}
           disabled={uploading || mediaItems.length === 0 || !formData.title}
@@ -250,13 +182,6 @@ export const ArtworkUploadModal = ({ onClose, onUploadComplete, existingPortfoli
             : (existingPortfolio ? 'Update Portfolio' : 'Upload Portfolio')
           }
         </button>
-
-        {showYouTubeModal && (
-          <YouTubeModal
-            onClose={() => setShowYouTubeModal(false)}
-            onSave={handleYouTubeAdd}
-          />
-        )}
       </div>
     </div>
   );

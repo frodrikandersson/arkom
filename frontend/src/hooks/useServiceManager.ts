@@ -1,4 +1,3 @@
-// frontend/src/hooks/useServiceManager.ts (updated)
 import { useState, useCallback, useEffect } from 'react';
 import * as serviceCategoryApi from '../services/serviceCategoryService';
 import { ServiceCategory } from '../models';

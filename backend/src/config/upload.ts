@@ -10,7 +10,7 @@ export const createUploadMiddleware = (context: FileUploadContext) => {
   
   return multer({
     storage: multer.memoryStorage(),
-    fileFilter: (req, file, cb) => {
+    fileFilter: (_req, file, cb) => {
       // Now TypeScript knows rules has allowedTypes
       if ((rules.allowedTypes as readonly string[]).includes(file.mimetype)) {
         cb(null, true);

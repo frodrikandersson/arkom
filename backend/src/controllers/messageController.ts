@@ -58,42 +58,31 @@ export const getConversations = asyncHandler(async (req: Request, res: Response)
 
       const otherUserId = conv.participantOneId === userId ? conv.participantTwoId : conv.participantOneId;
 
-      // Fetch other user's details from Stack Auth and user_settings
+      // Fetch other user's details from user_settings
       const result = await db.execute(sql`
         SELECT
-          u.raw_json->>'id' as id,
-          u.raw_json->>'display_name' as stack_display_name,
-          u.raw_json->>'profile_image_url' as stack_profile_image,
-          u.raw_json->>'primary_email' as primary_email,
-          s.username as custom_username,
-          s.display_name as custom_display_name,
-          s.profile_image_url as custom_profile_image
-        FROM neon_auth.users_sync u
-        LEFT JOIN user_settings s ON u.raw_json->>'id' = s.user_id
-        WHERE u.raw_json->>'id' = ${otherUserId}
+          s.user_id as id,
+          s.username,
+          s.display_name,
+          s.profile_image_url
+        FROM user_settings s
+        WHERE s.user_id = ${otherUserId}
         LIMIT 1
       `);
 
-
       const otherUser = result.rows[0] as any;
 
-      // Prioritize custom settings over Stack Auth defaults
-      const displayName = otherUser?.custom_display_name ||
-                          otherUser?.custom_username ||
-                          otherUser?.stack_display_name ||
-                          otherUser?.primary_email ||
+      const displayName = otherUser?.display_name ||
+                          otherUser?.username ||
                           'Unknown User';
 
-
-      const profileImage = otherUser?.custom_profile_image ||
-                          otherUser?.stack_profile_image ||
-                          null;
+      const profileImage = otherUser?.profile_image_url || null;
 
       return {
         conversationId: conv.id,
         otherUserId,
         otherUserName: displayName,
-        otherUserUsername: otherUser?.custom_username || otherUserId.slice(0, 8),
+        otherUserUsername: otherUser?.username || otherUserId.slice(0, 8),
         otherUserAvatar: profileImage,
         lastMessage: lastMessage?.content || '',
         lastMessageAt: conv.lastMessageAt,
@@ -281,19 +270,16 @@ export const sendMessage = asyncHandler(async (req: Request, res: Response) => {
       // Get sender's name
       const senderResult = await db.execute(sql`
         SELECT
-          u.raw_json->>'display_name' as stack_display_name,
-          s.username as custom_username,
-          s.display_name as custom_display_name
-        FROM neon_auth.users_sync u
-        LEFT JOIN user_settings s ON u.raw_json->>'id' = s.user_id
-        WHERE u.raw_json->>'id' = ${senderId}
+          s.username,
+          s.display_name
+        FROM user_settings s
+        WHERE s.user_id = ${senderId}
         LIMIT 1
       `);
 
       const sender = senderResult.rows[0] as any;
-      const senderName = sender?.custom_display_name ||
-                        sender?.custom_username ||
-                        sender?.stack_display_name ||
+      const senderName = sender?.display_name ||
+                        sender?.username ||
                         'Someone';
 
       const notification = await createNotification(

@@ -1,4 +1,3 @@
-// Sensitive Content Types
 export type SensitiveContentType = 'gore' | 'sexual_nudity_18+' | 'other';
 
 export interface SensitiveContentTypeData {
@@ -100,20 +99,23 @@ export interface PortfolioFormData {
 export interface PortfolioMediaUpload {
   id?: string; // Temporary ID for frontend (UUID or timestamp)
   mediaType: MediaType;
-  
+
   // For image uploads
   file?: File;
   preview?: string; // Data URL for preview
-  
+
   // For YouTube links
   youtubeUrl?: string;
-  
+
   // Sorting
   sortOrder: number;
-  
-  // Sensitive content (media-level) - ADD THESE LINES
+
+  // Sensitive content (media-level)
   hasSensitiveContent?: boolean;
   sensitiveContentTypes?: SensitiveContentType[];
+
+  // Reference to existing media (for editing)
+  existingMediaId?: number;
 }
 
 // Commission Service (minimal for dropdown)
@@ -140,4 +142,27 @@ export interface GetPortfoliosResponse {
   success: boolean;
   portfolios: Portfolio[];
   total: number;
+}
+
+export interface CreatePortfolioData {
+  userId: string;
+  title: string;
+  description: string;
+  tags: string[];
+  status: 'draft' | 'published';
+  linkedToCommission: boolean;
+  commissionServiceId?: number;
+  hasSensitiveContent: boolean;
+  sensitiveContentTypeIds: number[];
+}
+
+export interface UpdatePortfolioData {
+  title: string;
+  description: string;
+  tags: string[];
+  status: 'draft' | 'published';
+  linkedToCommission: boolean;
+  commissionServiceId?: number;
+  hasSensitiveContent: boolean;
+  sensitiveContentTypeIds: number[];
 }

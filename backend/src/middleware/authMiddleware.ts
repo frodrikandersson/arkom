@@ -1,29 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import jwksClient from 'jwks-rsa';
-import { AppError } from './errorMiddleware.js';
 
-const STACK_PROJECT_ID = '5c9b9bd7-de3b-41f8-8858-13d1f8ae51c2';
-const JWKS_URI = `https://api.stack-auth.com/api/v1/projects/${STACK_PROJECT_ID}/.well-known/jwks.json`;
-
-// Create JWKS client to fetch public keys for JWT verification
-const client = jwksClient({
-  jwksUri: JWKS_URI,
-  cache: true,
-  rateLimit: true,
-});
-
-// Function to get signing key from JWKS
-function getKey(header: any, callback: any) {
-  client.getSigningKey(header.kid, (err, key) => {
-    if (err) {
-      callback(err);
-      return;
-    }
-    const signingKey = key?.getPublicKey();
-    callback(null, signingKey);
-  });
-}
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this-in-production';
 
 export interface AuthenticatedUser {
   id: string;
@@ -32,7 +10,7 @@ export interface AuthenticatedUser {
 }
 
 /**
- * Middleware to verify JWT token from Stack Auth and attach authenticated user to request
+ * Middleware to verify JWT token and attach authenticated user to request
  */
 export const requireAuth = async (
   req: Request,
@@ -40,7 +18,6 @@ export const requireAuth = async (
   next: NextFunction
 ) => {
   try {
-    
     // Extract token from Authorization header
     const authHeader = req.headers.authorization;
 
@@ -51,16 +28,8 @@ export const requireAuth = async (
 
     const token = authHeader.substring(7);
 
-    // Verify JWT token with Stack Auth's public key
-    const decoded = await new Promise<any>((resolve, reject) => {
-      jwt.verify(token, getKey, {
-        algorithms: ['ES256'],
-        issuer: `https://api.stack-auth.com/api/v1/projects/${STACK_PROJECT_ID}`,
-      }, (err, decoded) => {
-        if (err) reject(err);
-        else resolve(decoded);
-      });
-    });
+    // Verify JWT token with our secret key
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
 
     req.user = {
       id: decoded.sub,
@@ -96,15 +65,8 @@ export const optionalAuth = async (
 
     const token = authHeader.substring(7);
 
-    const decoded = await new Promise<any>((resolve, reject) => {
-      jwt.verify(token, getKey, {
-        algorithms: ['RS256'],
-        issuer: `https://api.stack-auth.com/api/v1/projects/${STACK_PROJECT_ID}`,
-      }, (err, decoded) => {
-        if (err) reject(err);
-        else resolve(decoded);
-      });
-    });
+    // Verify JWT token with our secret key
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
 
     req.user = {
       id: decoded.sub,
