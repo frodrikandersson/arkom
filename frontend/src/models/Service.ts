@@ -59,6 +59,7 @@ export interface ServiceMedia {
   youtubeVideoId: string | null;
   sortOrder: number;
   hasSensitiveContent: boolean;
+  sensitiveContentTypes?: ('gore' | 'sexual_nudity_18+' | 'other')[];
   fileSize: number | null;
   mimeType: string | null;
 }

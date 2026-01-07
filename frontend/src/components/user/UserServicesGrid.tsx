@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { Service } from '../../models';
 import * as serviceApi from '../../services/serviceService';
 import { ServiceViewModal } from '../modals/ServiceViewModal';
+import { SensitiveMediaOverlay } from '../common/SensitiveMediaOverlay';
+import { SensitiveContentType } from '../../models/Portfolio';
 import styles from './UserServicesGrid.module.css';
 
 interface ShopOwner {
@@ -106,10 +108,19 @@ export const UserServicesGrid = ({
           >
             <div className={styles.thumbnail}>
               {service.media && service.media.length > 0 ? (
-                <img
-                  src={service.media[0].fileUrl || service.media[0].thumbnailUrl || ''}
-                  alt={service.title}
-                />
+                <>
+                  <img
+                    src={service.media[0].fileUrl || service.media[0].thumbnailUrl || ''}
+                    alt={service.title}
+                  />
+                  {/* Show mosaic overlay if first media is sensitive */}
+                  {service.media[0].hasSensitiveContent && service.media[0].sensitiveContentTypes && service.media[0].sensitiveContentTypes.length > 0 && (
+                    <SensitiveMediaOverlay
+                      sensitiveContentTypes={service.media[0].sensitiveContentTypes as SensitiveContentType[]}
+                      showRevealButton={false}
+                    />
+                  )}
+                </>
               ) : (
                 <div className={styles.placeholderThumbnail}>
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

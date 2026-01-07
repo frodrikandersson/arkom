@@ -2,7 +2,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { CategoryModal } from '../modals/CategoryModal';
 import { ServiceModal } from '../modals/ServiceModal';
 import { useServiceManager } from '../../hooks/useServiceManager';
-import { createService, uploadServiceMedia, getSensitiveContentTypeIds, getUserServices, updateService, deleteService } from '../../services/serviceService';
+import { createService, uploadServiceMedia, getSensitiveContentTypeIds, getUserServices, updateService, deleteService, updateServiceMediaSensitiveContent } from '../../services/serviceService';
 import styles from './ServiceManager.module.css';
 import { useState, useEffect, useCallback } from 'react';
 import { Service } from '../../models';
@@ -93,8 +93,9 @@ export const ServiceManager = () => {
         serviceId = service.id;
       }
 
-      // Only upload NEW media items (those without existingMediaId)
+      // Handle media items
       if (mediaItems && mediaItems.length > 0) {
+        // Upload NEW media items (those without existingMediaId)
         const newMediaItems = mediaItems.filter((item: any) => !item.existingMediaId);
 
         for (const mediaItem of newMediaItems) {
@@ -103,6 +104,21 @@ export const ServiceManager = () => {
             : [];
 
           await uploadServiceMedia(serviceId, mediaItem, sensitiveContentTypeIds);
+        }
+
+        // Update EXISTING media items' sensitive content
+        const existingMediaItems = mediaItems.filter((item: any) => item.existingMediaId);
+
+        for (const mediaItem of existingMediaItems) {
+          const sensitiveContentTypeIds = mediaItem.hasSensitiveContent && mediaItem.sensitiveContentTypes
+            ? await getSensitiveContentTypeIds(mediaItem.sensitiveContentTypes)
+            : [];
+
+          await updateServiceMediaSensitiveContent(
+            mediaItem.existingMediaId,
+            mediaItem.hasSensitiveContent || false,
+            sensitiveContentTypeIds
+          );
         }
       }
 

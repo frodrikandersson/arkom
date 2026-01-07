@@ -6,7 +6,7 @@ import { AddSocialLinkModal } from '../modals/AddSocialLinkModal';
 import { SocialIcon } from '../common/SocialIcon';
 
 export const ProfileSettings = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const {
     loading,
     saving,
@@ -26,7 +26,7 @@ export const ProfileSettings = () => {
     saveProfile,
     saveSocialLink,
     removeSocialLinkAndSave,
-  } = useProfileSettings(user?.id || null);
+  } = useProfileSettings(user?.id || null, refreshUser);
   const [showAddLinkModal, setShowAddLinkModal] = useState(false);
 
 

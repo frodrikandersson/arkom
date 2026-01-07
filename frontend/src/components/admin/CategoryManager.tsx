@@ -260,7 +260,7 @@ export const CategoryManager = () => {
                     <div className={styles.list}>
                         {categories.map((category, index) => {
                             const assignedFilters = categoryFilters.get(category.id) || [];
-                            const assignedFilterIds = new Set(assignedFilters.map((f: any) => f.filterId));
+                            const assignedFilterIds = new Set(assignedFilters.map((f: any) => f.id));
                             const availableFilters = allFilters.filter(f => !assignedFilterIds.has(f.id));
                             const isExpanded = expandedCategoryId === category.id;
                             const isDraggable = editingId !== category.id && !isExpanded;
@@ -328,10 +328,10 @@ export const CategoryManager = () => {
                                             ) : (
                                                 <div className={styles.assignedFiltersGrid}>
                                                     {assignedFilters.map((filter: any) => (
-                                                        <div key={filter.filterId} className={styles.assignedFilterTag}>
-                                                            {filter.filterName}
+                                                        <div key={filter.id} className={styles.assignedFilterTag}>
+                                                            {filter.name}
                                                             <button
-                                                                onClick={() => handleRemoveFilter(category.id, filter.filterId)}
+                                                                onClick={() => handleRemoveFilter(category.id, filter.id)}
                                                                 className={styles.removeFilterButton}
                                                             >
                                                                 ×

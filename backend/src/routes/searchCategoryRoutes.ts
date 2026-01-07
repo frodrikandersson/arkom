@@ -30,6 +30,7 @@ const router = express.Router();
 router.get('/catalogues', getCatalogues);
 router.get('/catalogues/:catalogueId/categories', getCategoriesByCatalogue);
 router.get('/sub-category-filters', getSubCategoryFilters);
+router.get('/categories/:categoryId/filters', getCategoryFilters);
 
 // Admin routes - requireAuth sets req.user, requireAdmin checks admin status
 router.post('/catalogues', requireAuth, requireAdmin, createCatalogue);
@@ -48,7 +49,6 @@ router.delete('/sub-category-filters/:id', requireAuth, requireAdmin, deleteSubC
 router.put('/sub-category-filter-options/:id', requireAuth, requireAdmin, updateSubCategoryFilterOption);
 router.delete('/sub-category-filter-options/:id', requireAuth, requireAdmin, deleteSubCategoryFilterOption);
 
-router.get('/categories/:categoryId/filters', requireAuth, requireAdmin, getCategoryFilters);
 router.post('/categories/filters/assign', requireAuth, requireAdmin, assignFilterToCategory);
 router.delete('/categories/:categoryId/filters/:filterId', requireAuth, requireAdmin, removeFilterFromCategory);
 

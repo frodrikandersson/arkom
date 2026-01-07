@@ -85,6 +85,18 @@ export const deleteService = async (serviceId: number): Promise<void> => {
   await api.delete(`/api/services/${serviceId}`);
 };
 
+// Update service media sensitive content
+export const updateServiceMediaSensitiveContent = async (
+  mediaId: number,
+  hasSensitiveContent: boolean,
+  sensitiveContentTypeIds: number[]
+): Promise<void> => {
+  await api.put(`/api/services/media/${mediaId}/sensitive-content`, {
+    hasSensitiveContent,
+    sensitiveContentTypeIds,
+  });
+};
+
 // Delete service media
 export const deleteServiceMedia = async (mediaId: number): Promise<void> => {
   await api.delete(`/api/services/media/${mediaId}`);

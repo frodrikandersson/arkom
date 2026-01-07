@@ -116,7 +116,7 @@ export const ServiceModal = ({
         youtubeUrl: m.youtubeUrl || undefined,
         sortOrder: m.sortOrder,
         hasSensitiveContent: m.hasSensitiveContent,
-        sensitiveContentTypes: [],
+        sensitiveContentTypes: m.sensitiveContentTypes || [],
         // Keep reference to existing media for updates
         existingMediaId: m.id,
       }));

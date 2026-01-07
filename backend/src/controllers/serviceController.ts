@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { db } from '../config/db.js';
-import { services, serviceMedia, serviceMediaSensitiveContent, serviceSearchCategories, serviceSubCategorySelections } from '../config/schema.js';
+import { services, serviceMedia, serviceMediaSensitiveContent, serviceSearchCategories, serviceSubCategorySelections, sensitiveContentTypes } from '../config/schema.js';
 import { eq, and, desc } from 'drizzle-orm';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { uploadToR2, deleteFromR2 } from '../config/r2.js';
@@ -10,6 +10,38 @@ import { AppError } from '../middleware/errorMiddleware.js';
 // Helper function to convert price from string to cents
 const convertPriceToCents = (price: string): number => {
   return Math.round(parseFloat(price) * 100);
+};
+
+// Helper function to fetch media with sensitive content types
+const getMediaWithSensitiveContent = async (serviceId: number) => {
+  const media = await db
+    .select()
+    .from(serviceMedia)
+    .where(eq(serviceMedia.serviceId, serviceId))
+    .orderBy(serviceMedia.sortOrder);
+
+  // Get sensitive content types for each media item
+  const mediaWithSensitiveContent = await Promise.all(
+    media.map(async (mediaItem) => {
+      const sensitiveContent = await db
+        .select({
+          type: sensitiveContentTypes.type,
+        })
+        .from(serviceMediaSensitiveContent)
+        .innerJoin(
+          sensitiveContentTypes,
+          eq(serviceMediaSensitiveContent.contentTypeId, sensitiveContentTypes.id)
+        )
+        .where(eq(serviceMediaSensitiveContent.mediaId, mediaItem.id));
+
+      return {
+        ...mediaItem,
+        sensitiveContentTypes: sensitiveContent.map((sc) => sc.type),
+      };
+    })
+  );
+
+  return mediaWithSensitiveContent;
 };
 
 // Create a new service
@@ -279,11 +311,8 @@ export const getUserServices = asyncHandler(async (req: Request, res: Response) 
     // Fetch media and search category data for each service
     const servicesWithData = await Promise.all(
       userServices.map(async (service) => {
-        const media = await db
-          .select()
-          .from(serviceMedia)
-          .where(eq(serviceMedia.serviceId, service.id))
-          .orderBy(serviceMedia.sortOrder);
+        // Get media with sensitive content types
+        const media = await getMediaWithSensitiveContent(service.id);
 
         // Get search category data
         const [searchCategoryRow] = await db
@@ -369,11 +398,8 @@ export const getServicesByType = asyncHandler(async (req: Request, res: Response
     // Fetch media and search category data for each service
     const servicesWithData = await Promise.all(
       allServices.map(async (item) => {
-        const media = await db
-          .select()
-          .from(serviceMedia)
-          .where(eq(serviceMedia.serviceId, item.service.id))
-          .orderBy(serviceMedia.sortOrder);
+        // Get media with sensitive content types
+        const media = await getMediaWithSensitiveContent(item.service.id);
 
         // Get search category data
         const [searchCategoryRow] = await db
@@ -435,14 +461,10 @@ export const getServicesByUserId = asyncHandler(async (req: Request, res: Respon
       .where(eq(services.userId, userId))
       .orderBy(desc(services.createdAt));
 
-    // Fetch media for each service
+    // Fetch media with sensitive content types for each service
     const servicesWithMedia = await Promise.all(
       userServices.map(async (service) => {
-        const media = await db
-          .select()
-          .from(serviceMedia)
-          .where(eq(serviceMedia.serviceId, service.id))
-          .orderBy(serviceMedia.sortOrder);
+        const media = await getMediaWithSensitiveContent(service.id);
 
         return {
           ...service,
@@ -483,12 +505,8 @@ export const getServiceById = asyncHandler(async (req: Request, res: Response) =
       return;
     }
 
-    // Get service media
-    const media = await db
-      .select()
-      .from(serviceMedia)
-      .where(eq(serviceMedia.serviceId, service.id))
-      .orderBy(serviceMedia.sortOrder);
+    // Get service media with sensitive content types
+    const media = await getMediaWithSensitiveContent(service.id);
 
     // Get search category data
     const [searchCategoryRow] = await db
@@ -701,6 +719,58 @@ export const deleteService = asyncHandler(async (req: Request, res: Response) =>
       error: error.message,
     });
   }
+});
+
+// Update service media sensitive content
+export const updateServiceMediaSensitiveContent = asyncHandler(async (req: Request, res: Response) => {
+  const { mediaId } = req.params;
+  const userId = req.user!.id;
+  const mediaIdInt = parseInt(mediaId);
+  const { hasSensitiveContent, sensitiveContentTypeIds } = req.body;
+
+  // Get media with service info
+  const [mediaItem] = await db
+    .select({
+      media: serviceMedia,
+      service: services,
+    })
+    .from(serviceMedia)
+    .innerJoin(services, eq(serviceMedia.serviceId, services.id))
+    .where(eq(serviceMedia.id, mediaIdInt));
+
+  if (!mediaItem) {
+    throw new AppError(404, 'Media not found');
+  }
+
+  if (mediaItem.service.userId !== userId) {
+    throw new AppError(403, 'Forbidden');
+  }
+
+  // Update hasSensitiveContent flag
+  await db
+    .update(serviceMedia)
+    .set({ hasSensitiveContent: hasSensitiveContent ?? false })
+    .where(eq(serviceMedia.id, mediaIdInt));
+
+  // Delete existing sensitive content associations
+  await db
+    .delete(serviceMediaSensitiveContent)
+    .where(eq(serviceMediaSensitiveContent.mediaId, mediaIdInt));
+
+  // Add new sensitive content types if provided
+  if (hasSensitiveContent && sensitiveContentTypeIds && sensitiveContentTypeIds.length > 0) {
+    const sensitiveContentValues = sensitiveContentTypeIds.map((typeId: number) => ({
+      mediaId: mediaIdInt,
+      contentTypeId: typeId,
+    }));
+
+    await db.insert(serviceMediaSensitiveContent).values(sensitiveContentValues);
+  }
+
+  res.json({
+    success: true,
+    message: 'Media sensitive content updated successfully',
+  });
 });
 
 // Delete service media

@@ -2,11 +2,13 @@ export interface User {
   id: string;
   email: string;
   displayName: string | null;
+  profileImageUrl: string | null;
 }
 
 export interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 export interface LoginRequest {
@@ -36,5 +38,6 @@ export interface CurrentUserResponse {
     id: string;
     email: string;
     displayName: string | null;
+    profileImageUrl: string | null;
   };
 }

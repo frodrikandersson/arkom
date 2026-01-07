@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useUserProfile } from '../../hooks/useUserProfile';
 import { defaultDarkTheme, defaultLightTheme, createDefaultCustomTheme } from '../../models/Theme';
 import { SocialFooter } from '../layout/SocialFooter';
 import { ThemeEditorModal } from '../modals/ThemeEditorModal';
@@ -15,9 +14,6 @@ export const UserMenu = () => {
   const [showThemeEditor, setShowThemeEditor] = useState(false);
   const [showConfigure, setShowConfigure] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  // Fetch user profile for custom profile image
-  const { profile } = useUserProfile(user?.id || '');
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -74,7 +70,7 @@ export const UserMenu = () => {
     return 'custom';
   };
 
-  const profileImage = profile?.profileImageUrl || null;
+  const profileImage = user?.profileImageUrl || null;
   const themeToEdit = customTheme || (user ? createDefaultCustomTheme(user.id) : defaultDarkTheme);
 
   return (

@@ -8,7 +8,7 @@ import {
 } from '../services/userService';
 import { SocialLink, UserProfile } from '../models';
 
-export const useProfileSettings = (userId: string | null) => {
+export const useProfileSettings = (userId: string | null, refreshUser?: () => Promise<void>) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string>('');
@@ -230,6 +230,8 @@ export const useProfileSettings = (userId: string | null) => {
           profileInputRef.current.value = '';
         }
         needsReload = true; // Need to reload to get full image data
+        // Refresh auth context so header updates
+        await refreshUser?.();
       }
 
       if (bannerPreview && bannerInputRef.current?.files?.[0]) {

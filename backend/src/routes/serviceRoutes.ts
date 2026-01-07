@@ -8,6 +8,7 @@ import {
   updateService,
   deleteService,
   uploadServiceMedia,
+  updateServiceMediaSensitiveContent,
   deleteServiceMedia,
 } from '../controllers/serviceController.js';
 import { requireAuth } from '../middleware/authMiddleware.js';
@@ -31,6 +32,7 @@ router.delete('/:serviceId', deleteService);
 
 // Service media (handles both images and YouTube URLs)
 router.post('/:serviceId/media', artworkUpload.single('file'), uploadServiceMedia);
+router.put('/media/:mediaId/sensitive-content', updateServiceMediaSensitiveContent);
 router.delete('/media/:mediaId', deleteServiceMedia);
 
 export default router;
