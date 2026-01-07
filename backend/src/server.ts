@@ -15,6 +15,7 @@ import serviceCategoryRoutes from './routes/serviceCategoryRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import searchCategoryRoutes from './routes/searchCategoryRoutes.js';
+import stripeRoutes from './routes/stripeRoutes.js';
 import { errorHandler } from './middleware/errorMiddleware.js';
 
 dotenv.config();
@@ -30,6 +31,10 @@ app.use(cors({
   ],
   credentials: true,
 }));
+
+// Stripe webhook needs raw body - must be before express.json()
+app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
+
 app.use(express.json());
 
 // Routes
@@ -47,6 +52,7 @@ app.use('/api/service', serviceCategoryRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/search-categories', searchCategoryRoutes);
+app.use('/api/stripe', stripeRoutes);
 
 // Error handler MUST be last
 app.use(errorHandler);

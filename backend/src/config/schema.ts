@@ -56,6 +56,12 @@ export const userSettings = pgTable('user_settings', {
   emailNotifications: boolean('email_notifications').default(false),
   pushNotifications: boolean('push_notifications').default(false),
   isAdmin: boolean('is_admin').default(false).notNull(),
+  // Stripe Connect fields
+  stripeAccountId: text('stripe_account_id'), // Stripe Connect account ID (acct_xxx)
+  stripeAccountStatus: text('stripe_account_status').default('not_connected'), // 'not_connected' | 'onboarding' | 'active' | 'restricted'
+  stripeOnboardingComplete: boolean('stripe_onboarding_complete').default(false),
+  stripePayoutsEnabled: boolean('stripe_payouts_enabled').default(false),
+  stripeChargesEnabled: boolean('stripe_charges_enabled').default(false),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
@@ -544,3 +550,106 @@ export const serviceSubCategorySelections = pgTable('service_sub_category_select
 }, (table) => ({
   serviceSearchCategoryIdIdx: index('service_sub_category_selections_service_search_category_id_idx').on(table.serviceSearchCategoryId),
 }));
+
+// ============================================
+// ORDERS & PAYMENTS (Stripe Connect)
+// ============================================
+
+// Orders - tracks all purchases/commissions
+export const orders = pgTable('orders', {
+  id: serial('id').primaryKey(),
+  orderId: text('order_id').notNull().unique(), // UUID for public reference
+
+  // Parties involved
+  buyerId: text('buyer_id').notNull(), // User who placed the order
+  sellerId: text('seller_id').notNull(), // Artist/service provider
+  serviceId: integer('service_id').notNull().references(() => services.id),
+
+  // Order type
+  orderType: text('order_type').notNull(), // 'instant_order' | 'custom_proposal'
+
+  // Pricing (all in cents)
+  subtotalAmount: integer('subtotal_amount').notNull(), // Price before fees
+  platformFeeAmount: integer('platform_fee_amount').notNull(), // Arkom's cut
+  stripeFeeAmount: integer('stripe_fee_amount').default(0), // Stripe processing fee
+  totalAmount: integer('total_amount').notNull(), // What buyer pays
+  sellerPayoutAmount: integer('seller_payout_amount').notNull(), // What seller receives
+  currency: text('currency').notNull().default('EUR'),
+
+  // Stripe payment details
+  stripePaymentIntentId: text('stripe_payment_intent_id'), // pi_xxx
+  stripeTransferId: text('stripe_transfer_id'), // tr_xxx (transfer to seller)
+  stripeChargeId: text('stripe_charge_id'), // ch_xxx
+
+  // Order status
+  status: text('status').notNull().default('pending'),
+  // 'pending' - awaiting payment
+  // 'paid' - payment successful, work can begin
+  // 'in_progress' - seller is working on it
+  // 'delivered' - seller marked as complete
+  // 'completed' - buyer confirmed delivery
+  // 'disputed' - buyer opened a dispute
+  // 'refunded' - order was refunded
+  // 'cancelled' - order was cancelled before payment
+
+  // Payment status
+  paymentStatus: text('payment_status').notNull().default('pending'),
+  // 'pending' | 'processing' | 'succeeded' | 'failed' | 'refunded'
+
+  // Payout status (to seller)
+  payoutStatus: text('payout_status').default('pending'),
+  // 'pending' | 'held' | 'released' | 'paid'
+
+  // Custom proposal fields (for negotiated orders)
+  proposalDetails: json('proposal_details'), // Scope, timeline, special requests
+
+  // Delivery/completion
+  deliveryNotes: text('delivery_notes'),
+  deliveredAt: timestamp('delivered_at'),
+  completedAt: timestamp('completed_at'),
+
+  // Refund info
+  refundAmount: integer('refund_amount'),
+  refundReason: text('refund_reason'),
+  refundedAt: timestamp('refunded_at'),
+  stripeRefundId: text('stripe_refund_id'),
+
+  // Conversation link (for order discussion)
+  conversationId: integer('conversation_id').references(() => conversations.id),
+
+  // Timestamps
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  paidAt: timestamp('paid_at'),
+}, (table) => ({
+  buyerIdIdx: index('orders_buyer_id_idx').on(table.buyerId),
+  sellerIdIdx: index('orders_seller_id_idx').on(table.sellerId),
+  serviceIdIdx: index('orders_service_id_idx').on(table.serviceId),
+  statusIdx: index('orders_status_idx').on(table.status),
+  stripePaymentIntentIdIdx: index('orders_stripe_payment_intent_id_idx').on(table.stripePaymentIntentId),
+}));
+
+// Order status history - tracks all status changes for audit
+export const orderStatusHistory = pgTable('order_status_history', {
+  id: serial('id').primaryKey(),
+  orderId: integer('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
+  fromStatus: text('from_status'),
+  toStatus: text('to_status').notNull(),
+  changedBy: text('changed_by'), // User ID who made the change (null for system)
+  reason: text('reason'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  orderIdIdx: index('order_status_history_order_id_idx').on(table.orderId),
+}));
+
+// Stripe webhook events - log all webhook events for debugging
+export const stripeWebhookEvents = pgTable('stripe_webhook_events', {
+  id: serial('id').primaryKey(),
+  stripeEventId: text('stripe_event_id').notNull().unique(), // evt_xxx
+  eventType: text('event_type').notNull(), // payment_intent.succeeded, account.updated, etc.
+  eventData: json('event_data'), // Full event payload
+  processed: boolean('processed').default(false),
+  processedAt: timestamp('processed_at'),
+  error: text('error'), // Error message if processing failed
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});

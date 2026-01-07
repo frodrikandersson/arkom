@@ -1,0 +1,198 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 1rem;
+}
+
+.modal {
+  background: var(--color-card);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-foreground);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 8px;
+  color: var(--color-textSecondary);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 1;
+}
+
+.closeBtn:hover {
+  background: var(--color-card);
+  color: var(--color-text);
+  border-color: var(--color-accent);
+}
+
+.header {
+  padding: 1.5rem 1.5rem 0;
+  text-align: center;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 0.5rem 0;
+}
+
+.subtitle {
+  color: var(--color-textSecondary);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.content {
+  padding: 1.5rem;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  gap: 1rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-cardBorder);
+  border-top-color: #635bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading p {
+  color: var(--color-textSecondary);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  gap: 1rem;
+  text-align: center;
+}
+
+.errorIcon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(239, 68, 68, 0.1);
+  border: 2px solid var(--color-error);
+  border-radius: 50%;
+  color: var(--color-error);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.errorText {
+  color: var(--color-error);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.retryBtn {
+  padding: 0.75rem 1.5rem;
+  background: var(--color-foreground);
+  color: var(--color-text);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.retryBtn:hover {
+  background: var(--color-card);
+  border-color: var(--color-accent);
+}
+
+.breakdown {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: var(--color-foreground);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 8px;
+}
+
+.breakdownRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.breakdownRow span:first-child {
+  color: var(--color-textSecondary);
+}
+
+.breakdownRow span:last-child {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.breakdownDivider {
+  height: 1px;
+  background: var(--color-cardBorder);
+  margin: 0.5rem 0;
+}
+
+.artistPayout {
+  color: var(--color-success) !important;
+}
+
+@media (max-width: 480px) {
+  .modal {
+    max-height: 100vh;
+    border-radius: 16px 16px 0 0;
+    margin-top: auto;
+  }
+
+  .header {
+    padding: 1.25rem 1.25rem 0;
+  }
+
+  .content {
+    padding: 1.25rem;
+  }
+}

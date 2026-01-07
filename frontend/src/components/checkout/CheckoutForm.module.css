@@ -1,0 +1,119 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.amountSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--color-foreground);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 8px;
+}
+
+.amountLabel {
+  color: var(--color-textSecondary);
+  font-size: 0.95rem;
+}
+
+.amountValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.paymentSection {
+  padding: 1rem;
+  background: var(--color-foreground);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 8px;
+}
+
+.error {
+  padding: 0.75rem 1rem;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.cancelBtn {
+  flex: 1;
+  padding: 0.875rem 1.5rem;
+  background: var(--color-foreground);
+  color: var(--color-text);
+  border: 1px solid var(--color-cardBorder);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelBtn:hover:not(:disabled) {
+  background: var(--color-card);
+  border-color: var(--color-accent);
+}
+
+.cancelBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.payBtn {
+  flex: 2;
+  padding: 0.875rem 1.5rem;
+  background: #635bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.payBtn:hover:not(:disabled) {
+  background: #4f46e5;
+}
+
+.payBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.securityNote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--color-textSecondary);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.securityNote svg {
+  color: var(--color-success);
+}
+
+@media (max-width: 480px) {
+  .actions {
+    flex-direction: column;
+  }
+
+  .cancelBtn,
+  .payBtn {
+    flex: none;
+    width: 100%;
+  }
+}

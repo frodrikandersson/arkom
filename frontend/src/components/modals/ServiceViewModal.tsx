@@ -3,6 +3,7 @@ import { Service } from '../../models/Service';
 import { ServiceCategory } from '../../models';
 import { YouTubeEmbed } from '../common/YouTubeEmbed';
 import { SensitiveMediaOverlay } from '../common/SensitiveMediaOverlay';
+import { CheckoutModal } from '../checkout';
 import { useAuth } from '../../contexts/AuthContext';
 import styles from './ServiceViewModal.module.css';
 
@@ -41,6 +42,7 @@ export const ServiceViewModal = ({
   const [understandsNoGuarantee, setUnderstandsNoGuarantee] = useState(false);
   const [customerName, setCustomerName] = useState(user?.displayName || '');
   const [customerEmail, setCustomerEmail] = useState(user?.email || '');
+  const [showCheckout, setShowCheckout] = useState(false);
   const expandedContentRef = useRef<HTMLDivElement>(null);
 
   const media = service.media || [];
@@ -79,6 +81,30 @@ export const ServiceViewModal = ({
 
   const getRequestingProcessLabel = () => {
     return service.requestingProcess === 'custom_proposal' ? 'Custom proposal' : 'Instant order';
+  };
+
+  const handleSubmitRequest = () => {
+    if (!user) {
+      // Could redirect to login or show login modal
+      return;
+    }
+    // Show checkout modal for payment
+    setShowCheckout(true);
+  };
+
+  const handleCheckoutSuccess = (orderId: string) => {
+    setShowCheckout(false);
+    // Call the parent's onRequestService if provided
+    if (onRequestService) {
+      onRequestService();
+    }
+    // Could also redirect to order page or show success message
+    alert(`Order ${orderId} placed successfully! The artist will be notified.`);
+    onClose();
+  };
+
+  const handleCheckoutCancel = () => {
+    setShowCheckout(false);
   };
 
   return (
@@ -373,10 +399,10 @@ export const ServiceViewModal = ({
                   {/* Row 13: Submit button */}
                   <button
                     className={styles.submitButton}
-                    onClick={onRequestService}
-                    disabled={!understandsNoGuarantee || !customerName || !customerEmail}
+                    onClick={handleSubmitRequest}
+                    disabled={!understandsNoGuarantee || !customerName || !customerEmail || !user}
                   >
-                    Submit Request
+                    {!user ? 'Login to Request' : 'Proceed to Payment'}
                   </button>
 
                   {/* Row 14: Disclaimer */}
@@ -388,6 +414,17 @@ export const ServiceViewModal = ({
             )}
           </div>
         </div>
+
+        {/* Checkout Modal */}
+        {showCheckout && (
+          <CheckoutModal
+            serviceId={service.id}
+            serviceTitle={service.title}
+            orderType={service.requestingProcess as 'custom_proposal' | 'instant_order'}
+            onClose={handleCheckoutCancel}
+            onSuccess={handleCheckoutSuccess}
+          />
+        )}
       </div>
     </div>
   );
