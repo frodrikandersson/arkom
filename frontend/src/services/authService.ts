@@ -16,3 +16,26 @@ export const getCurrentUser = async (): Promise<CurrentUserResponse> => {
 export const logout = (): void => {
   localStorage.removeItem('auth_token');
 };
+
+// Password reset functions
+export interface PasswordResetResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface ValidateTokenResponse {
+  valid: boolean;
+  error?: string;
+}
+
+export const requestPasswordReset = async (email: string): Promise<PasswordResetResponse> => {
+  return api.post<PasswordResetResponse>('/api/auth/forgot-password', { email });
+};
+
+export const resetPassword = async (token: string, password: string): Promise<PasswordResetResponse> => {
+  return api.post<PasswordResetResponse>('/api/auth/reset-password', { token, password });
+};
+
+export const validateResetToken = async (token: string): Promise<ValidateTokenResponse> => {
+  return api.get<ValidateTokenResponse>(`/api/auth/reset-password/${token}`);
+};

@@ -43,6 +43,25 @@
   line-height: 1.4;
 }
 
+.success {
+  background: rgba(40, 167, 69, 0.1);
+  border: 1px solid #28a745;
+  color: #28a745;
+  padding: 0.875rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.description {
+  color: var(--color-textSecondary);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
 .form {
   display: flex;
   flex-direction: column;
@@ -135,6 +154,20 @@
 
 .link:hover {
   color: var(--color-accentHover);
+  text-decoration: underline;
+}
+
+.forgotLink {
+  color: var(--color-textSecondary);
+  text-decoration: none;
+  font-size: 0.8125rem;
+  transition: color 0.2s ease;
+  align-self: flex-end;
+  margin-top: 0.25rem;
+}
+
+.forgotLink:hover {
+  color: var(--color-accent);
   text-decoration: underline;
 }
 

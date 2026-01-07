@@ -191,6 +191,11 @@ interface PaymentReceivedData extends BaseTemplateData {
   transactionUrl?: string;
 }
 
+interface PasswordResetData extends BaseTemplateData {
+  resetUrl: string;
+  expiryMinutes: number;
+}
+
 // Template generators
 const templates = {
   // Generic notification (fallback)
@@ -377,6 +382,34 @@ const templates = {
     `;
     return baseLayout(content, data.frontendUrl);
   },
+
+  // Password reset email
+  password_reset: (data: PasswordResetData): string => {
+    const content = `
+      <p class="greeting">Hi ${data.displayName},</p>
+
+      <p>We received a request to reset your password. Click the button below to create a new password:</p>
+
+      <div class="button-container">
+        <a href="${data.resetUrl}" class="button">Reset Password</a>
+      </div>
+
+      <div class="notification-box warning">
+        <h2 class="notification-title">Link Expires Soon</h2>
+        <p class="notification-message">This link will expire in ${data.expiryMinutes} minutes for security reasons.</p>
+      </div>
+
+      <p class="footer-note">
+        If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
+      </p>
+
+      <p class="footer-note" style="font-size: 12px; color: #999;">
+        If the button doesn't work, copy and paste this link into your browser:<br>
+        <a href="${data.resetUrl}" style="color: #667eea; word-break: break-all;">${data.resetUrl}</a>
+      </p>
+    `;
+    return baseLayout(content, data.frontendUrl);
+  },
 };
 
 // Notification type mapping
@@ -406,4 +439,5 @@ export type {
   CommissionUpdateData,
   NewFollowerData,
   PaymentReceivedData,
+  PasswordResetData,
 };

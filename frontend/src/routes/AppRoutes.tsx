@@ -5,6 +5,8 @@ import { ShopDashboard } from '../pages/ShopDashboard';
 import { AdminDashboard } from '../pages/AdminDashboard';
 import { LoginPage } from '../pages/LoginPage';
 import { SignupPage } from '../pages/SignupPage';
+import { ForgotPasswordPage } from '../pages/ForgotPasswordPage';
+import { ResetPasswordPage } from '../pages/ResetPasswordPage';
 import { CommissionsPage } from '../pages/CommissionsPage';
 import { StorePage } from '../pages/StorePage';
 import { ServicePage } from '../pages/ServicePage';
@@ -33,6 +35,8 @@ export const AppRoutes: React.FC = () => {
           {/* Auth routes (no layout) */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
           {/* Main app routes (with layout) */}
           <Route element={<MainLayout />}>

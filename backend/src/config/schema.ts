@@ -6,6 +6,9 @@ export const userCredentials = pgTable('user_credentials', {
   userId: text('user_id').notNull().unique(), // UUID format
   email: text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
+  // Password reset fields
+  passwordResetToken: text('password_reset_token'),
+  passwordResetTokenExpiry: timestamp('password_reset_token_expiry'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

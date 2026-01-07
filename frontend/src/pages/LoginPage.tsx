@@ -62,6 +62,7 @@ export const LoginPage: React.FC = () => {
               placeholder="Enter your password"
               minLength={8}
             />
+            <Link to="/forgot-password" className={styles.forgotLink}>Forgot password?</Link>
           </div>
 
           <button
