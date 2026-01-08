@@ -37,9 +37,20 @@
     <meta name="theme-color" content="#635bff" />
 
     <!-- Preconnect for Performance -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik+80s+Fade&family=Rubik+Scribble&family=Rubik+Vinyl&family=Rubik+Wet+Paint&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+
+    <!-- Load fonts asynchronously to prevent render blocking -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rubik+80s+Fade&family=Rubik+Scribble&family=Rubik+Vinyl&family=Rubik+Wet+Paint&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap"
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all'; this.onload=null;"
+    >
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Rubik+80s+Fade&family=Rubik+Scribble&family=Rubik+Vinyl&family=Rubik+Wet+Paint&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+    </noscript>
   </head>
   <body>
     <div id="root"></div>
