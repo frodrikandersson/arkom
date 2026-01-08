@@ -1,21 +1,23 @@
 import React, { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
-import { ShopDashboard } from '../pages/ShopDashboard';
-import { AdminDashboard } from '../pages/AdminDashboard';
+
+// Eager load only critical auth pages for fast initial render
 import { LoginPage } from '../pages/LoginPage';
 import { SignupPage } from '../pages/SignupPage';
 import { ForgotPasswordPage } from '../pages/ForgotPasswordPage';
 import { ResetPasswordPage } from '../pages/ResetPasswordPage';
-import { CommissionsPage } from '../pages/CommissionsPage';
-import { StorePage } from '../pages/StorePage';
-import { ServicePage } from '../pages/ServicePage';
-import { NotFoundPage } from '../pages/NotFoundPage';
 
-// Lazy load pages
+// Lazy load all other pages to reduce initial bundle size
 const HomePage = lazy(() => import('../pages/HomePage').then(m => ({ default: m.HomePage })));
+const CommissionsPage = lazy(() => import('../pages/CommissionsPage').then(m => ({ default: m.CommissionsPage })));
+const StorePage = lazy(() => import('../pages/StorePage').then(m => ({ default: m.StorePage })));
+const ServicePage = lazy(() => import('../pages/ServicePage').then(m => ({ default: m.ServicePage })));
+const ShopDashboard = lazy(() => import('../pages/ShopDashboard').then(m => ({ default: m.ShopDashboard })));
+const AdminDashboard = lazy(() => import('../pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 const SettingsPage = lazy(() => import('../pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const UserProfilePage = lazy(() => import('../pages/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
+const NotFoundPage = lazy(() => import('../pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 
 const LoadingFallback = () => (
   <div style={{ 
