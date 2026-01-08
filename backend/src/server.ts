@@ -44,7 +44,7 @@ app.use(helmet({
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https:", "blob:"],
       scriptSrc: ["'self'"],
-      connectSrc: ["'self'", "https://api.arkom.ink", "https://arkom.ink"],
+      connectSrc: ["'self'", "https://api.arkom.ink", "https://arkom.ink", "https://www.arkom.ink"],
     },
   },
   crossOriginEmbedderPolicy: false, // Allow embedding for Stripe
