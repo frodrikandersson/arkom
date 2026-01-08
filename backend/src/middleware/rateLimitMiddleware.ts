@@ -22,10 +22,10 @@ export const apiLimiter = rateLimit({
   },
 });
 
-// Strict rate limiter for auth endpoints - 10 attempts per 15 minutes
+// Strict rate limiter for auth endpoints - 50 attempts per 5 minutes
 export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10,
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 50,
   message: 'Too many authentication attempts, please try again in 15 minutes.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -40,9 +40,9 @@ export const passwordResetLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Message sending limiter - 60 messages per minute
+// Message sending limiter - 60 messages per 20 seconds
 export const messageLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
+  windowMs: 20 * 1000, // 20 seconds
   max: 60,
   message: 'You are sending messages too quickly, please slow down.',
   standardHeaders: true,
@@ -58,9 +58,9 @@ export const uploadLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Stripe payment creation limiter - 10 payment intents per hour
+// Stripe payment creation limiter - 10 payment intents per 30 minutes
 export const paymentLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
+  windowMs: 30 * 60 * 1000, // 30 minutes
   max: 10,
   message: 'Too many payment attempts, please contact support if this is an error.',
   standardHeaders: true,
