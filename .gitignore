@@ -37,3 +37,5 @@ Thumbs.db
 drizzle/
 
 package-lock.json
+
+PRODUCTION_CHECKLIST.md
