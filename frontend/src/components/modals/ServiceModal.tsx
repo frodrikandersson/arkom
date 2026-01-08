@@ -42,7 +42,7 @@ export const ServiceModal = ({
   );
   const [showSearchCategoryModal, setShowSearchCategoryModal] = useState(false);
   const [showError, setShowError] = useState(false);
-  const [errorTimeoutId, setErrorTimeoutId] = useState<number | null>(null);
+  const [errorTimeoutId, setErrorTimeoutId] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   // Setup tab state
   const [serviceType, setServiceType] = useState<ServiceType>(
@@ -181,7 +181,7 @@ export const ServiceModal = ({
       // Set timeout to fade out after 10 seconds
       const timeoutId = setTimeout(() => {
         setShowError(false);
-      }, 10000) as unknown as number;
+      }, 10000);
 
       setErrorTimeoutId(timeoutId);
 
