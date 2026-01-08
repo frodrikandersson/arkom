@@ -57,10 +57,6 @@ app.use(cors({
     'https://www.arkom.ink'
   ],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-stack-publishable-client-key', 'x-stack-project-id', 'x-stack-access-type'],
-  exposedHeaders: ['Content-Length', 'Content-Type'],
-  maxAge: 86400, // 24 hours
 }));
 
 // Stripe webhook needs raw body - must be before express.json()
