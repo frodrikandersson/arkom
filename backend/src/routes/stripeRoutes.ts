@@ -1,5 +1,6 @@
 import express from 'express';
 import { requireAuth } from '../middleware/authMiddleware.js';
+import { paymentLimiter } from '../middleware/rateLimitMiddleware.js';
 import {
   createConnectAccount,
   getConnectAccountStatus,
@@ -33,8 +34,8 @@ router.post('/connect/dashboard-link', requireAuth, createDashboardLink);
 // PAYMENT ROUTES (require auth)
 // ============================================
 
-// Create payment intent for a service
-router.post('/payment/create-intent', requireAuth, createPaymentIntent);
+// Create payment intent for a service (with rate limiting to prevent spam)
+router.post('/payment/create-intent', paymentLimiter, requireAuth, createPaymentIntent);
 
 // ============================================
 // ORDER ROUTES (require auth)

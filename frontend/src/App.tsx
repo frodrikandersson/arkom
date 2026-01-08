@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AppRoutes } from './routes/AppRoutes';
 import { AdminProvider } from './contexts/AdminContext';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 function AppContent() {
   const { isLoading } = useTheme();
@@ -21,15 +22,17 @@ function AppContent() {
 
 export const App: React.FC = () => {
   return (
-    <Suspense fallback={null}>
-      <BrowserRouter>
-        <AuthProvider>
-          <ThemeProvider>
-            <AppContent />
-          </ThemeProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </Suspense>
+    <ErrorBoundary>
+      <Suspense fallback={null}>
+        <BrowserRouter>
+          <AuthProvider>
+            <ThemeProvider>
+              <AppContent />
+            </ThemeProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </Suspense>
+    </ErrorBoundary>
   );
 };
 

@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import dotenv from 'dotenv';
 import healthRoutes from './routes/healthRoutes.js';
 import authRoutes from './routes/authRoutes.js';
@@ -18,11 +19,36 @@ import searchCategoryRoutes from './routes/searchCategoryRoutes.js';
 import stripeRoutes from './routes/stripeRoutes.js';
 import sitemapRoutes from './routes/sitemapRoutes.js';
 import { errorHandler } from './middleware/errorMiddleware.js';
+import {
+  apiLimiter,
+  authLimiter,
+  passwordResetLimiter,
+  paymentLimiter,
+} from './middleware/rateLimitMiddleware.js';
+import { validateEnvironment } from './config/validateEnv.js';
 
 dotenv.config();
 
+// Validate environment variables before starting server
+validateEnvironment();
+
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      scriptSrc: ["'self'"],
+      connectSrc: ["'self'", "https://api.arkom.ink", "https://arkom.ink"],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Allow embedding for Stripe
+}));
 
 app.use(cors({
   origin: [
@@ -38,9 +64,12 @@ app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
 
 app.use(express.json());
 
+// Apply general rate limiting to all API routes
+app.use('/api', apiLimiter);
+
 // Routes
 app.use('/', healthRoutes);
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/themes', themeRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/users', userRoutes);
