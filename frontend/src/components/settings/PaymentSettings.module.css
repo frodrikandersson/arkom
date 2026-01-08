@@ -66,6 +66,13 @@
   color: #635bff;
 }
 
+.stripeBrand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #635bff;
+  letter-spacing: -0.02em;
+}
+
 .statusInfo {
   display: flex;
   align-items: center;

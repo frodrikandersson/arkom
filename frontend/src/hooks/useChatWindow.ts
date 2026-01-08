@@ -23,13 +23,18 @@ export const useChatWindow = (
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const optionsRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previousMessageCountRef = useRef<number>(0);
 
   useEffect(() => {
     loadMessages();
   }, [conversationId]);
 
+  // Only scroll when message count changes (new message), not on every update
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length > previousMessageCountRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+    previousMessageCountRef.current = messages.length;
   }, [messages]);
 
   useEffect(() => {
