@@ -144,7 +144,7 @@ export const createNotification = async (
     // Send email notification if enabled
     if (settings?.emailNotifications) {
       try {
-        const emailResult = await sendNotificationEmail(userId, type, title, message, actionUrl);
+        const emailResult = await sendNotificationEmail(userId, type as any, title, message, actionUrl);
         console.log('Email sent successfully:', emailResult);
       } catch (err) {
         console.error('Email notification failed:', err);
