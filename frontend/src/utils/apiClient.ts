@@ -51,6 +51,7 @@ class ApiClient {
         // Build fetch options
         const fetchOptions: RequestInit = {
             method,
+            credentials: 'include', // Include cookies for CORS requests
             headers: {
                 ...headers,
                 // Add Authorization header if user is logged in
