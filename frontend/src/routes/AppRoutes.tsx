@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
 import { ShopDashboard } from '../pages/ShopDashboard';
 import { AdminDashboard } from '../pages/AdminDashboard';
@@ -10,6 +10,7 @@ import { ResetPasswordPage } from '../pages/ResetPasswordPage';
 import { CommissionsPage } from '../pages/CommissionsPage';
 import { StorePage } from '../pages/StorePage';
 import { ServicePage } from '../pages/ServicePage';
+import { NotFoundPage } from '../pages/NotFoundPage';
 
 // Lazy load pages
 const HomePage = lazy(() => import('../pages/HomePage').then(m => ({ default: m.HomePage })));
@@ -59,7 +60,7 @@ export const AppRoutes: React.FC = () => {
             <Route path="/admin" element={<AdminDashboard />} />
           </Route>
           
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
   );

@@ -1,0 +1,25 @@
+# Arkom - Art Commission Marketplace
+# https://arkom.ink
+
+User-agent: *
+Allow: /
+Allow: /commissions
+Allow: /store
+Allow: /service/*
+Allow: /profile/*
+
+# Disallow private/admin areas
+Disallow: /admin
+Disallow: /shop-dashboard
+Disallow: /settings
+Disallow: /orders
+Disallow: /requests
+
+# Disallow API endpoints
+Disallow: /api/
+
+# Crawl delay (be nice to servers)
+Crawl-delay: 1
+
+# Sitemap location (dynamically generated from backend)
+Sitemap: https://api.arkom.ink/sitemap.xml

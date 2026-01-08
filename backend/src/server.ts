@@ -16,6 +16,7 @@ import serviceRoutes from './routes/serviceRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import searchCategoryRoutes from './routes/searchCategoryRoutes.js';
 import stripeRoutes from './routes/stripeRoutes.js';
+import sitemapRoutes from './routes/sitemapRoutes.js';
 import { errorHandler } from './middleware/errorMiddleware.js';
 
 dotenv.config();
@@ -53,6 +54,7 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/search-categories', searchCategoryRoutes);
 app.use('/api/stripe', stripeRoutes);
+app.use('/', sitemapRoutes); // Sitemap at root level (no /api prefix)
 
 // Error handler MUST be last
 app.use(errorHandler);
