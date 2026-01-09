@@ -43,6 +43,7 @@ export const ServiceModal = ({
   const [showSearchCategoryModal, setShowSearchCategoryModal] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorTimeoutId, setErrorTimeoutId] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Setup tab state
   const [serviceType, setServiceType] = useState<ServiceType>(
@@ -168,7 +169,7 @@ export const ServiceModal = ({
   const validationErrors = getValidationErrors();
   const canPublish = validationErrors.length === 0;
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (!canPublish) {
       // Clear any existing timeout
       if (errorTimeoutId) {
@@ -188,36 +189,41 @@ export const ServiceModal = ({
       return;
     }
 
-    const serviceData = {
-      // Sidebar data
-      categoryId,
-      status,
-      notifyFollowers,
-      slotsData,
-      startDate,
-      endDate,
-      // Setup tab
-      searchCategoryData,
-      serviceType,
-      communicationStyle,
-      requestingProcess,
-      // Details tab
-      serviceName: detailsData.serviceName,
-      currency: detailsData.currency,
-      basePrice: detailsData.basePrice,
-      fixedPrice: detailsData.fixedPrice,
-      proposalScope: detailsData.proposalScope,
-      estimatedStart: detailsData.estimatedStart,
-      guaranteedDelivery: detailsData.guaranteedDelivery,
-      description: detailsData.description,
-      searchTags: detailsData.searchTags,
-      mediaItems,
-      // Other tabs
-      workflowId,
-      requestFormId,
-      termsId,
-    };
-    onSave(serviceData);
+    setIsLoading(true);
+    try {
+      const serviceData = {
+        // Sidebar data
+        categoryId,
+        status,
+        notifyFollowers,
+        slotsData,
+        startDate,
+        endDate,
+        // Setup tab
+        searchCategoryData,
+        serviceType,
+        communicationStyle,
+        requestingProcess,
+        // Details tab
+        serviceName: detailsData.serviceName,
+        currency: detailsData.currency,
+        basePrice: detailsData.basePrice,
+        fixedPrice: detailsData.fixedPrice,
+        proposalScope: detailsData.proposalScope,
+        estimatedStart: detailsData.estimatedStart,
+        guaranteedDelivery: detailsData.guaranteedDelivery,
+        description: detailsData.description,
+        searchTags: detailsData.searchTags,
+        mediaItems,
+        // Other tabs
+        workflowId,
+        requestFormId,
+        termsId,
+      };
+      await onSave(serviceData);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
     const handleSaveSlots = (data: SlotsData) => {
@@ -422,8 +428,9 @@ export const ServiceModal = ({
             <button
               className={styles.publishBtn}
               onClick={handlePublish}
+              disabled={isLoading}
             >
-              {existingService ? 'Save' : 'Publish'}
+              {isLoading ? 'Saving...' : existingService ? 'Save' : 'Publish'}
             </button>
           </div>
         </div>
