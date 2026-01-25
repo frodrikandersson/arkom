@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
+import { MaintenanceGuard } from '../components/guards/MaintenanceGuard';
 
 // Eager load only critical auth pages for fast initial render
 import { LoginPage } from '../pages/LoginPage';
@@ -33,6 +34,7 @@ const LoadingFallback = () => (
 
 export const AppRoutes: React.FC = () => {
   return (
+    <MaintenanceGuard>
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
           {/* Auth routes (no layout) */}
@@ -44,7 +46,7 @@ export const AppRoutes: React.FC = () => {
           {/* Main app routes (with layout) */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<HomePage />} />
-            
+
             {/* Browse routes */}
             <Route path="/commissions" element={<CommissionsPage />} />
             <Route path="/store" element={<StorePage />} />
@@ -61,9 +63,10 @@ export const AppRoutes: React.FC = () => {
             <Route path="/privacy" element={<div style={{ padding: '2rem' }}>Privacy Policy Page</div>} />
             <Route path="/admin" element={<AdminDashboard />} />
           </Route>
-          
+
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
+    </MaintenanceGuard>
   );
 };
