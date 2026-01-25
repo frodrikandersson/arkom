@@ -1,4 +1,4 @@
-import styles from './UnderDevelopmentPage.module.css';
+import styles from "./UnderDevelopmentPage.module.css";
 
 export const UnderDevelopmentPage = () => {
   return (
@@ -8,16 +8,54 @@ export const UnderDevelopmentPage = () => {
         <p className={styles.message}>
           We're working hard to bring you something amazing.
         </p>
-        <p className={styles.submessage}>
-          Check back soon!
-        </p>
+        <p className={styles.submessage}>Check back soon!</p>
         <div className={styles.logo}>
-          <svg width="120" height="32" viewBox="0 0 120 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4.08 25L12.48 7.12H16.44L24.84 25H20.28L18.6 21.16H10.2L8.52 25H4.08ZM11.64 17.8H17.16L14.4 11.56L11.64 17.8Z" fill="currentColor"/>
-            <path d="M27.12 25V7.12H35.28C37.44 7.12 39.08 7.6 40.2 8.56C41.32 9.52 41.88 10.88 41.88 12.64C41.88 14 41.52 15.12 40.8 16C40.12 16.84 39.16 17.4 37.92 17.68L42.36 25H37.56L33.6 18.16H31.32V25H27.12ZM31.32 14.8H34.92C35.8 14.8 36.48 14.6 36.96 14.2C37.44 13.8 37.68 13.24 37.68 12.52C37.68 11.8 37.44 11.24 36.96 10.84C36.48 10.44 35.8 10.24 34.92 10.24H31.32V14.8Z" fill="currentColor"/>
-            <path d="M45.84 25V7.12H50.04V14.32L56.76 7.12H61.92L54.48 14.92L62.4 25H57.12L51.48 17.68L50.04 19.24V25H45.84Z" fill="currentColor"/>
-            <path d="M72.12 25.36C70.12 25.36 68.36 24.92 66.84 24.04C65.32 23.12 64.14 21.88 63.3 20.32C62.5 18.76 62.1 16.96 62.1 14.92V14.8C62.1 12.76 62.5 10.96 63.3 9.4C64.14 7.84 65.3 6.62 66.78 5.74C68.3 4.82 70.06 4.36 72.06 4.36C74.06 4.36 75.82 4.8 77.34 5.68C78.86 6.56 80.04 7.78 80.88 9.34C81.72 10.86 82.14 12.64 82.14 14.68V14.8C82.14 16.88 81.72 18.7 80.88 20.26C80.04 21.82 78.86 23.04 77.34 23.92C75.86 24.88 74.1 25.36 72.12 25.36ZM72.12 21.76C73.2 21.76 74.14 21.5 74.94 20.98C75.74 20.42 76.36 19.66 76.8 18.7C77.24 17.7 77.46 16.54 77.46 15.22V15.1C77.46 13.78 77.24 12.64 76.8 11.68C76.36 10.72 75.72 9.98 74.88 9.46C74.08 8.9 73.14 8.62 72.06 8.62C70.98 8.62 70.02 8.88 69.18 9.4C68.38 9.92 67.76 10.66 67.32 11.62C66.88 12.58 66.66 13.72 66.66 15.04V15.16C66.66 16.48 66.88 17.64 67.32 18.64C67.76 19.6 68.4 20.36 69.24 20.92C70.08 21.48 71.04 21.76 72.12 21.76Z" fill="currentColor"/>
-            <path d="M85.68 25V7.12H94.44L98.52 18.16L102.6 7.12H111.36V25H107.16V12.04L102.36 25H94.68L89.88 12.04V25H85.68Z" fill="currentColor"/>
+          <svg
+            width="120"
+            height="32"
+            viewBox="0 0 120 32"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            role="img"
+            aria-label="Arkom Logo"
+          >
+            <title>Arkom</title>
+            <path
+              d="M8 24L14 8L20 24M10 19H18"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M28 24V8H34C36 8 38 10 38 12C38 14 36 16 34 16H28M34 16L38 24"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M46 24V8M46 16L54 8M46 16L54 24"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <circle
+              cx="68"
+              cy="16"
+              r="8"
+              stroke="currentColor"
+              strokeWidth="2"
+              fill="none"
+            />
+            <path
+              d="M82 24V8L88 16L94 8V24"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </div>
       </div>
